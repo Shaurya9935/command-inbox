@@ -1,14 +1,10 @@
 import 'dotenv/config'
 import { corsair } from "./corsair"
+import { getCorsairTenant } from './corsair-client';
 
 const main = async () => {
-    const res = await corsair.gmail.db.threads.search({
-        data:{
-            snippet: {
-                contains: "jio"
-            }
-        }
-    });
+    const tenant = await getCorsairTenant();
+    const res = await tenant.gmail.db.threads.list({})
     console.log(res)
 }
 

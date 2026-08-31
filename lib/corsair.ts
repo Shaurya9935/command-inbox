@@ -16,4 +16,5 @@ export const corsair = createCorsair({
     gmail(),
     googlecalendar()
   ],
+  multiTenancy: true,
 });
