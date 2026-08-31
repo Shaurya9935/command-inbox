@@ -9,10 +9,16 @@
     "lint": "eslint",
     "db:generate": "npx drizzle-kit generate",
     "db:migrate": "npx drizzle-kit migrate",
-    "db:studio": "drizzle-kit studio"
+    "db:studio": "drizzle-kit studio",
+    "test-script": "tsx lib/test.ts"
   },
   "dependencies": {
+    "@corsair-dev/cli": "^0.1.20",
+    "@corsair-dev/github": "^0.1.18",
+    "@corsair-dev/gmail": "^0.1.5",
+    "@corsair-dev/googlecalendar": "^0.1.6",
     "better-auth": "^1.7.2",
+    "corsair": "^0.1.122",
     "dotenv": "^17.4.2",
     "drizzle-orm": "1.0.0-rc.4",
     "next": "16.3.3",
