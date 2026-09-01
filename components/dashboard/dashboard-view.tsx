@@ -1,7 +1,7 @@
 "use client";
 
-import React, { useState } from "react";
-import { View, Email, CalendarEvent, UserProfile, ServiceConnection } from "./types";
+import React, { useState, useMemo } from "react";
+import { View, Email, CalendarEvent, UserProfile, ServiceConnection, FocusItem } from "./types";
 import { Sidebar } from "./sidebar";
 import { TopBar } from "./top-bar";
 import { DefaultWorkspace } from "./default-workspace";
@@ -10,11 +10,11 @@ import { CalendarView } from "./calendar-view";
 import { RightPanel } from "./right-panel";
 import {
   CURRENT_USER,
-  EMAILS,
   EVENTS,
   FOCUS_ITEMS,
   SERVICE_CONNECTIONS,
 } from "./mock-data";
+import { useGmailThreads, GmailThread } from "@/hooks/use-gmail";
 
 export interface DashboardViewProps {
   initialUser?: UserProfile;
@@ -23,9 +23,54 @@ export interface DashboardViewProps {
   connections?: ServiceConnection[];
 }
 
+const PALETTE_COLORS = ["#8B72BE", "#5B8FAB", "#B07D4E", "#5549C0", "#3E7868", "#C5B49A"];
+
+function mapThreadToEmail(thread: GmailThread, index: number): Email {
+  const data = thread?.data || thread || {};
+  const id = thread?.entity_id || thread?.id || data?.id || `thread-${index}`;
+  const snippet = data?.snippet || thread?.snippet || "";
+  const from = data?.from || thread?.from || "Gmail User";
+  const subject =
+    data?.subject ||
+    thread?.subject ||
+    (snippet ? (snippet.length > 40 ? snippet.slice(0, 40) + "…" : snippet) : `Thread #${String(id).slice(0, 6)}`);
+  const preview = snippet || data?.body || "No preview available";
+
+  const initials =
+    from
+      .split(" ")
+      .map((w: string) => w[0])
+      .filter(Boolean)
+      .slice(0, 2)
+      .join("")
+      .toUpperCase() || "GM";
+
+  const color = PALETTE_COLORS[index % PALETTE_COLORS.length];
+
+  const dateVal = thread?.created_at || thread?.updated_at || data?.createdAt;
+  const time = dateVal
+    ? new Date(dateVal).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })
+    : "Recent";
+
+  const unread = data?.unread !== undefined ? Boolean(data?.unread) : true;
+  const tag = data?.tag || (unread ? "Needs reply" : "Inbox");
+
+  return {
+    id,
+    from,
+    initials,
+    color,
+    subject,
+    preview,
+    time,
+    unread,
+    tag,
+  };
+}
+
 export function DashboardView({
   initialUser = CURRENT_USER,
-  initialEmails = EMAILS,
+  initialEmails = [],
   initialEvents = EVENTS,
   connections = SERVICE_CONNECTIONS,
 }: DashboardViewProps) {
@@ -33,8 +78,25 @@ export function DashboardView({
   const [view, setView] = useState<View>("default");
   const [selectedEmail, setSelectedEmail] = useState<Email | null>(null);
   const [statusOpen, setStatusOpen] = useState(false);
-  const [emails, setEmails] = useState<Email[]>(initialEmails);
+  const [readEmailIds, setReadEmailIds] = useState<Set<string | number>>(new Set());
   const [events] = useState<CalendarEvent[]>(initialEvents);
+
+  // Fetch threads using the useGmailThreads hook
+  const { threads, isLoading } = useGmailThreads();
+
+  // Map API threads to UI emails format, applying local read overrides
+  const emails: Email[] = useMemo(() => {
+    if (!Array.isArray(threads) || threads.length === 0) {
+      return initialEmails;
+    }
+    return threads.map((thread, idx) => {
+      const email = mapThreadToEmail(thread, idx);
+      if (readEmailIds.has(email.id)) {
+        return { ...email, unread: false };
+      }
+      return email;
+    });
+  }, [threads, initialEmails, readEmailIds]);
 
   const goBack = () => {
     setView("default");
@@ -44,10 +106,7 @@ export function DashboardView({
   const openEmail = (e: Email) => {
     setSelectedEmail(e);
     setView("email");
-    // Mark as read when opened
-    setEmails((prev) =>
-      prev.map((item) => (item.id === e.id ? { ...item, unread: false } : item))
-    );
+    setReadEmailIds((prev) => new Set(prev).add(e.id));
   };
 
   const openCalendar = () => {
@@ -75,6 +134,22 @@ export function DashboardView({
     }
   };
 
+  const dynamicFocusItems: FocusItem[] = useMemo(() => {
+    const unreadCount = emails.filter((e) => e.unread).length;
+    return [
+      {
+        count: String(unreadCount || emails.length || 0),
+        label: "emails need attention",
+        action: "email",
+      },
+      FOCUS_ITEMS[1] || { count: "4", label: "meetings today", action: "calendar" },
+      FOCUS_ITEMS[2] || { count: "2", label: "drafts waiting", action: "email" },
+      FOCUS_ITEMS[3] || { count: "24m", label: "until Team sync", action: "calendar" },
+    ];
+  }, [emails]);
+
+  const inboxBadgeCount = emails.filter((e) => e.unread).length || emails.length || 0;
+
   return (
     <div
       style={{
@@ -93,6 +168,7 @@ export function DashboardView({
         onOpenCalendar={openCalendar}
         onGoBack={goBack}
         user={initialUser}
+        inboxBadge={inboxBadgeCount}
       />
 
       {/* ── Center Area ── */}
@@ -141,8 +217,9 @@ export function DashboardView({
               }}
               onSendCommand={handleSendCommand}
               user={initialUser}
-              focusItems={FOCUS_ITEMS}
+              focusItems={dynamicFocusItems}
               emails={emails}
+              isLoading={isLoading}
             />
           )}
         </div>

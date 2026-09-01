@@ -3,7 +3,7 @@ export type View = "default" | "email" | "calendar" | "command";
 export type EventType = "focus" | "meeting" | "personal";
 
 export interface Email {
-  id: number;
+  id: number | string;
   from: string;
   initials: string;
   color: string;

@@ -17,6 +17,7 @@ export interface DefaultWorkspaceProps {
   user?: UserProfile;
   focusItems?: FocusItem[];
   emails?: Email[];
+  isLoading?: boolean;
 }
 
 export function DefaultWorkspace({
@@ -27,6 +28,7 @@ export function DefaultWorkspace({
   user = CURRENT_USER,
   focusItems,
   emails,
+  isLoading,
 }: DefaultWorkspaceProps) {
   const [commandInput, setCommandInput] = useState("");
 
@@ -150,6 +152,7 @@ export function DefaultWorkspace({
         {/* Needs Attention */}
         <NeedsAttention
           emails={emails}
+          isLoading={isLoading}
           onSelectEmail={onSelectEmail}
           onViewInbox={onSelectInbox || (() => {})}
         />

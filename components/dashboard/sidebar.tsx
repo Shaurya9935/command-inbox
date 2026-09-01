@@ -24,6 +24,7 @@ export interface SidebarProps {
   onOpenCalendar: () => void;
   onGoBack: () => void;
   user?: UserProfile;
+  inboxBadge?: number;
 }
 
 function NavSection({
@@ -120,6 +121,7 @@ export function Sidebar({
   onOpenCalendar,
   onGoBack,
   user = CURRENT_USER,
+  inboxBadge = 12,
 }: SidebarProps) {
   return (
     <aside
@@ -177,7 +179,7 @@ export function Sidebar({
             icon={InboxIcon}
             label="Inbox"
             active={activeNav === "inbox"}
-            badge={12}
+            badge={inboxBadge}
             onClick={() => {
               onSelectNav("inbox");
               onGoBack();

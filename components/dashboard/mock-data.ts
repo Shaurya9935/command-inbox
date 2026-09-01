@@ -1,5 +1,4 @@
 import {
-  Email,
   CalendarEvent,
   EventType,
   EventColorSpec,
@@ -14,45 +13,6 @@ export const CURRENT_USER: UserProfile = {
   initials: "SG",
   color: "#5549C0",
 };
-
-export const EMAILS: Email[] = [
-  {
-    id: 1,
-    from: "Sarah Chen",
-    initials: "SC",
-    color: "#8B72BE",
-    subject: "Project update for tomorrow",
-    preview:
-      "Hey, just wanted to share the latest design revisions before our call. The new screens look great but I have a few notes on the flow.",
-    time: "4:12 PM",
-    unread: true,
-    tag: "Needs reply",
-  },
-  {
-    id: 2,
-    from: "Alex Morgan",
-    initials: "AM",
-    color: "#5B8FAB",
-    subject: "Can we move our meeting?",
-    preview:
-      "Would 3 PM work instead? I have a conflict earlier in the afternoon that just came up — totally fine if not.",
-    time: "2:48 PM",
-    unread: true,
-    tag: "Needs reply",
-  },
-  {
-    id: 3,
-    from: "James Whitfield",
-    initials: "JW",
-    color: "#B07D4E",
-    subject: "Invoice #2847 — due Friday",
-    preview:
-      "Please find attached the invoice for last month's work. Let me know if you need anything adjusted before Friday.",
-    time: "9:05 AM",
-    unread: false,
-    tag: "Action needed",
-  },
-];
 
 export const EVENTS: CalendarEvent[] = [
   {
