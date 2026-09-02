@@ -51,8 +51,12 @@ export function LoginForm() {
     if (error) {
       setFormError(error.message || "Invalid email or password.");
     } else {
-      router.push("/");
+      router.push("/dashboard");
     }
+  }
+
+  async function handleGoogle() {
+    await authClient.signIn.social({ provider: "google", callbackURL: "/dashboard" });
   }
 
   function err(f: string) {
@@ -177,6 +181,7 @@ export function LoginForm() {
         {/* Google SSO */}
         <button
           type="button"
+          onClick={handleGoogle}
           className="w-full h-9 flex items-center justify-center gap-2 rounded-[7px] text-[13.5px] font-medium text-[#242424] bg-white border border-[#E5E1D8] hover:bg-[#F8F6F0] hover:border-[#C8C3BA] transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#245C4A] focus-visible:ring-offset-2 active:scale-[0.99] cursor-pointer"
         >
           <GoogleIcon />

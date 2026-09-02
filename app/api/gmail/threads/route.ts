@@ -8,6 +8,13 @@ export async function GET() {
 
         return NextResponse.json(threads);
     } catch(error) {
+        const message = error instanceof Error ? error.message : String(error);
+        if (message === "Unauthorized") {
+            return NextResponse.json(
+                {error: "Unauthorized"},
+                {status: 401}
+            )
+        }
         console.error(error);
 
         return NextResponse.json(

@@ -18,7 +18,6 @@ export async function POST(request: Request) {
   const { connectUrl } = await corsair.manage.connect.createLink({
     plugin: "gmail",
     tenantId,
-    oauthMode: "byo",
   });
 
   return Response.json({ connectUrl });
