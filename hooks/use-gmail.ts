@@ -27,6 +27,21 @@ export interface GmailThread {
   body?: string;
 }
 
+function extractThreads(data: unknown): GmailThread[] {
+  if (Array.isArray(data)) {
+    return data;
+  }
+  if (
+    data &&
+    typeof data === "object" &&
+    "threads" in data &&
+    Array.isArray((data as { threads: unknown }).threads)
+  ) {
+    return (data as { threads: GmailThread[] }).threads;
+  }
+  return [];
+}
+
 export function useGmailThreads() {
   const [threads, setThreads] = useState<GmailThread[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
@@ -41,14 +56,11 @@ export function useGmailThreads() {
         const errorData = (await res.json().catch(() => null)) as { error?: string } | null;
         throw new Error(errorData?.error || `Failed to fetch threads (${res.status})`);
       }
-      const data = (await res.json()) as GmailThread[] | { error?: string };
-      if (Array.isArray(data)) {
-        setThreads(data);
-      } else if (data && typeof data === "object" && "error" in data && data.error) {
-        throw new Error(data.error);
-      } else {
-        setThreads([]);
+      const data: unknown = await res.json();
+      if (data && typeof data === "object" && "error" in data && (data as { error: string }).error) {
+        throw new Error((data as { error: string }).error);
       }
+      setThreads(extractThreads(data));
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : "Failed to load Gmail threads";
       console.error("useGmailThreads error:", err);
@@ -69,15 +81,12 @@ export function useGmailThreads() {
           const errorData = (await res.json().catch(() => null)) as { error?: string } | null;
           throw new Error(errorData?.error || `Failed to fetch threads (${res.status})`);
         }
-        const data = (await res.json()) as GmailThread[] | { error?: string };
+        const data: unknown = await res.json();
         if (!ignore) {
-          if (Array.isArray(data)) {
-            setThreads(data);
-          } else if (data && typeof data === "object" && "error" in data && data.error) {
-            throw new Error(data.error);
-          } else {
-            setThreads([]);
+          if (data && typeof data === "object" && "error" in data && (data as { error: string }).error) {
+            throw new Error((data as { error: string }).error);
           }
+          setThreads(extractThreads(data));
         }
       } catch (err: unknown) {
         if (!ignore) {
