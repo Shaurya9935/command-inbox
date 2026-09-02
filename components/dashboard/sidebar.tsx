@@ -142,8 +142,14 @@ export function Sidebar({
     : user;
 
   async function handleLogout() {
-    await authClient.signOut();
-    router.push("/login");
+    await authClient.signOut({
+      fetchOptions: {
+        onSuccess: () => {
+          router.push("/login");
+          router.refresh();
+        },
+      },
+    });
   }
 
   return (
