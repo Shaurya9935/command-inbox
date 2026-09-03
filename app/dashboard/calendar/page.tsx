@@ -7,12 +7,14 @@ import { RightPanel } from "@/components/dashboard/right-panel";
 import { CalendarIcon, SearchIcon } from "@/components/dashboard/icons";
 import { CalendarWorkspace } from "@/components/calendar";
 import { useGmailThreads } from "@/hooks/use-gmail";
+import { useCalendarEvents } from "@/hooks/use-calendar";
 
 export default function CalendarPage() {
   const router = useRouter();
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const { threads } = useGmailThreads();
+  const { events, todayEvents, isSyncing, sync, lastSyncedAt } = useCalendarEvents();
 
   const unreadCount = Array.isArray(threads)
     ? threads.filter((t) => t.unread || t.data?.unread).length
@@ -138,17 +140,77 @@ export default function CalendarPage() {
                 }}
               />
             </div>
+
+            {/* Last synced label */}
+            {lastSyncedAt && !isSyncing && (
+              <span
+                style={{
+                  fontSize: 11.5,
+                  color: "#B8B3AB",
+                  fontFamily: "var(--font-ui, 'DM Sans', system-ui, sans-serif)",
+                  whiteSpace: "nowrap",
+                }}
+              >
+                Synced{" "}
+                {(() => {
+                  const diffMs = Date.now() - lastSyncedAt.getTime();
+                  const diffMin = Math.floor(diffMs / 60000);
+                  if (diffMin < 1) return "just now";
+                  if (diffMin === 1) return "1 min ago";
+                  return `${diffMin} min ago`;
+                })()}
+              </span>
+            )}
+
+            {/* Sync / Refresh button */}
+            <button
+              onClick={() => sync()}
+              disabled={isSyncing}
+              title="Fetch latest events from Google Calendar"
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: 6,
+                padding: "7px 14px",
+                background: isSyncing ? "#7B6ED8" : "#5549C0",
+                color: "#FFFFFF",
+                border: "none",
+                borderRadius: 8,
+                fontSize: 12.5,
+                fontWeight: 500,
+                cursor: isSyncing ? "default" : "pointer",
+                opacity: isSyncing ? 0.85 : 1,
+                fontFamily: "var(--font-ui, 'DM Sans', system-ui, sans-serif)",
+                transition: "background 0.15s, opacity 0.15s",
+              }}
+            >
+              <svg
+                width="13"
+                height="13"
+                viewBox="0 0 16 16"
+                fill="none"
+                style={{
+                  animation: isSyncing ? "spin 0.8s linear infinite" : "none",
+                  opacity: isSyncing ? 1 : 0.75,
+                }}
+              >
+                <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
+                <circle cx="8" cy="8" r="6" stroke="rgba(255,255,255,0.35)" strokeWidth="1.8" />
+                <path d="M8 2a6 6 0 016 6" stroke="white" strokeWidth="1.8" strokeLinecap="round" />
+              </svg>
+              {isSyncing ? "Syncing…" : "Refresh"}
+            </button>
           </div>
         </header>
 
         {/* ── Calendar Workspace ── */}
         <div style={{ flex: 1, display: "flex", flexDirection: "column", overflow: "hidden" }}>
-          <CalendarWorkspace />
+          <CalendarWorkspace initialEvents={events} />
         </div>
       </div>
 
       {/* ── Right Context Panel ── */}
-      <RightPanel onOpenCalendar={() => {}} />
+      <RightPanel events={todayEvents} onOpenCalendar={() => {}} />
     </div>
   );
 }

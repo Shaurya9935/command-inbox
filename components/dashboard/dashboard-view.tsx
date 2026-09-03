@@ -16,6 +16,7 @@ import {
   SERVICE_CONNECTIONS,
 } from "./mock-data";
 import { useGmailThreads, GmailThread } from "@/hooks/use-gmail";
+import { useCalendarEvents } from "@/hooks/use-calendar";
 
 export interface DashboardViewProps {
   initialUser?: UserProfile;
@@ -128,6 +129,7 @@ export function DashboardView({
 
   // Fetch threads using the useGmailThreads hook
   const { threads, isLoading } = useGmailThreads();
+  const { todayEvents, nextEvent: calendarNextEvent } = useCalendarEvents();
 
   // Map API threads to UI emails format, applying local read overrides
   const emails: Email[] = useMemo(() => {
@@ -185,17 +187,42 @@ export function DashboardView({
 
   const dynamicFocusItems: FocusItem[] = useMemo(() => {
     const unreadCount = emails.filter((e) => e.unread).length;
+    const meetingCount = todayEvents.length;
+
+    let nextMeetingStr = "24m";
+    let nextMeetingLabel = "until Team sync";
+
+    if (calendarNextEvent?.startIso) {
+      const diffMin = Math.max(
+        0,
+        Math.round(
+          (new Date(calendarNextEvent.startIso).getTime() - Date.now()) / 60000
+        )
+      );
+      if (diffMin < 60) nextMeetingStr = `${diffMin}m`;
+      else nextMeetingStr = `${Math.floor(diffMin / 60)}h`;
+      nextMeetingLabel = `until ${calendarNextEvent.label}`;
+    }
+
     return [
       {
         count: String(unreadCount || emails.length || 0),
         label: "emails need attention",
         action: "email",
       },
-      FOCUS_ITEMS[1] || { count: "4", label: "meetings today", action: "calendar" },
+      {
+        count: String(meetingCount),
+        label: meetingCount === 1 ? "meeting today" : "meetings today",
+        action: "calendar",
+      },
       FOCUS_ITEMS[2] || { count: "2", label: "drafts waiting", action: "email" },
-      FOCUS_ITEMS[3] || { count: "24m", label: "until Team sync", action: "calendar" },
+      {
+        count: nextMeetingStr,
+        label: nextMeetingLabel,
+        action: "calendar",
+      },
     ];
-  }, [emails]);
+  }, [emails, todayEvents, calendarNextEvent]);
 
   const inboxBadgeCount = emails.filter((e) => e.unread).length || emails.length || 0;
 
@@ -273,7 +300,7 @@ export function DashboardView({
 
       {/* ── Right context panel ── */}
       <RightPanel
-        events={events}
+        events={todayEvents}
         onOpenCalendar={openCalendar}
         onOpenNextEvent={openCalendar}
       />

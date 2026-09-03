@@ -23,6 +23,12 @@ export function CalendarWorkspace({ initialEvents = CAL_EVENTS, onBack }: Calend
   const [showNew, setShowNew] = useState(false);
   const [periodOffset, setPeriodOffset] = useState(0);
 
+  React.useEffect(() => {
+    if (initialEvents && initialEvents.length > 0) {
+      setEvents(initialEvents);
+    }
+  }, [initialEvents]);
+
   const handleToggleEv = (ev: CalEvent) => {
     setSelectedEv((prev) => (prev?.id === ev.id ? null : ev));
   };

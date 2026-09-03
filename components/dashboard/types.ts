@@ -20,6 +20,7 @@ export interface CalendarEvent {
   type: EventType;
   detail?: string;
   isNext?: boolean;
+  startIso?: string;
 }
 
 export interface EventColorSpec {
