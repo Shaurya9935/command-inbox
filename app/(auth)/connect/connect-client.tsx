@@ -3,21 +3,30 @@
 import React, { useState } from "react";
 import { AuthLayout } from "@/components/auth/auth-layout";
 
+type Service = "gmail" | "calendar";
+
 export function ConnectClient() {
-  const [isLoading, setIsLoading] = useState(false);
+  const [loadingService, setLoadingService] = useState<Service | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  const handleConnect = async () => {
-    setIsLoading(true);
+  const handleConnect = async (service: Service) => {
+    setLoadingService(service);
     setError(null);
     try {
-      const response = await fetch("/api/integrations/gmail/connect", {
+      const endpoint =
+        service === "gmail"
+          ? "/api/integrations/gmail/connect"
+          : "/api/integrations/calendar/connect";
+
+      const response = await fetch(endpoint, {
         method: "POST",
       });
 
       if (!response.ok) {
         const data = await response.json().catch(() => null);
-        throw new Error(data?.error || "Failed to create Gmail connection");
+        throw new Error(
+          data?.error || `Failed to connect ${service === "gmail" ? "Gmail" : "Google Calendar"}`
+        );
       }
 
       const { connectUrl } = await response.json();
@@ -28,46 +37,18 @@ export function ConnectClient() {
         throw new Error("No connect URL returned by the server");
       }
     } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : "Failed to connect Gmail";
+      const message =
+        err instanceof Error
+          ? err.message
+          : `Failed to connect ${service === "gmail" ? "Gmail" : "Google Calendar"}`;
       setError(message);
-      setIsLoading(false);
+      setLoadingService(null);
     }
   };
 
   return (
     <AuthLayout>
       <div className="flex flex-col items-center text-center">
-        <div
-          style={{
-            width: 48,
-            height: 48,
-            borderRadius: 12,
-            background: "#F2EFE9",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            marginBottom: 16,
-            boxShadow: "0 2px 8px rgba(0,0,0,0.04)",
-          }}
-        >
-          <svg width={24} height={24} viewBox="0 0 24 24" fill="none">
-            <path
-              d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"
-              stroke="#EA4335"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            />
-            <path
-              d="M22 6l-10 7L2 6"
-              stroke="#EA4335"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            />
-          </svg>
-        </div>
-
         <h1
           style={{
             fontSize: 20,
@@ -77,7 +58,7 @@ export function ConnectClient() {
             margin: "0 0 8px",
           }}
         >
-          Connect your Gmail
+          Connect your workspaces
         </h1>
 
         <p
@@ -88,7 +69,7 @@ export function ConnectClient() {
             margin: "0 0 24px",
           }}
         >
-          Link your Google account to sync threads, reply to emails, and manage your inbox with AI.
+          Link your Google services to sync threads, manage your calendar, and power Command Inbox with AI.
         </p>
 
         {error && (
@@ -109,34 +90,190 @@ export function ConnectClient() {
           </div>
         )}
 
-        <button
-          onClick={handleConnect}
-          disabled={isLoading}
-          style={{
-            width: "100%",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            gap: 10,
-            padding: "11px 16px",
-            background: isLoading ? "#837BBE" : "#5549C0",
-            color: "#FFFFFF",
-            border: "none",
-            borderRadius: 9,
-            fontSize: 14,
-            fontWeight: 500,
-            cursor: isLoading ? "not-allowed" : "pointer",
-            boxShadow: "0 2px 8px rgba(85,73,192,0.25)",
-            transition: "all 0.15s ease",
-          }}
-        >
-          {isLoading ? <span>Connecting…</span> : <span>Connect with Google</span>}
-        </button>
+        <div style={{ width: "100%", display: "flex", flexDirection: "column", gap: 12 }}>
+          {/* Gmail Card */}
+          <div
+            style={{
+              width: "100%",
+              padding: "14px 16px",
+              background: "#FFFFFF",
+              border: "1px solid #E8E4DC",
+              borderRadius: 10,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
+              gap: 12,
+              textAlign: "left",
+              boxShadow: "0 1px 3px rgba(0,0,0,0.02)",
+            }}
+          >
+            <div style={{ display: "flex", alignItems: "center", gap: 12, minWidth: 0 }}>
+              <div
+                style={{
+                  width: 38,
+                  height: 38,
+                  borderRadius: 9,
+                  background: "#FDF2F0",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  flexShrink: 0,
+                  border: "1px solid #FCE8E6",
+                }}
+              >
+                <svg width={20} height={20} viewBox="0 0 24 24" fill="none">
+                  <path
+                    d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"
+                    stroke="#EA4335"
+                    strokeWidth="1.8"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                  <path
+                    d="M22 6l-10 7L2 6"
+                    stroke="#EA4335"
+                    strokeWidth="1.8"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                </svg>
+              </div>
+
+              <div style={{ minWidth: 0 }}>
+                <div style={{ fontSize: 13.5, fontWeight: 600, color: "#1A1917" }}>
+                  Gmail
+                </div>
+                <div
+                  style={{
+                    fontSize: 12,
+                    color: "#8C8782",
+                    whiteSpace: "nowrap",
+                    overflow: "hidden",
+                    textOverflow: "ellipsis",
+                  }}
+                >
+                  Emails & AI thread management
+                </div>
+              </div>
+            </div>
+
+            <button
+              onClick={() => handleConnect("gmail")}
+              disabled={loadingService !== null}
+              style={{
+                padding: "8px 14px",
+                background: loadingService === "gmail" ? "#837BBE" : "#5549C0",
+                color: "#FFFFFF",
+                border: "none",
+                borderRadius: 7,
+                fontSize: 12.5,
+                fontWeight: 500,
+                cursor: loadingService !== null ? "not-allowed" : "pointer",
+                transition: "all 0.15s ease",
+                whiteSpace: "nowrap",
+                flexShrink: 0,
+              }}
+            >
+              {loadingService === "gmail" ? "Connecting…" : "Connect"}
+            </button>
+          </div>
+
+          {/* Google Calendar Card */}
+          <div
+            style={{
+              width: "100%",
+              padding: "14px 16px",
+              background: "#FFFFFF",
+              border: "1px solid #E8E4DC",
+              borderRadius: 10,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
+              gap: 12,
+              textAlign: "left",
+              boxShadow: "0 1px 3px rgba(0,0,0,0.02)",
+            }}
+          >
+            <div style={{ display: "flex", alignItems: "center", gap: 12, minWidth: 0 }}>
+              <div
+                style={{
+                  width: 38,
+                  height: 38,
+                  borderRadius: 9,
+                  background: "#F0F5FD",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  flexShrink: 0,
+                  border: "1px solid #E1EDFC",
+                }}
+              >
+                <svg width={20} height={20} viewBox="0 0 24 24" fill="none">
+                  <rect
+                    x="3"
+                    y="4"
+                    width="18"
+                    height="17"
+                    rx="2"
+                    stroke="#1A73E8"
+                    strokeWidth="1.8"
+                  />
+                  <path
+                    d="M3 9h18M8 2v4M16 2v4"
+                    stroke="#1A73E8"
+                    strokeWidth="1.8"
+                    strokeLinecap="round"
+                  />
+                  <rect x="7" y="12" width="3" height="3" rx="0.5" fill="#1A73E8" />
+                  <rect x="11.5" y="12" width="3" height="3" rx="0.5" fill="#1A73E8" />
+                  <rect x="11.5" y="16" width="3" height="3" rx="0.5" fill="#1A73E8" />
+                </svg>
+              </div>
+
+              <div style={{ minWidth: 0 }}>
+                <div style={{ fontSize: 13.5, fontWeight: 600, color: "#1A1917" }}>
+                  Google Calendar
+                </div>
+                <div
+                  style={{
+                    fontSize: 12,
+                    color: "#8C8782",
+                    whiteSpace: "nowrap",
+                    overflow: "hidden",
+                    textOverflow: "ellipsis",
+                  }}
+                >
+                  Events, schedule & daily agenda
+                </div>
+              </div>
+            </div>
+
+            <button
+              onClick={() => handleConnect("calendar")}
+              disabled={loadingService !== null}
+              style={{
+                padding: "8px 14px",
+                background: loadingService === "calendar" ? "#837BBE" : "#5549C0",
+                color: "#FFFFFF",
+                border: "none",
+                borderRadius: 7,
+                fontSize: 12.5,
+                fontWeight: 500,
+                cursor: loadingService !== null ? "not-allowed" : "pointer",
+                transition: "all 0.15s ease",
+                whiteSpace: "nowrap",
+                flexShrink: 0,
+              }}
+            >
+              {loadingService === "calendar" ? "Connecting…" : "Connect"}
+            </button>
+          </div>
+        </div>
 
         <a
           href="/dashboard"
           style={{
-            marginTop: 16,
+            marginTop: 20,
             fontSize: 12.5,
             color: "#9B9691",
             textDecoration: "none",

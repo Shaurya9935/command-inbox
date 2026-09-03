@@ -490,12 +490,14 @@ function CalendarPanel({
   onSelectNav,
   onBack,
   onSwitchWorkspace,
+  router,
 }: {
   activeNav: string;
   otherWorkspaces: { id: WorkspaceId; icon: IconComponent; label: string }[];
   onSelectNav: (nav: string) => void;
   onBack: () => void;
   onSwitchWorkspace: (id: WorkspaceId) => void;
+  router: ReturnType<typeof useRouter>;
 }) {
   return (
     <div style={{ flex: 1, overflowY: "auto" }}>
@@ -528,13 +530,19 @@ function CalendarPanel({
           icon={CalendarIcon}
           label="Today"
           active={activeNav === "today"}
-          onClick={() => onSelectNav("today")}
+          onClick={() => {
+            onSelectNav("today");
+            router.push("/dashboard/calendar");
+          }}
         />
         <NavBtn
           icon={UpcomingIcon}
           label="Upcoming"
           active={activeNav === "upcoming"}
-          onClick={() => onSelectNav("upcoming")}
+          onClick={() => {
+            onSelectNav("upcoming");
+            router.push("/dashboard/calendar");
+          }}
         />
       </div>
 
@@ -562,7 +570,12 @@ function CalendarPanel({
                 icon={w.icon}
                 label={w.label}
                 muted
-                onClick={() => onSwitchWorkspace(w.id)}
+                onClick={() => {
+                  if (w.id === "gmail") {
+                    router.push("/dashboard/inbox");
+                  }
+                  onSwitchWorkspace(w.id);
+                }}
               />
             ))}
           </div>
@@ -721,7 +734,10 @@ function MainNav({
         <WorkspaceRow
           icon={CalendarIcon}
           label="Calendar"
-          onClick={() => onSelectWorkspace("calendar")}
+          onClick={() => {
+            onSelectWorkspace("calendar");
+            router.push("/dashboard/calendar");
+          }}
           collapsed={collapsed}
         />
         <WorkspaceRow
@@ -773,14 +789,20 @@ function MainNav({
           label="Today"
           active={activeNav === "today"}
           collapsed={collapsed}
-          onClick={() => onOpenCalendar()}
+          onClick={() => {
+            onOpenCalendar();
+            router.push("/dashboard/calendar");
+          }}
         />
         <NavBtn
           icon={UpcomingIcon}
           label="Upcoming"
           active={activeNav === "upcoming"}
           collapsed={collapsed}
-          onClick={() => onSelectNav("upcoming")}
+          onClick={() => {
+            onSelectNav("upcoming");
+            router.push("/dashboard/calendar");
+          }}
         />
       </div>
 
@@ -964,6 +986,7 @@ export function Sidebar({
           onSelectNav={onSelectNav}
           onBack={() => setActiveWorkspace(null)}
           onSwitchWorkspace={handleSwitchWorkspace}
+          router={router}
         />
       ) : activeWorkspace === "outlook" && !isCollapsed ? (
         <OutlookPanel
