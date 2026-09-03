@@ -12,6 +12,8 @@ export interface Email {
   time: string;
   unread: boolean;
   tag: string;
+  body?: string;
+  bodyHtml?: string;
 }
 
 export interface CalendarEvent {

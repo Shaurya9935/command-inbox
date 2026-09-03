@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import {
   LogoIcon,
   InboxIcon,
@@ -230,7 +230,8 @@ function WorkspaceRow({
             style={{
               color: hov ? "#9B9691" : "#C5C0B9",
               display: "flex",
-              transition: "color 0.12s",
+              transition: "color 0.12s, transform 0.15s",
+              transform: hov ? "translateX(1px)" : "none",
               flexShrink: 0,
             }}
           >
@@ -245,6 +246,56 @@ function WorkspaceRow({
 /** Thin divider between sections */
 function Divider() {
   return <div style={{ height: 1, background: "#E4DED4", margin: "8px 10px" }} />;
+}
+
+// ─── Animated Panel Wrapper ───────────────────────────────────────────────────
+
+type PanelDir = "from-right" | "from-left";
+
+function AnimatedPanel({
+  children,
+  panelKey,
+  direction,
+}: {
+  children: React.ReactNode;
+  panelKey: string;
+  direction: PanelDir;
+}) {
+  const [mounted, setMounted] = useState(false);
+  const prevKeyRef = useRef(panelKey);
+
+  useEffect(() => {
+    // Short delay so the initial translate has painted before we transition in
+    const raf = requestAnimationFrame(() => setMounted(true));
+    return () => cancelAnimationFrame(raf);
+  }, []);
+
+  // Reset when key changes
+  useEffect(() => {
+    if (prevKeyRef.current !== panelKey) {
+      prevKeyRef.current = panelKey;
+      setMounted(false);
+      const raf = requestAnimationFrame(() => setMounted(true));
+      return () => cancelAnimationFrame(raf);
+    }
+  });
+
+  const initialX = direction === "from-right" ? 22 : -22;
+
+  return (
+    <div
+      style={{
+        flex: 1,
+        overflowY: "auto",
+        overflowX: "hidden",
+        transform: mounted ? "translateX(0)" : `translateX(${initialX}px)`,
+        opacity: mounted ? 1 : 0,
+        transition: "transform 0.2s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.18s ease",
+      }}
+    >
+      {children}
+    </div>
+  );
 }
 
 // ─── Footer (shared) ──────────────────────────────────────────────────────────
@@ -354,6 +405,60 @@ function SidebarFooter({
   );
 }
 
+// ─── Back header (shared across workspace panels) ─────────────────────────────
+
+function WorkspacePanelHeader({
+  label,
+  onBack,
+}: {
+  label: string;
+  onBack: () => void;
+}) {
+  const [hov, setHov] = useState(false);
+
+  return (
+    <button
+      onClick={onBack}
+      onMouseEnter={() => setHov(true)}
+      onMouseLeave={() => setHov(false)}
+      style={{
+        display: "flex",
+        alignItems: "center",
+        gap: 7,
+        padding: "18px 10px 20px",
+        background: "none",
+        border: "none",
+        cursor: "pointer",
+        width: "100%",
+        textAlign: "left",
+        fontFamily: "var(--font-ui, 'DM Sans', system-ui, sans-serif)",
+        flexShrink: 0,
+      }}
+    >
+      <span
+        style={{
+          color: hov ? "#5549C0" : "#9B9691",
+          display: "flex",
+          transition: "color 0.12s, transform 0.15s",
+          transform: hov ? "translateX(-2px)" : "none",
+        }}
+      >
+        <BackIcon size={13} />
+      </span>
+      <span
+        style={{
+          fontSize: 13.5,
+          fontWeight: 600,
+          color: "#1A1917",
+          letterSpacing: "-0.02em",
+        }}
+      >
+        {label}
+      </span>
+    </button>
+  );
+}
+
 // ─── Context panels ───────────────────────────────────────────────────────────
 
 function GmailPanel({
@@ -372,31 +477,8 @@ function GmailPanel({
   onSwitchWorkspace: (id: WorkspaceId) => void;
 }) {
   return (
-    <div style={{ flex: 1, overflowY: "auto" }}>
-      {/* Back header */}
-      <button
-        onClick={onBack}
-        style={{
-          display: "flex",
-          alignItems: "center",
-          gap: 7,
-          padding: "18px 10px 20px",
-          background: "none",
-          border: "none",
-          cursor: "pointer",
-          width: "100%",
-          textAlign: "left",
-          color: "#4A4643",
-          fontFamily: "var(--font-ui, 'DM Sans', system-ui, sans-serif)",
-        }}
-      >
-        <span style={{ color: "#9B9691", display: "flex" }}>
-          <BackIcon size={13} />
-        </span>
-        <span style={{ fontSize: 13.5, fontWeight: 600, color: "#1A1917", letterSpacing: "-0.02em" }}>
-          Gmail
-        </span>
-      </button>
+    <>
+      <WorkspacePanelHeader label="Gmail" onBack={onBack} />
 
       {/* Mail section */}
       <div style={{ marginBottom: 20 }}>
@@ -480,7 +562,7 @@ function GmailPanel({
           </div>
         </>
       )}
-    </div>
+    </>
   );
 }
 
@@ -500,29 +582,8 @@ function CalendarPanel({
   router: ReturnType<typeof useRouter>;
 }) {
   return (
-    <div style={{ flex: 1, overflowY: "auto" }}>
-      <button
-        onClick={onBack}
-        style={{
-          display: "flex",
-          alignItems: "center",
-          gap: 7,
-          padding: "18px 10px 20px",
-          background: "none",
-          border: "none",
-          cursor: "pointer",
-          width: "100%",
-          textAlign: "left",
-          fontFamily: "var(--font-ui, 'DM Sans', system-ui, sans-serif)",
-        }}
-      >
-        <span style={{ color: "#9B9691", display: "flex" }}>
-          <BackIcon size={13} />
-        </span>
-        <span style={{ fontSize: 13.5, fontWeight: 600, color: "#1A1917", letterSpacing: "-0.02em" }}>
-          Calendar
-        </span>
-      </button>
+    <>
+      <WorkspacePanelHeader label="Calendar" onBack={onBack} />
 
       <div style={{ marginBottom: 20 }}>
         <SectionLabel label="Calendar" collapsed={false} />
@@ -581,7 +642,7 @@ function CalendarPanel({
           </div>
         </>
       )}
-    </div>
+    </>
   );
 }
 
@@ -599,29 +660,8 @@ function OutlookPanel({
   onSwitchWorkspace: (id: WorkspaceId) => void;
 }) {
   return (
-    <div style={{ flex: 1, overflowY: "auto" }}>
-      <button
-        onClick={onBack}
-        style={{
-          display: "flex",
-          alignItems: "center",
-          gap: 7,
-          padding: "18px 10px 20px",
-          background: "none",
-          border: "none",
-          cursor: "pointer",
-          width: "100%",
-          textAlign: "left",
-          fontFamily: "var(--font-ui, 'DM Sans', system-ui, sans-serif)",
-        }}
-      >
-        <span style={{ color: "#9B9691", display: "flex" }}>
-          <BackIcon size={13} />
-        </span>
-        <span style={{ fontSize: 13.5, fontWeight: 600, color: "#1A1917", letterSpacing: "-0.02em" }}>
-          Outlook
-        </span>
-      </button>
+    <>
+      <WorkspacePanelHeader label="Outlook" onBack={onBack} />
 
       <div style={{ marginBottom: 20 }}>
         <SectionLabel label="Mail" collapsed={false} />
@@ -695,7 +735,7 @@ function OutlookPanel({
           </div>
         </>
       )}
-    </div>
+    </>
   );
 }
 
@@ -851,6 +891,7 @@ export function Sidebar({
   const router = useRouter();
   const [internalCollapsed, setInternalCollapsed] = useState(false);
   const [activeWorkspace, setActiveWorkspace] = useState<WorkspaceId | null>(null);
+  const prevWorkspaceRef = useRef<WorkspaceId | null>(null);
 
   const isCollapsed = collapsed !== undefined ? collapsed : internalCollapsed;
 
@@ -867,11 +908,18 @@ export function Sidebar({
   const handleSelectWorkspace = (id: WorkspaceId) => {
     // Collapsed mode: don't open context panel, just navigate
     if (isCollapsed) return;
+    prevWorkspaceRef.current = activeWorkspace;
     setActiveWorkspace(id);
   };
 
   const handleSwitchWorkspace = (id: WorkspaceId) => {
+    prevWorkspaceRef.current = activeWorkspace;
     setActiveWorkspace(id);
+  };
+
+  const handleBack = () => {
+    prevWorkspaceRef.current = activeWorkspace;
+    setActiveWorkspace(null);
   };
 
   const { data: session } = authClient.useSession();
@@ -903,6 +951,11 @@ export function Sidebar({
   const otherWorkspaces = (Object.keys(WORKSPACE_META) as WorkspaceId[])
     .filter((id) => id !== activeWorkspace)
     .map((id) => ({ id, ...WORKSPACE_META[id] }));
+
+  // Determine slide direction: going into a workspace slides from right, going back slides from left
+  const panelDir: PanelDir = activeWorkspace !== null ? "from-right" : "from-left";
+  // When switching between workspaces directly, slide from right
+  const panelKey = activeWorkspace ?? "main";
 
   return (
     <aside
@@ -969,44 +1022,52 @@ export function Sidebar({
         </div>
       </div>
 
-      {/* ── Nav body ── */}
+      {/* ── Nav body with animated panel transition ── */}
       {activeWorkspace === "gmail" && !isCollapsed ? (
-        <GmailPanel
-          activeNav={activeNav}
-          inboxBadge={inboxBadge}
-          otherWorkspaces={otherWorkspaces}
-          onSelectNav={onSelectNav}
-          onBack={() => setActiveWorkspace(null)}
-          onSwitchWorkspace={handleSwitchWorkspace}
-        />
+        <AnimatedPanel panelKey={panelKey} direction={panelDir}>
+          <GmailPanel
+            activeNav={activeNav}
+            inboxBadge={inboxBadge}
+            otherWorkspaces={otherWorkspaces}
+            onSelectNav={onSelectNav}
+            onBack={handleBack}
+            onSwitchWorkspace={handleSwitchWorkspace}
+          />
+        </AnimatedPanel>
       ) : activeWorkspace === "calendar" && !isCollapsed ? (
-        <CalendarPanel
-          activeNav={activeNav}
-          otherWorkspaces={otherWorkspaces}
-          onSelectNav={onSelectNav}
-          onBack={() => setActiveWorkspace(null)}
-          onSwitchWorkspace={handleSwitchWorkspace}
-          router={router}
-        />
+        <AnimatedPanel panelKey={panelKey} direction={panelDir}>
+          <CalendarPanel
+            activeNav={activeNav}
+            otherWorkspaces={otherWorkspaces}
+            onSelectNav={onSelectNav}
+            onBack={handleBack}
+            onSwitchWorkspace={handleSwitchWorkspace}
+            router={router}
+          />
+        </AnimatedPanel>
       ) : activeWorkspace === "outlook" && !isCollapsed ? (
-        <OutlookPanel
-          activeNav={activeNav}
-          otherWorkspaces={otherWorkspaces}
-          onSelectNav={onSelectNav}
-          onBack={() => setActiveWorkspace(null)}
-          onSwitchWorkspace={handleSwitchWorkspace}
-        />
+        <AnimatedPanel panelKey={panelKey} direction={panelDir}>
+          <OutlookPanel
+            activeNav={activeNav}
+            otherWorkspaces={otherWorkspaces}
+            onSelectNav={onSelectNav}
+            onBack={handleBack}
+            onSwitchWorkspace={handleSwitchWorkspace}
+          />
+        </AnimatedPanel>
       ) : (
-        <MainNav
-          activeNav={activeNav}
-          inboxBadge={inboxBadge}
-          collapsed={isCollapsed}
-          onSelectNav={onSelectNav}
-          onOpenCalendar={onOpenCalendar}
-          onGoBack={onGoBack}
-          onSelectWorkspace={handleSelectWorkspace}
-          router={router}
-        />
+        <AnimatedPanel panelKey={panelKey} direction={panelDir}>
+          <MainNav
+            activeNav={activeNav}
+            inboxBadge={inboxBadge}
+            collapsed={isCollapsed}
+            onSelectNav={onSelectNav}
+            onOpenCalendar={onOpenCalendar}
+            onGoBack={onGoBack}
+            onSelectWorkspace={handleSelectWorkspace}
+            router={router}
+          />
+        </AnimatedPanel>
       )}
 
       {/* ── Footer ── */}

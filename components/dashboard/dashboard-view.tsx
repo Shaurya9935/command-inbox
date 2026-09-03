@@ -100,6 +100,9 @@ function mapThreadToEmail(thread: GmailThread, index: number): Email {
       : true;
   const tag = data?.tag || (unread ? "Needs reply" : "Inbox");
 
+  const body = thread?.body || data?.body || "";
+  const bodyHtml = thread?.bodyHtml || data?.bodyHtml || "";
+
   return {
     id,
     from,
@@ -110,6 +113,8 @@ function mapThreadToEmail(thread: GmailThread, index: number): Email {
     time,
     unread,
     tag,
+    body,
+    bodyHtml,
   };
 }
 

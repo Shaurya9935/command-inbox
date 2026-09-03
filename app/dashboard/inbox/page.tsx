@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useGmailThreads, GmailThread } from "@/hooks/use-gmail";
@@ -8,6 +8,7 @@ import { Email } from "@/components/dashboard/types";
 import { Avatar } from "@/components/dashboard/avatar";
 import { Dot } from "@/components/dashboard/dot";
 import { Sidebar } from "@/components/dashboard/sidebar";
+import { EmailBodyContent } from "@/components/dashboard/email-body";
 import {
   BackIcon,
   InboxIcon,
@@ -102,6 +103,8 @@ function mapThreadToEmail(thread: GmailThread, index: number): Email {
       ? Boolean(data?.unread)
       : true;
   const tag = data?.tag || (unread ? "Needs reply" : "Inbox");
+  const body = thread?.body || data?.body || "";
+  const bodyHtml = thread?.bodyHtml || data?.bodyHtml || "";
 
   return {
     id,
@@ -113,6 +116,8 @@ function mapThreadToEmail(thread: GmailThread, index: number): Email {
     time,
     unread,
     tag,
+    body,
+    bodyHtml,
   };
 }
 
@@ -124,6 +129,8 @@ export default function InboxPage() {
   const [selectedId, setSelectedId] = useState<string | number | null>(null);
   const [readIds, setReadIds] = useState<Set<string | number>>(new Set());
   const [replyText, setReplyText] = useState("");
+  const [loadingBodyThreadId, setLoadingBodyThreadId] = useState<string | null>(null);
+  const [fullBodies, setFullBodies] = useState<Record<string, { body?: string; bodyHtml?: string }>>({});
 
   // Map and filter emails
   const emails: Email[] = useMemo(() => {
@@ -153,6 +160,41 @@ export default function InboxPage() {
     if (!selectedId) return filteredEmails[0] || null;
     return emails.find((e) => e.id === selectedId) || filteredEmails[0] || null;
   }, [emails, filteredEmails, selectedId]);
+
+  useEffect(() => {
+    if (!selectedEmail?.id) return;
+    const idStr = String(selectedEmail.id);
+    if (!idStr || idStr.startsWith("thread-")) return;
+
+    if (selectedEmail.bodyHtml || fullBodies[idStr]?.bodyHtml) return;
+
+    let isMounted = true;
+    setLoadingBodyThreadId(idStr);
+
+    fetch(`/api/gmail/threads/${idStr}`)
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => {
+        if (isMounted && data) {
+          setFullBodies((prev) => ({
+            ...prev,
+            [idStr]: {
+              body: data.body,
+              bodyHtml: data.bodyHtml,
+            },
+          }));
+        }
+      })
+      .catch((err) => console.warn("Failed to fetch full thread body:", err))
+      .finally(() => {
+        if (isMounted) {
+          setLoadingBodyThreadId((cur) => (cur === idStr ? null : cur));
+        }
+      });
+
+    return () => {
+      isMounted = false;
+    };
+  }, [selectedEmail?.id, selectedEmail?.bodyHtml, fullBodies]);
 
   const handleSelect = (email: Email) => {
     setSelectedId(email.id);
@@ -663,17 +705,16 @@ export default function InboxPage() {
                   </div>
                 </div>
 
-                <div
-                  style={{
-                    fontSize: 14,
-                    color: "#2D2C2A",
-                    fontFamily: "var(--font-body, 'Inter', system-ui, sans-serif)",
-                    lineHeight: 1.7,
-                    whiteSpace: "pre-line",
-                  }}
-                >
-                  {selectedEmail.preview}
-                </div>
+                <EmailBodyContent
+                  body={fullBodies[String(selectedEmail.id)]?.body || selectedEmail.body}
+                  bodyHtml={fullBodies[String(selectedEmail.id)]?.bodyHtml || selectedEmail.bodyHtml}
+                  preview={selectedEmail.preview}
+                  isLoading={
+                    loadingBodyThreadId === String(selectedEmail.id) &&
+                    !selectedEmail.bodyHtml &&
+                    !selectedEmail.body
+                  }
+                />
               </div>
 
               {/* Reply Composer */}

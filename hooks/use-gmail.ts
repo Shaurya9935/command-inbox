@@ -18,6 +18,7 @@ export interface GmailThread {
     createdAt?: string | Date;
     tag?: string;
     body?: string;
+    bodyHtml?: string;
   };
   snippet?: string;
   subject?: string;
@@ -25,6 +26,7 @@ export interface GmailThread {
   unread?: boolean;
   tag?: string;
   body?: string;
+  bodyHtml?: string;
 }
 
 function extractThreads(data: unknown): GmailThread[] {

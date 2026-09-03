@@ -1,9 +1,10 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Email } from "./types";
 import { Avatar } from "./avatar";
 import { BackIcon, ReplyIcon, PaperclipIcon } from "./icons";
+import { EmailBodyContent } from "./email-body";
 
 export interface EmailThreadViewProps {
   email: Email;
@@ -17,7 +18,37 @@ export function EmailThreadView({
   onSendReply,
 }: EmailThreadViewProps) {
   const [replyText, setReplyText] = useState("");
+  const [fetchedData, setFetchedData] = useState<{ body?: string; bodyHtml?: string } | null>(null);
+  const [isLoadingBody, setIsLoadingBody] = useState<boolean>(false);
   const firstName = email.from.split(" ")[0];
+
+  useEffect(() => {
+    if (!email.id || email.bodyHtml) return;
+    const idStr = String(email.id);
+    if (!idStr || idStr.startsWith("thread-")) return;
+
+    let isMounted = true;
+    setIsLoadingBody(true);
+
+    fetch(`/api/gmail/threads/${idStr}`)
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => {
+        if (isMounted && data) {
+          setFetchedData({
+            body: data.body,
+            bodyHtml: data.bodyHtml,
+          });
+        }
+      })
+      .catch((err) => console.warn("Failed to fetch full thread:", err))
+      .finally(() => {
+        if (isMounted) setIsLoadingBody(false);
+      });
+
+    return () => {
+      isMounted = false;
+    };
+  }, [email.id, email.bodyHtml]);
 
   const handleSend = () => {
     if (replyText.trim()) {
@@ -122,25 +153,13 @@ export function EmailThreadView({
             </div>
           </div>
         </div>
-        <div
-          style={{
-            fontSize: 14,
-            color: "#2D2C2A",
-            fontFamily: "var(--font-body, 'Inter', system-ui, sans-serif)",
-            lineHeight: 1.7,
-          }}
-        >
-          {email.preview}
-          <br />
-          <br />
-          Let me know what you think — happy to jump on a quick call if that&apos;s
-          easier.
-          <br />
-          <br />
-          Best,
-          <br />
-          {firstName}
-        </div>
+
+        <EmailBodyContent
+          body={fetchedData?.body || email.body}
+          bodyHtml={fetchedData?.bodyHtml || email.bodyHtml}
+          preview={email.preview}
+          isLoading={isLoadingBody && !email.bodyHtml && !email.body}
+        />
       </div>
 
       {/* Reply composer */}
