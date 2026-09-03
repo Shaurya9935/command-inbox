@@ -112,20 +112,24 @@ export function useGmailThreads() {
     }
   }, []);
 
-  // ── Mount: load from DB immediately, then trigger first API sync ──────────
+  // ── Mount: sync from API immediately (returns enriched from/subject/unread),
+  // then set a 15-min recurring auto-sync. Fall back to DB on sync failure.
   useEffect(() => {
     mountedRef.current = true;
 
     async function init() {
-      // 1. Load cached data immediately so the UI shows something fast
-      await fetchFromDb();
-      // 2. Kick off a background sync so the data is fresh on first load
-      await syncFromApi();
+      // Always sync on mount so from/subject/unread are populated immediately
+      try {
+        await syncFromApi();
+      } catch {
+        // Sync failed (e.g. network, rate limit) — load whatever is in the DB
+        await fetchFromDb();
+      }
     }
 
     init();
 
-    // 3. Auto-sync every 15 minutes while the component is mounted
+    // Auto-sync every 15 minutes while the page is open
     const timer = setInterval(() => {
       syncFromApi();
     }, AUTO_SYNC_INTERVAL_MS);

@@ -619,6 +619,12 @@ function OutlookPanel({
           onClick={() => onSelectNav("outlook-inbox")}
         />
         <NavBtn
+          icon={StarIcon}
+          label="Starred"
+          active={activeNav === "outlook-starred"}
+          onClick={() => onSelectNav("outlook-starred")}
+        />
+        <NavBtn
           icon={DraftIcon}
           label="Drafts"
           active={activeNav === "outlook-drafts"}
@@ -631,12 +637,32 @@ function OutlookPanel({
           onClick={() => onSelectNav("outlook-sent")}
         />
         <NavBtn
-          icon={TrashIcon}
-          label="Deleted"
-          active={activeNav === "outlook-deleted"}
-          onClick={() => onSelectNav("outlook-deleted")}
+          icon={AllMailIcon}
+          label="Archive"
+          active={activeNav === "outlook-archive"}
+          onClick={() => onSelectNav("outlook-archive")}
           muted
         />
+        <NavBtn
+          icon={TrashIcon}
+          label="Trash"
+          active={activeNav === "outlook-trash"}
+          onClick={() => onSelectNav("outlook-trash")}
+          muted
+        />
+      </div>
+
+      <div style={{ marginBottom: 20 }}>
+        <SectionLabel label="Folders" collapsed={false} />
+        {["Work", "Personal", "Projects"].map((folder) => (
+          <NavBtn
+            key={folder}
+            icon={LabelIcon}
+            label={folder}
+            active={activeNav === `outlook-folder-${folder.toLowerCase()}`}
+            onClick={() => onSelectNav(`outlook-folder-${folder.toLowerCase()}`)}
+          />
+        ))}
       </div>
 
       {otherWorkspaces.length > 0 && (

@@ -1,14 +1,55 @@
 import { getCorsairTenant } from "@/lib/corsair-client";
 
-/** Read enriched threads from the local Corsair DB — fast, no rate limits. */
-export async function getInboxThreads() {
+export interface EnrichedThread {
+  id: string;
+  entity_id: string;
+  snippet: string;
+  subject: string;
+  from: string;
+  createdAt: string;
+  created_at: string;
+  updated_at: string;
+  unread: boolean;
+  historyId?: string;
+  messagesCount?: number;
+}
+
+/**
+ * Read threads from the local Corsair DB.
+ * Returns a basic shape — from / subject won't be populated here
+ * because the DB schema only stores id, snippet, historyId, createdAt.
+ * Use syncInboxThreadsFromApi() to get fully enriched data.
+ */
+export async function getInboxThreads(): Promise<EnrichedThread[]> {
   const corsair = await getCorsairTenant();
 
   try {
-    // corsair.gmail.db.threads.list accepts { limit?, offset? }
-    const threads = await corsair.gmail.db.threads.list({ limit: 50 });
-    if (Array.isArray(threads) && threads.length > 0) {
-      return threads;
+    const entities = await corsair.gmail.db.threads.list({ limit: 50 });
+    if (Array.isArray(entities) && entities.length > 0) {
+      return entities.map((e) => {
+        const d = e.data;
+        const ts =
+          d?.createdAt instanceof Date
+            ? d.createdAt.toISOString()
+            : typeof d?.createdAt === "string"
+            ? d.createdAt
+            : new Date().toISOString();
+        return {
+          id: e.entity_id || d?.id || "",
+          entity_id: e.entity_id || "",
+          snippet: d?.snippet || "",
+          // DB schema doesn't store from/subject — these will be empty
+          // until a sync runs. The hook always syncs on mount so users see
+          // cached data first, then enriched data arrives within seconds.
+          subject: "",
+          from: "",
+          createdAt: ts,
+          created_at: ts,
+          updated_at: ts,
+          unread: true,
+          historyId: d?.historyId,
+        };
+      });
     }
   } catch (err) {
     console.warn("DB thread fetch failed:", err);
@@ -18,12 +59,13 @@ export async function getInboxThreads() {
 }
 
 /**
- * Pull fresh data from the Gmail API, enrich each thread, then upsert back
- * into the Corsair DB so subsequent reads are served from the cache.
+ * Pull fresh threads from the Gmail API, enrich with headers (from/subject/date/unread),
+ * upsert basic metadata to the Corsair DB cache, and return the fully enriched list.
  *
+ * This is the source of truth for from, subject, unread, and accurate dates.
  * Call this at most once every 15 minutes (enforced by the hook).
  */
-export async function syncInboxThreadsFromApi(): Promise<{ synced: number }> {
+export async function syncInboxThreadsFromApi(): Promise<EnrichedThread[]> {
   const corsair = await getCorsairTenant();
 
   const res = await corsair.gmail.api.threads.list({ maxResults: 25 });
@@ -31,7 +73,7 @@ export async function syncInboxThreadsFromApi(): Promise<{ synced: number }> {
     res?.threads ?? [];
 
   if (!rawThreads.length) {
-    return { synced: 0 };
+    return [];
   }
 
   const enriched = await Promise.all(
@@ -54,7 +96,7 @@ export async function syncInboxThreadsFromApi(): Promise<{ synced: number }> {
           return h?.value;
         };
 
-        const subject = getHeader("subject") || t.snippet?.slice(0, 40) || "No Subject";
+        const subject = getHeader("subject") || t.snippet?.slice(0, 60) || "No Subject";
         const fromRaw = getHeader("from") || "Unknown Sender";
         const dateRaw = getHeader("date");
         const internalDate = lastMsg.internalDate || firstMsg.internalDate;
@@ -65,12 +107,27 @@ export async function syncInboxThreadsFromApi(): Promise<{ synced: number }> {
           : new Date().toISOString();
         const isUnread = messages.some((m: any) => m.labelIds?.includes("UNREAD"));
 
+        // Upsert basic metadata to DB (schema only supports id/snippet/historyId/createdAt)
+        try {
+          await corsair.gmail.db.threads.upsertByEntityId(t.id, {
+            id: t.id,
+            snippet: t.snippet || undefined,
+            historyId: t.historyId || undefined,
+            createdAt: new Date(createdAt),
+          });
+        } catch {
+          // Non-fatal — DB cache update failure doesn't affect what we return
+        }
+
         return {
           id: t.id,
-          snippet: t.snippet || lastMsg.snippet || "",
+          entity_id: t.id,
+          snippet: t.snippet || (lastMsg.snippet as string | undefined) || "",
           subject,
           from: fromRaw,
-          createdAt: new Date(createdAt),
+          createdAt,
+          created_at: createdAt,
+          updated_at: createdAt,
           unread: isUnread,
           historyId: t.historyId,
           messagesCount: messages.length,
@@ -82,25 +139,5 @@ export async function syncInboxThreadsFromApi(): Promise<{ synced: number }> {
     })
   );
 
-  const valid = enriched.filter((t): t is NonNullable<typeof t> => t !== null);
-
-  // Upsert enriched threads into the Corsair DB cache
-  await Promise.allSettled(
-    valid.map(async (thread) => {
-      try {
-        // upsertByEntityId(externalId, dataMatchingSchema)
-        await corsair.gmail.db.threads.upsertByEntityId(thread.id, {
-          id: thread.id,
-          snippet: thread.snippet || undefined,
-          historyId: thread.historyId || undefined,
-          createdAt: thread.createdAt || undefined,
-        });
-      } catch (e) {
-        // Non-fatal — next full read will still return whatever's in the DB
-        console.warn(`Failed to upsert thread ${thread.id}:`, e);
-      }
-    })
-  );
-
-  return { synced: valid.length };
+  return enriched.filter((t): t is NonNullable<typeof t> => t !== null) as EnrichedThread[];
 }

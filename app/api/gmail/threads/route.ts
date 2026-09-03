@@ -4,19 +4,24 @@ import { NextRequest, NextResponse } from "next/server";
 /**
  * GET /api/gmail/threads
  *   – Serves threads from the local Corsair DB (fast, no rate limits).
+ *     from/subject/unread will be empty until a sync has run.
  *
  * GET /api/gmail/threads?sync=1
- *   – First syncs from the Gmail API (enriches + upserts to DB), then returns
- *     the refreshed list. Used by the 15-min auto-refresh and manual refresh button.
+ *   – Fetches live from the Gmail API, enriches each thread with from/subject/date/unread,
+ *     upserts basic metadata to the DB, and returns the fully enriched list.
+ *     Used by the 15-min auto-refresh and the manual refresh button.
  */
 export async function GET(req: NextRequest) {
   try {
     const wantsSync = req.nextUrl.searchParams.get("sync") === "1";
 
     if (wantsSync) {
-      await syncInboxThreadsFromApi();
+      // Return fully enriched threads straight from the API — no stale DB data
+      const enrichedThreads = await syncInboxThreadsFromApi();
+      return NextResponse.json(enrichedThreads);
     }
 
+    // Cold read from DB (fast, may not have from/subject yet)
     const threads = await getInboxThreads();
     return NextResponse.json(threads);
   } catch (error) {
