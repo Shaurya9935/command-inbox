@@ -23,11 +23,47 @@ const PALETTE_COLORS = [
   "#C5B49A",
 ];
 
+function formatSenderName(fromRaw: string): string {
+  if (!fromRaw) return "Gmail User";
+  const match = fromRaw.match(/^(.*?)\s*<.*?>$/);
+  if (match && match[1]?.trim()) {
+    return match[1].replace(/^["']|["']$/g, "").trim();
+  }
+  if (fromRaw.includes("@") && !fromRaw.includes(" ")) {
+    return fromRaw.split("@")[0];
+  }
+  return fromRaw.trim();
+}
+
+function formatEmailTime(dateVal: string | Date | undefined): string {
+  if (!dateVal) return "Recent";
+  const date = new Date(dateVal);
+  if (isNaN(date.getTime())) return "Recent";
+
+  const now = new Date();
+  const isToday =
+    date.getDate() === now.getDate() &&
+    date.getMonth() === now.getMonth() &&
+    date.getFullYear() === now.getFullYear();
+
+  if (isToday) {
+    return date.toLocaleTimeString([], { hour: "numeric", minute: "2-digit" });
+  }
+
+  const isThisYear = date.getFullYear() === now.getFullYear();
+  if (isThisYear) {
+    return date.toLocaleDateString([], { month: "short", day: "numeric" });
+  }
+
+  return date.toLocaleDateString([], { month: "numeric", day: "numeric", year: "2-digit" });
+}
+
 function mapThreadToEmail(thread: GmailThread, index: number): Email {
   const data = thread?.data || thread || {};
   const id = thread?.entity_id || thread?.id || data?.id || `thread-${index}`;
   const snippet = data?.snippet || thread?.snippet || "";
-  const from = data?.from || thread?.from || "Gmail User";
+  const rawFrom = data?.from || thread?.from || "Gmail User";
+  const from = formatSenderName(rawFrom);
   const subject =
     data?.subject ||
     thread?.subject ||
@@ -49,15 +85,19 @@ function mapThreadToEmail(thread: GmailThread, index: number): Email {
 
   const color = PALETTE_COLORS[index % PALETTE_COLORS.length];
 
-  const dateVal = thread?.created_at || thread?.updated_at || data?.createdAt;
-  const time = dateVal
-    ? new Date(dateVal).toLocaleTimeString([], {
-        hour: "numeric",
-        minute: "2-digit",
-      })
-    : "Recent";
+  const dateVal =
+    thread?.created_at ||
+    thread?.updated_at ||
+    thread?.createdAt ||
+    data?.createdAt;
+  const time = formatEmailTime(dateVal);
 
-  const unread = data?.unread !== undefined ? Boolean(data?.unread) : true;
+  const unread =
+    thread?.unread !== undefined
+      ? Boolean(thread.unread)
+      : data?.unread !== undefined
+      ? Boolean(data?.unread)
+      : true;
   const tag = data?.tag || (unread ? "Needs reply" : "Inbox");
 
   return {
