@@ -2,16 +2,19 @@
 
 import React, { useState, useMemo } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useGmailThreads, GmailThread } from "@/hooks/use-gmail";
 import { Email } from "@/components/dashboard/types";
 import { Avatar } from "@/components/dashboard/avatar";
 import { Dot } from "@/components/dashboard/dot";
+import { Sidebar } from "@/components/dashboard/sidebar";
 import {
   BackIcon,
   InboxIcon,
   SearchIcon,
   ReplyIcon,
   PaperclipIcon,
+  SidebarToggleIcon,
 } from "@/components/dashboard/icons";
 
 const PALETTE_COLORS = [
@@ -114,7 +117,9 @@ function mapThreadToEmail(thread: GmailThread, index: number): Email {
 }
 
 export default function InboxPage() {
-  const { threads, isLoading, error, refetch } = useGmailThreads();
+  const router = useRouter();
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(true);
+  const { threads, isLoading, isSyncing, error, lastSyncedAt, sync } = useGmailThreads();
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedId, setSelectedId] = useState<string | number | null>(null);
   const [readIds, setReadIds] = useState<Set<string | number>>(new Set());
@@ -167,76 +172,84 @@ export default function InboxPage() {
     <div
       style={{
         display: "flex",
-        flexDirection: "column",
         height: "100vh",
+        width: "100%",
         background: "#F5F2EC",
         fontFamily: "var(--font-ui, 'DM Sans', system-ui, sans-serif)",
         overflow: "hidden",
       }}
     >
-      {/* ── Top Header Bar ── */}
-      <header
+      {/* ── Sidebar (Collapsed with only icons by default) ── */}
+      <Sidebar
+        activeNav="inbox"
+        collapsed={sidebarCollapsed}
+        onToggleCollapse={() => setSidebarCollapsed((prev) => !prev)}
+        onSelectNav={(nav) => {
+          if (nav !== "inbox") {
+            router.push("/dashboard");
+          }
+        }}
+        onOpenCalendar={() => router.push("/dashboard")}
+        onGoBack={() => router.push("/dashboard")}
+        inboxBadge={unreadCount}
+      />
+
+      {/* ── Main Inbox Content Area ── */}
+      <div
         style={{
+          flex: 1,
           display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between",
-          padding: "14px 28px",
-          borderBottom: "1px solid #E8E4DC",
-          background: "#FDFCF8",
-          flexShrink: 0,
-          gap: 16,
+          flexDirection: "column",
+          minWidth: 0,
+          overflow: "hidden",
+          background: "#F5F2EC",
         }}
       >
-        <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
-          <Link
-            href="/dashboard"
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: 6,
-              fontSize: 13,
-              color: "#7B7775",
-              textDecoration: "none",
-              padding: "6px 10px",
-              borderRadius: 7,
-              background: "#F2EFE9",
-              transition: "color 0.12s, background 0.12s",
-            }}
-          >
-            <BackIcon />
-            <span>Dashboard</span>
-          </Link>
-          <div style={{ width: 1, height: 16, background: "#E8E4DC" }} />
-          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-            <span style={{ color: "#5549C0", display: "flex" }}>
-              <InboxIcon size={16} />
-            </span>
-            <h1
-              style={{
-                fontSize: 16,
-                fontWeight: 600,
-                color: "#1A1917",
-                margin: 0,
-                letterSpacing: "-0.02em",
-              }}
-            >
-              Inbox
-            </h1>
-            <span
-              style={{
-                fontSize: 11,
-                fontFamily: "var(--font-mono, 'JetBrains Mono', monospace)",
-                color: unreadCount > 0 ? "#5549C0" : "#9B9691",
-                background: unreadCount > 0 ? "#EAE8F8" : "#E8E4DC",
-                padding: "2px 7px",
-                borderRadius: 12,
-                fontWeight: 500,
-              }}
-            >
-              {unreadCount} unread
-            </span>
+        {/* ── Top Header Bar ── */}
+        <header
+          style={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            padding: "14px 28px",
+            borderBottom: "1px solid #E8E4DC",
+            background: "#FDFCF8",
+            flexShrink: 0,
+            gap: 16,
+          }}
+        >
+          <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+            <div style={{ width: 1, height: 16, background: "#E8E4DC" }} />
+            <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+              <span style={{ color: "#5549C0", display: "flex" }}>
+                <InboxIcon size={16} />
+              </span>
+              <h1
+                style={{
+                  fontSize: 16,
+                  fontWeight: 600,
+                  color: "#1A1917",
+                  margin: 0,
+                  letterSpacing: "-0.02em",
+                }}
+              >
+                Inbox
+              </h1>
+              <span
+                style={{
+                  fontSize: 11,
+                  fontFamily: "var(--font-mono, 'JetBrains Mono', monospace)",
+                  color: unreadCount > 0 ? "#5549C0" : "#9B9691",
+                  background: unreadCount > 0 ? "#EAE8F8" : "#E8E4DC",
+                  padding: "2px 7px",
+                  borderRadius: 12,
+                  fontWeight: 500,
+                }}
+              >
+                {unreadCount} unread
+              </span>
+            </div>
           </div>
-        </div>
 
         {/* Search & Actions */}
         <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
@@ -272,27 +285,74 @@ export default function InboxPage() {
             />
           </div>
 
+          {/* Last synced label */}
+          {lastSyncedAt && !isSyncing && (
+            <span
+              style={{
+                fontSize: 11.5,
+                color: "#B8B3AB",
+                fontFamily: "var(--font-ui, 'DM Sans', system-ui, sans-serif)",
+                whiteSpace: "nowrap",
+              }}
+            >
+              Synced{" "}
+              {(() => {
+                const diffMs = Date.now() - lastSyncedAt.getTime();
+                const diffMin = Math.floor(diffMs / 60000);
+                if (diffMin < 1) return "just now";
+                if (diffMin === 1) return "1 min ago";
+                return `${diffMin} min ago`;
+              })()}
+            </span>
+          )}
+
+          {/* Sync / Refresh button */}
           <button
-            onClick={() => refetch()}
-            disabled={isLoading}
+            onClick={() => sync()}
+            disabled={isSyncing}
+            title="Fetch latest emails from Gmail"
             style={{
               display: "flex",
               alignItems: "center",
               gap: 6,
               padding: "7px 14px",
-              background: "#5549C0",
+              background: isSyncing ? "#7B6ED8" : "#5549C0",
               color: "#FFFFFF",
               border: "none",
               borderRadius: 8,
               fontSize: 12.5,
               fontWeight: 500,
-              cursor: isLoading ? "default" : "pointer",
-              opacity: isLoading ? 0.7 : 1,
+              cursor: isSyncing ? "default" : "pointer",
+              opacity: isSyncing ? 0.85 : 1,
               fontFamily: "var(--font-ui, 'DM Sans', system-ui, sans-serif)",
-              transition: "opacity 0.12s",
+              transition: "background 0.15s, opacity 0.15s",
             }}
           >
-            {isLoading ? "Fetching…" : "Refresh"}
+            {/* Spinner SVG shown while syncing */}
+            <svg
+              width="13"
+              height="13"
+              viewBox="0 0 16 16"
+              fill="none"
+              style={{
+                animation: isSyncing ? "spin 0.8s linear infinite" : "none",
+                opacity: isSyncing ? 1 : 0.75,
+              }}
+            >
+              <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
+              <circle
+                cx="8" cy="8" r="6"
+                stroke="rgba(255,255,255,0.35)"
+                strokeWidth="1.8"
+              />
+              <path
+                d="M8 2a6 6 0 016 6"
+                stroke="white"
+                strokeWidth="1.8"
+                strokeLinecap="round"
+              />
+            </svg>
+            {isSyncing ? "Syncing…" : "Refresh"}
           </button>
         </div>
       </header>
@@ -313,7 +373,7 @@ export default function InboxPage() {
         >
           <span>Error loading emails: {error}</span>
           <button
-            onClick={() => refetch()}
+            onClick={() => sync()}
             style={{
               background: "none",
               border: "none",
@@ -766,5 +826,6 @@ export default function InboxPage() {
         </div>
       </div>
     </div>
-  );
+  </div>
+);
 }

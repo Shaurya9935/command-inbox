@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 
 export interface GmailThread {
   id?: string;
@@ -28,9 +28,7 @@ export interface GmailThread {
 }
 
 function extractThreads(data: unknown): GmailThread[] {
-  if (Array.isArray(data)) {
-    return data;
-  }
+  if (Array.isArray(data)) return data;
   if (
     data &&
     typeof data === "object" &&
@@ -42,13 +40,20 @@ function extractThreads(data: unknown): GmailThread[] {
   return [];
 }
 
+/** How long to wait between automatic background syncs (ms) */
+const AUTO_SYNC_INTERVAL_MS = 15 * 60 * 1000; // 15 minutes
+
 export function useGmailThreads() {
   const [threads, setThreads] = useState<GmailThread[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [isSyncing, setIsSyncing] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
+  const [lastSyncedAt, setLastSyncedAt] = useState<Date | null>(null);
+  const mountedRef = useRef(true);
 
-  const fetchThreads = useCallback(async () => {
-    setIsLoading(true);
+  // ── Read from DB (fast, no API call) ─────────────────────────────────────
+  const fetchFromDb = useCallback(async (silent = false) => {
+    if (!silent) setIsLoading(true);
     setError(null);
     try {
       const res = await fetch("/api/gmail/threads");
@@ -57,62 +62,91 @@ export function useGmailThreads() {
         throw new Error(errorData?.error || `Failed to fetch threads (${res.status})`);
       }
       const data: unknown = await res.json();
-      if (data && typeof data === "object" && "error" in data && (data as { error: string }).error) {
+      if (
+        data &&
+        typeof data === "object" &&
+        "error" in data &&
+        (data as { error: string }).error
+      ) {
         throw new Error((data as { error: string }).error);
       }
-      setThreads(extractThreads(data));
+      if (mountedRef.current) {
+        setThreads(extractThreads(data));
+      }
     } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : "Failed to load Gmail threads";
-      console.error("useGmailThreads error:", err);
-      setError(message);
-      setThreads([]);
+      if (mountedRef.current) {
+        const message = err instanceof Error ? err.message : "Failed to load Gmail threads";
+        console.error("useGmailThreads fetchFromDb error:", err);
+        setError(message);
+        setThreads([]);
+      }
     } finally {
-      setIsLoading(false);
+      if (mountedRef.current && !silent) setIsLoading(false);
     }
   }, []);
 
-  useEffect(() => {
-    let ignore = false;
-
-    async function load() {
-      try {
-        const res = await fetch("/api/gmail/threads");
-        if (!res.ok) {
-          const errorData = (await res.json().catch(() => null)) as { error?: string } | null;
-          throw new Error(errorData?.error || `Failed to fetch threads (${res.status})`);
-        }
-        const data: unknown = await res.json();
-        if (!ignore) {
-          if (data && typeof data === "object" && "error" in data && (data as { error: string }).error) {
-            throw new Error((data as { error: string }).error);
-          }
-          setThreads(extractThreads(data));
-        }
-      } catch (err: unknown) {
-        if (!ignore) {
-          const message = err instanceof Error ? err.message : "Failed to load Gmail threads";
-          console.error("useGmailThreads error:", err);
-          setError(message);
-          setThreads([]);
-        }
-      } finally {
-        if (!ignore) {
-          setIsLoading(false);
-        }
+  // ── Sync from Gmail API then refresh DB read ──────────────────────────────
+  const syncFromApi = useCallback(async () => {
+    if (!mountedRef.current) return;
+    setIsSyncing(true);
+    setError(null);
+    try {
+      const res = await fetch("/api/gmail/threads?sync=1");
+      if (!res.ok) {
+        const errorData = (await res.json().catch(() => null)) as { error?: string } | null;
+        throw new Error(errorData?.error || `Sync failed (${res.status})`);
       }
+      const data: unknown = await res.json();
+      if (mountedRef.current) {
+        setThreads(extractThreads(data));
+        setLastSyncedAt(new Date());
+      }
+    } catch (err: unknown) {
+      if (mountedRef.current) {
+        const message = err instanceof Error ? err.message : "Sync failed";
+        console.error("useGmailThreads syncFromApi error:", err);
+        setError(message);
+      }
+    } finally {
+      if (mountedRef.current) setIsSyncing(false);
+    }
+  }, []);
+
+  // ── Mount: load from DB immediately, then trigger first API sync ──────────
+  useEffect(() => {
+    mountedRef.current = true;
+
+    async function init() {
+      // 1. Load cached data immediately so the UI shows something fast
+      await fetchFromDb();
+      // 2. Kick off a background sync so the data is fresh on first load
+      await syncFromApi();
     }
 
-    load();
+    init();
+
+    // 3. Auto-sync every 15 minutes while the component is mounted
+    const timer = setInterval(() => {
+      syncFromApi();
+    }, AUTO_SYNC_INTERVAL_MS);
 
     return () => {
-      ignore = true;
+      mountedRef.current = false;
+      clearInterval(timer);
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   return {
     threads,
     isLoading,
+    /** True only during an active API sync (not DB reads) */
+    isSyncing,
     error,
-    refetch: fetchThreads,
+    lastSyncedAt,
+    /** Re-read from the local DB (fast, no API call) */
+    refetch: () => fetchFromDb(),
+    /** Manually trigger a full Gmail API sync + DB refresh */
+    sync: syncFromApi,
   };
 }

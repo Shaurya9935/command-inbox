@@ -21,6 +21,20 @@ export function InboxIcon({ className = "", size = 14 }: { className?: string; s
   );
 }
 
+export function ChatIcon({ className = "", size = 14 }: { className?: string; size?: number }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 16 16" fill="none" className={className}>
+      <path
+        d="M2.5 3.5a1 1 0 011-1h9a1 1 0 011 1v6.5a1 1 0 01-1 1H6L3 13.5v-2.5h-.5a1 1 0 01-1-1v-6.5z"
+        stroke="currentColor"
+        strokeWidth="1.3"
+        strokeLinejoin="round"
+        strokeLinecap="round"
+      />
+    </svg>
+  );
+}
+
 export function StarIcon({ className = "", size = 14 }: { className?: string; size?: number }) {
   return (
     <svg width={size} height={size} viewBox="0 0 16 16" fill="none" className={className}>
@@ -263,6 +277,29 @@ export function ReplyIcon({ className = "", size = 13 }: { className?: string; s
   );
 }
 
+export function SidebarToggleIcon({ className = "", size = 15 }: { className?: string; size?: number }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 16 16" fill="none" className={className}>
+      <rect x="2" y="2.5" width="12" height="11" rx="2" stroke="currentColor" strokeWidth="1.3" />
+      <path d="M6 2.5v11" stroke="currentColor" strokeWidth="1.3" />
+    </svg>
+  );
+}
+
+export function LogoutIcon({ className = "", size = 14 }: { className?: string; size?: number }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 16 16" fill="none" className={className}>
+      <path
+        d="M6 14H3.5a1.5 1.5 0 01-1.5-1.5v-9A1.5 1.5 0 013.5 2H6M11 11.5L14.5 8 11 4.5M6 8h8.5"
+        stroke="currentColor"
+        strokeWidth="1.3"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
 export function PaperclipIcon({ className = "", size = 12 }: { className?: string; size?: number }) {
   return (
     <svg width={size} height={size} viewBox="0 0 13 13" fill="none" className={className}>
@@ -273,6 +310,104 @@ export function PaperclipIcon({ className = "", size = 12 }: { className?: strin
         strokeLinecap="round"
         strokeLinejoin="round"
       />
+    </svg>
+  );
+}
+
+export function GmailIcon({ className = "", size = 14 }: { className?: string; size?: number }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 16 16" fill="none" className={className}>
+      <rect x="1.5" y="3.5" width="13" height="9" rx="1.5" stroke="currentColor" strokeWidth="1.3" />
+      <path
+        d="M1.5 5l6.5 4.5L14.5 5"
+        stroke="currentColor"
+        strokeWidth="1.3"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
+export function OutlookIcon({ className = "", size = 14 }: { className?: string; size?: number }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 16 16" fill="none" className={className}>
+      <rect x="1" y="3" width="8" height="10" rx="1.5" stroke="currentColor" strokeWidth="1.3" />
+      <path
+        d="M9 5.5h4.5a1 1 0 011 1v3a1 1 0 01-1 1H9"
+        stroke="currentColor"
+        strokeWidth="1.3"
+        strokeLinejoin="round"
+      />
+      <path d="M9 8h5.5" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" />
+      <circle cx="5" cy="8" r="1.5" stroke="currentColor" strokeWidth="1.1" />
+    </svg>
+  );
+}
+
+export function ChevronRightIcon({ className = "", size = 11 }: { className?: string; size?: number }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 12 12" fill="none" className={className}>
+      <path
+        d="M4.5 2.5L7.5 6l-3 3.5"
+        stroke="currentColor"
+        strokeWidth="1.3"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
+export function LabelIcon({ className = "", size = 13 }: { className?: string; size?: number }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 16 16" fill="none" className={className}>
+      <path
+        d="M2 4.5A1.5 1.5 0 013.5 3h6.086a1.5 1.5 0 011.06.44l2.915 2.914a1.5 1.5 0 010 2.122L10.646 11.39a1.5 1.5 0 01-1.06.44H3.5A1.5 1.5 0 012 10.33V4.5z"
+        stroke="currentColor"
+        strokeWidth="1.3"
+        strokeLinejoin="round"
+      />
+      <circle cx="5.5" cy="7.5" r="1" fill="currentColor" opacity="0.6" />
+    </svg>
+  );
+}
+
+export function TrashIcon({ className = "", size = 14 }: { className?: string; size?: number }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 16 16" fill="none" className={className}>
+      <path
+        d="M3 4.5h10M6 4.5V3h4v1.5M5 4.5l.7 8h4.6l.7-8"
+        stroke="currentColor"
+        strokeWidth="1.3"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
+export function AllMailIcon({ className = "", size = 14 }: { className?: string; size?: number }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 16 16" fill="none" className={className}>
+      <rect x="1.5" y="4.5" width="13" height="8" rx="1.5" stroke="currentColor" strokeWidth="1.3" />
+      <path d="M1.5 6.5l6.5 4 6.5-4" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round" />
+      <path d="M4 3h8" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" opacity="0.5" />
+      <path d="M5.5 1.5h5" stroke="currentColor" strokeWidth="1.1" strokeLinecap="round" opacity="0.3" />
+    </svg>
+  );
+}
+
+export function SpamIcon({ className = "", size = 14 }: { className?: string; size?: number }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 16 16" fill="none" className={className}>
+      <path
+        d="M10.5 2h-5L2 5.5v5L5.5 14h5L14 10.5v-5L10.5 2z"
+        stroke="currentColor"
+        strokeWidth="1.3"
+        strokeLinejoin="round"
+      />
+      <path d="M8 5v4M8 10.5v.5" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" />
     </svg>
   );
 }

@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useMemo } from "react";
+import { useRouter } from "next/navigation";
 import { View, Email, CalendarEvent, UserProfile, ServiceConnection, FocusItem } from "./types";
 import { Sidebar } from "./sidebar";
 import { TopBar } from "./top-bar";
@@ -117,9 +118,10 @@ export function DashboardView({
   initialEvents = EVENTS,
   connections = SERVICE_CONNECTIONS,
 }: DashboardViewProps) {
-  const [activeNav, setActiveNav] = useState("inbox");
+  const router = useRouter();
   const [view, setView] = useState<View>("default");
   const [selectedEmail, setSelectedEmail] = useState<Email | null>(null);
+  const [activeNav, setActiveNav] = useState("chat");
   const [statusOpen, setStatusOpen] = useState(false);
   const [readEmailIds, setReadEmailIds] = useState<Set<string | number>>(new Set());
   const [events] = useState<CalendarEvent[]>(initialEvents);
@@ -161,7 +163,12 @@ export function DashboardView({
     setActiveNav(nav);
     if (nav === "today") {
       setView("calendar");
-    } else if (nav === "inbox" || nav === "starred" || nav === "drafts" || nav === "sent") {
+    } else if (nav === "inbox") {
+      router.push("/dashboard/inbox");
+    } else if (nav === "chat") {
+      setView("default");
+      setSelectedEmail(null);
+    } else if (nav === "starred" || nav === "drafts" || nav === "sent") {
       setView("default");
       setSelectedEmail(null);
     }
@@ -172,8 +179,7 @@ export function DashboardView({
     if (lower.includes("calendar") || lower.includes("schedule") || lower.includes("meet")) {
       openCalendar();
     } else if (lower.includes("email") || lower.includes("unread") || lower.includes("reply")) {
-      const firstUnread = emails.find((e) => e.unread) || emails[0];
-      if (firstUnread) openEmail(firstUnread);
+      router.push("/dashboard/inbox");
     }
   };
 
@@ -254,10 +260,7 @@ export function DashboardView({
             <DefaultWorkspace
               onSelectEmail={openEmail}
               onSelectCalendar={openCalendar}
-              onSelectInbox={() => {
-                const first = emails[0];
-                if (first) openEmail(first);
-              }}
+              onSelectInbox={() => router.push("/dashboard/inbox")}
               onSendCommand={handleSendCommand}
               user={initialUser}
               focusItems={dynamicFocusItems}
