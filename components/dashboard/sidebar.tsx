@@ -14,6 +14,8 @@ import {
   SettingsIcon,
   HelpIcon,
 } from "./icons";
+import { useRouter } from "next/navigation";
+import { authClient } from "@/lib/auth-client";
 import { Avatar } from "./avatar";
 import { UserProfile } from "./types";
 import { CURRENT_USER } from "./mock-data";
@@ -123,6 +125,33 @@ export function Sidebar({
   user = CURRENT_USER,
   inboxBadge = 12,
 }: SidebarProps) {
+  const router = useRouter();
+  const { data: session } = authClient.useSession();
+  const displayUser = session?.user
+    ? {
+        name: session.user.name || session.user.email.split("@")[0],
+        email: session.user.email,
+        initials: (session.user.name || session.user.email)
+          .split(" ")
+          .map((w: string) => w[0])
+          .join("")
+          .slice(0, 2)
+          .toUpperCase(),
+        color: "#5549C0",
+      }
+    : user;
+
+  async function handleLogout() {
+    await authClient.signOut({
+      fetchOptions: {
+        onSuccess: () => {
+          router.push("/login");
+          router.refresh();
+        },
+      },
+    });
+  }
+
   return (
     <aside
       style={{
@@ -271,10 +300,9 @@ export function Sidebar({
             padding: "10px 10px 2px",
             marginTop: 4,
             borderRadius: 8,
-            cursor: "pointer",
           }}
         >
-          <Avatar initials={user.initials} color={user.color} size={26} />
+          <Avatar initials={displayUser.initials} color={displayUser.color} size={26} />
           <div style={{ flex: 1, minWidth: 0 }}>
             <div
               style={{
@@ -286,7 +314,7 @@ export function Sidebar({
                 whiteSpace: "nowrap",
               }}
             >
-              {user.name}
+              {displayUser.name}
             </div>
             <div
               style={{
@@ -297,10 +325,27 @@ export function Sidebar({
                 whiteSpace: "nowrap",
               }}
             >
-              {user.email}
+              {displayUser.email}
             </div>
           </div>
         </div>
+        <button
+          onClick={handleLogout}
+          style={{
+            width: "100%",
+            marginTop: 8,
+            padding: "6px 10px",
+            borderRadius: 7,
+            border: "1px solid #E4DED4",
+            background: "#FDFCF8",
+            fontSize: 12.5,
+            fontWeight: 500,
+            color: "#6B6762",
+            cursor: "pointer",
+          }}
+        >
+          Log out
+        </button>
       </div>
     </aside>
   );

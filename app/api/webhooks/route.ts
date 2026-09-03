@@ -23,10 +23,12 @@ export async function POST(request: NextRequest) {
         body = text && text.trim() ? text : {};
     }
 
-    const tenantId = 'default';
+    // Multi-tenancy: tenantId must come from ?tenantId= query param per https://docs.corsair.dev/concepts/multi-tenancy
+    // Gmail webhook tenant is also resolved via email_address matcher, but query param takes precedence for isolation
+    const tenantId = url.searchParams.get('tenantId') || url.searchParams.get('tenant_id');
 
     const result = await processWebhook(corsair, headers, body, {
-        tenantId,
+        ...(tenantId ? { tenantId } : {}),
     });
 
     console.info(

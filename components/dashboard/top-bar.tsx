@@ -4,6 +4,7 @@ import React, { useRef, useEffect } from "react";
 import { BellIcon } from "./icons";
 import { Dot } from "./dot";
 import { Avatar } from "./avatar";
+import { authClient } from "@/lib/auth-client";
 import { View, Email, ServiceConnection, UserProfile } from "./types";
 import { SERVICE_CONNECTIONS, CURRENT_USER } from "./mock-data";
 
@@ -26,6 +27,20 @@ export function TopBar({
   connections = SERVICE_CONNECTIONS,
   user = CURRENT_USER,
 }: TopBarProps) {
+  const { data: session } = authClient.useSession();
+  const displayUser = session?.user
+    ? {
+        name: session.user.name || session.user.email.split("@")[0],
+        email: session.user.email,
+        initials: (session.user.name || session.user.email)
+          .split(" ")
+          .map((w: string) => w[0])
+          .join("")
+          .slice(0, 2)
+          .toUpperCase(),
+        color: "#5549C0",
+      }
+    : user;
   const statusMenuRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -187,7 +202,7 @@ export function TopBar({
       </button>
 
       {/* Header Avatar */}
-      <Avatar initials={user.initials} color={user.color} size={32} />
+      <Avatar initials={displayUser.initials} color={displayUser.color} size={32} />
     </header>
   );
 }
