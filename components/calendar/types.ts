@@ -12,6 +12,7 @@ export interface CalEvent {
   location?: string;
   attendees?: string[];
   description?: string;
+  startDateIso?: string; // ISO string of the event's start datetime
 }
 
 export interface WeekDay {
@@ -19,6 +20,7 @@ export interface WeekDay {
   dateNum: number;
   monthStr: string;
   isToday: boolean;
+  fullDate?: Date;
 }
 
 export interface MonthCell {
@@ -27,6 +29,7 @@ export interface MonthCell {
   inMonth: boolean;
   isToday?: boolean;
   key: string;
+  fullDate?: Date;
 }
 
 export interface EventStyle {

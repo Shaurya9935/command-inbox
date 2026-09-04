@@ -2,19 +2,22 @@
 
 import React from "react";
 import { EventType, MonthCell } from "./types";
-import { EV_S, MONTH_EV, SEP_CELLS } from "./constants";
+import { EV_S } from "./constants";
 
 export interface MonthViewProps {
-  cells?: MonthCell[];
+  cells: MonthCell[];
   monthEvents?: Record<string, { title: string; type: EventType }[]>;
-  onSelectDate?: (dateKey: string) => void;
+  onSelectDate?: (dateKey: string, fullDate?: Date) => void;
 }
 
 export function MonthView({
-  cells = SEP_CELLS,
-  monthEvents = MONTH_EV,
+  cells,
+  monthEvents = {},
   onSelectDate,
 }: MonthViewProps) {
+  // How many rows does the grid have?
+  const rowCount = Math.ceil(cells.length / 7);
+
   return (
     <div style={{ flex: 1, overflowY: "auto", padding: 0, display: "flex", flexDirection: "column" }}>
       {/* Day-of-week headers */}
@@ -50,7 +53,7 @@ export function MonthView({
         style={{
           display: "grid",
           gridTemplateColumns: "repeat(7, 1fr)",
-          gridTemplateRows: "repeat(5, 1fr)",
+          gridTemplateRows: `repeat(${rowCount}, 1fr)`,
           flex: 1,
           minHeight: 480,
         }}
@@ -61,7 +64,7 @@ export function MonthView({
           return (
             <div
               key={cell.key}
-              onClick={() => onSelectDate?.(cell.key)}
+              onClick={() => onSelectDate?.(cell.key, cell.fullDate)}
               style={{
                 borderRight: "1px solid #EDEAE4",
                 borderBottom: "1px solid #EDEAE4",

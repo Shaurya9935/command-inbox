@@ -1,8 +1,21 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useMemo, useEffect, useRef } from "react";
 import { CalEvent, CalViewType } from "./types";
-import { SEP_CELLS, WEEK_DAYS } from "./constants";
+import { EV_S, GRID_START } from "./constants";
+import {
+  today,
+  nowHour,
+  mondayOf,
+  addDays,
+  buildWeekDays,
+  buildMonthCells,
+  weekTitle,
+  dayTitle,
+  monthTitle,
+  isSameDay,
+  parseEventDate,
+} from "./date-utils";
 import { CalendarHeader } from "./calendar-header";
 import { WeekView } from "./week-view";
 import { MonthView } from "./month-view";
@@ -21,23 +34,133 @@ export function CalendarWorkspace({ initialEvents = [], onBack }: CalendarWorksp
   const [events, setEvents] = useState<CalEvent[]>(initialEvents);
   const [selectedEv, setSelectedEv] = useState<CalEvent | null>(null);
   const [showNew, setShowNew] = useState(false);
+
+  // periodOffset: number of weeks/months/days offset from today
   const [periodOffset, setPeriodOffset] = useState(0);
 
-  React.useEffect(() => {
-    if (initialEvents) {
-      setEvents(initialEvents);
-    }
+  // Live "now" — refreshed every minute so the time marker moves
+  const [nowH, setNowH] = useState(nowHour());
+  const nowRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  useEffect(() => {
+    nowRef.current = setInterval(() => setNowH(nowHour()), 60_000);
+    return () => { if (nowRef.current) clearInterval(nowRef.current); };
+  }, []);
+
+  // Sync events when parent provides updated data
+  useEffect(() => {
+    if (initialEvents) setEvents(initialEvents);
   }, [initialEvents]);
 
+  // ── Anchor date: the "primary" date for the current view ──────────────────
+  const anchorDate = useMemo<Date>(() => {
+    const t = today();
+    if (calView === "week") {
+      return addDays(mondayOf(t), periodOffset * 7);
+    } else if (calView === "month") {
+      const d = new Date(t.getFullYear(), t.getMonth() + periodOffset, 1);
+      return d;
+    } else {
+      // day / agenda: offset by individual days
+      return addDays(t, periodOffset);
+    }
+  }, [calView, periodOffset]);
+
+  // Reset offset when switching views
+  const handleViewChange = (view: CalViewType) => {
+    setCalView(view);
+    setPeriodOffset(0);
+    setSelectedEv(null);
+  };
+
+  // ── Week-view derived data ─────────────────────────────────────────────────
+  const todayDate = useMemo(() => today(), []);
+  const weekDays = useMemo(
+    () => (calView === "week" || calView === "agenda") ? buildWeekDays(anchorDate, todayDate) : [],
+    [calView, anchorDate, todayDate]
+  );
+
+  // ── Month-view derived data ────────────────────────────────────────────────
+  const monthCells = useMemo(
+    () => calView === "month" ? buildMonthCells(anchorDate.getFullYear(), anchorDate.getMonth(), todayDate) : [],
+    [calView, anchorDate, todayDate]
+  );
+
+  // ── Period title ──────────────────────────────────────────────────────────
+  const periodTitle = useMemo(() => {
+    if (calView === "week") return weekTitle(anchorDate);
+    if (calView === "month") return monthTitle(anchorDate);
+    if (calView === "day" || calView === "agenda") return dayTitle(anchorDate);
+    return "";
+  }, [calView, anchorDate]);
+
+  // ── Filter events for the current period ─────────────────────────────────
+  // Events store `day` as 0=Mon…6=Sun *within the displayed week*.
+  // We need to re-map from absolute ISO dates stored in the original API data.
+  // Since CalEvent only carries `day` (relative index), we derive which actual
+  // calendar date each event falls on by comparing to the week's Monday.
+  // For week/agenda: filter events that fall within Mon..Sun of `anchorDate`
+  // For day: filter events that fall on `anchorDate`
+  // For month: no time-grid filtering (month view uses its own event map)
+  const filteredEvents = useMemo((): CalEvent[] => {
+    if (calView === "month") return events;
+
+    if (calView === "week" || calView === "agenda") {
+      const monday = anchorDate;
+      // Use local date components for the boundary — avoids timezone midnight issues
+      const monYear = monday.getFullYear();
+      const monMonth = monday.getMonth();
+      const monDay = monday.getDate();
+      const sunday = addDays(monday, 6);
+      const sunYear = sunday.getFullYear();
+      const sunMonth = sunday.getMonth();
+      const sunDay = sunday.getDate();
+
+      return events
+        .filter((e) => {
+          if (!e.startDateIso) return false; // no date info → hide
+          // Parse the event date in local time
+          // dateTime strings include timezone offset; date-only strings need local parse
+          const evDate = parseEventDate(e.startDateIso);
+          const y = evDate.getFullYear(), m = evDate.getMonth(), d = evDate.getDate();
+          // Check if evDate falls within [monday..sunday] inclusive (local date comparison)
+          const afterMon = y > monYear || (y === monYear && (m > monMonth || (m === monMonth && d >= monDay)));
+          const beforeSun = y < sunYear || (y === sunYear && (m < sunMonth || (m === sunMonth && d <= sunDay)));
+          return afterMon && beforeSun;
+        })
+        .map((e) => {
+          if (e.startDateIso) {
+            const evDate = parseEventDate(e.startDateIso);
+            const monFirstIdx = (evDate.getDay() + 6) % 7;
+            return { ...e, day: monFirstIdx };
+          }
+          return e;
+        });
+    }
+
+    if (calView === "day") {
+      return events.filter((e) => {
+        if (!e.startDateIso) return false;
+        const evDate = parseEventDate(e.startDateIso);
+        return isSameDay(evDate, anchorDate);
+      });
+    }
+
+    return events;
+  }, [calView, events, anchorDate]);
+
+  // ── Event handlers ────────────────────────────────────────────────────────
   const handleToggleEv = (ev: CalEvent) => {
     setSelectedEv((prev) => (prev?.id === ev.id ? null : ev));
   };
 
   const handleCreateEvent = (newEventData: Partial<CalEvent>) => {
+    const dayIdx = calView === "day"
+      ? (anchorDate.getDay() + 6) % 7
+      : (todayDate.getDay() + 6) % 7;
     const created: CalEvent = {
       id: Date.now(),
       title: newEventData.title || "Untitled event",
-      day: newEventData.day ?? 3,
+      day: newEventData.day ?? dayIdx,
       startH: newEventData.startH ?? 9.0,
       endH: newEventData.endH ?? 10.0,
       type: newEventData.type ?? "meeting",
@@ -45,28 +168,20 @@ export function CalendarWorkspace({ initialEvents = [], onBack }: CalendarWorksp
       attendees: newEventData.attendees,
       description: newEventData.description,
     };
-
     setEvents((prev) => [...prev, created]);
     setSelectedEv(created);
   };
 
   const handleDeleteEvent = (ev: CalEvent) => {
     setEvents((prev) => prev.filter((e) => e.id !== ev.id));
-    if (selectedEv?.id === ev.id) {
-      setSelectedEv(null);
-    }
+    if (selectedEv?.id === ev.id) setSelectedEv(null);
   };
 
-  const getPeriodTitle = () => {
-    if (periodOffset === 0) {
-      if (calView === "week") return "Aug 31 – Sep 6, 2026";
-      if (calView === "day") return "Thursday, Sep 3";
-      return "September 2026";
-    }
-    return calView === "week"
-      ? `Week (${periodOffset > 0 ? `+${periodOffset}` : periodOffset})`
-      : `September 2026 (${periodOffset > 0 ? `+${periodOffset}` : periodOffset})`;
-  };
+  // Day view props
+  const dayViewDate = calView === "day" ? anchorDate : todayDate;
+  const dayLabel = weekDays.length
+    ? weekDays[(anchorDate.getDay() + 6) % 7]?.label
+    : ["Mon","Tue","Wed","Thu","Fri","Sat","Sun"][(anchorDate.getDay() + 6) % 7];
 
   return (
     <div
@@ -88,50 +203,56 @@ export function CalendarWorkspace({ initialEvents = [], onBack }: CalendarWorksp
       {/* Calendar Header with Controls */}
       <CalendarHeader
         calView={calView}
-        onViewChange={(view) => {
-          setCalView(view);
-          setSelectedEv(null);
-        }}
+        onViewChange={handleViewChange}
         onPrev={() => setPeriodOffset((prev) => prev - 1)}
         onNext={() => setPeriodOffset((prev) => prev + 1)}
         onToday={() => setPeriodOffset(0)}
         onNewEvent={() => setShowNew(true)}
-        periodTitle={getPeriodTitle()}
+        periodTitle={periodTitle}
       />
 
       {/* Dynamic Views */}
       {calView === "week" && (
         <WeekView
-          events={events}
+          events={filteredEvents}
           selectedEventId={selectedEv?.id}
           onSelectEvent={handleToggleEv}
-          weekDays={WEEK_DAYS}
+          weekDays={weekDays}
+          nowH={nowH}
         />
       )}
 
       {calView === "month" && (
         <MonthView
-          cells={SEP_CELLS}
-          onSelectDate={() => setCalView("day")}
+          cells={monthCells}
+          onSelectDate={(dateKey, fullDate) => {
+            // Navigate to day view on that date
+            if (fullDate) {
+              const t = today();
+              const diffDays = Math.round((fullDate.getTime() - t.getTime()) / 86400000);
+              setPeriodOffset(diffDays);
+            }
+            setCalView("day");
+          }}
         />
       )}
 
       {calView === "day" && (
         <DayView
-          events={events}
+          events={filteredEvents}
           selectedEventId={selectedEv?.id}
           onSelectEvent={handleToggleEv}
-          dayNum={3}
-          dayLabel="Thu"
+          viewDate={dayViewDate}
+          nowH={nowH}
         />
       )}
 
       {calView === "agenda" && (
         <AgendaView
-          events={events}
+          events={filteredEvents}
           selectedEventId={selectedEv?.id}
           onSelectEvent={handleToggleEv}
-          weekDays={WEEK_DAYS}
+          weekDays={weekDays}
         />
       )}
 

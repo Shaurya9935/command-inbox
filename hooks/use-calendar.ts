@@ -51,8 +51,8 @@ export function mapGoogleEventToCalEvent(
   event: GoogleCalendarApiEvent,
   fallbackIndex = 0
 ): CalEvent {
-  const startStr = event.start?.dateTime || event.start?.date;
-  const endStr = event.end?.dateTime || event.end?.date;
+  const startStr = event.start?.dateTime?.trim() || event.start?.date?.trim() || "";
+  const endStr = event.end?.dateTime?.trim() || event.end?.date?.trim() || "";
 
   const startDate = startStr ? new Date(startStr) : new Date();
   const endDate = endStr ? new Date(endStr) : new Date(startDate.getTime() + 60 * 60 * 1000);
@@ -102,6 +102,7 @@ export function mapGoogleEventToCalEvent(
     location: event.hangoutLink || event.location || undefined,
     attendees: attendees && attendees.length > 0 ? attendees : undefined,
     description: event.description || undefined,
+    startDateIso: startStr || undefined,
   };
 }
 

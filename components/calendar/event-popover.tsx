@@ -2,7 +2,7 @@
 
 import React from "react";
 import { CalEvent, fmtTime } from "./types";
-import { EV_S, WEEK_DAYS } from "./constants";
+import { EV_S } from "./constants";
 
 export interface EventPopoverProps {
   event: CalEvent;
@@ -18,7 +18,6 @@ export function EventPopover({
   onDelete,
 }: EventPopoverProps) {
   const s = EV_S[event.type];
-  const day = WEEK_DAYS[event.day] || WEEK_DAYS[3];
 
   return (
     <>
@@ -77,7 +76,7 @@ export function EventPopover({
               marginBottom: event.location || event.attendees ? 14 : 0,
             }}
           >
-            {day.monthStr} {day.dateNum} · {fmtTime(event.startH)} – {fmtTime(event.endH)}
+            {fmtTime(event.startH)} – {fmtTime(event.endH)}
           </div>
 
           {/* Location */}

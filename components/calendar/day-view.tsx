@@ -2,36 +2,59 @@
 
 import React, { useRef, useEffect } from "react";
 import { CalEvent, fmtTime } from "./types";
-import { EV_S, GRID_END, GRID_START, HOUR_PX, NOW_H } from "./constants";
+import { EV_S, GRID_END, GRID_START, HOUR_PX } from "./constants";
+
+const SHORT_MONTH = [
+  "Jan","Feb","Mar","Apr","May","Jun",
+  "Jul","Aug","Sep","Oct","Nov","Dec",
+];
+const SHORT_DAY = ["Mon","Tue","Wed","Thu","Fri","Sat","Sun"];
 
 export interface DayViewProps {
   events: CalEvent[];
   selectedEventId?: number | string | null;
   onSelectEvent: (event: CalEvent) => void;
-  dayNum?: number;
-  dayLabel?: string;
+  /** The date being displayed. Defaults to today. */
+  viewDate?: Date;
+  /** Live fractional hour for the time needle (e.g. 14.5 = 2:30 PM) */
+  nowH?: number;
 }
 
 export function DayView({
   events,
   selectedEventId,
   onSelectEvent,
-  dayNum = 3,
-  dayLabel = "Thu",
+  viewDate,
+  nowH,
 }: DayViewProps) {
   const gridRef = useRef<HTMLDivElement>(null);
+  const displayDate = viewDate ?? new Date();
 
+  // Scroll to current time on mount
   useEffect(() => {
-    if (gridRef.current) {
-      gridRef.current.scrollTop = Math.max(0, (NOW_H - GRID_START - 2) * HOUR_PX);
+    if (gridRef.current && nowH !== undefined) {
+      gridRef.current.scrollTop = Math.max(0, (nowH - GRID_START - 2) * HOUR_PX);
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const hours = Array.from({ length: GRID_END - GRID_START }, (_, i) => GRID_START + i);
   const totalH = (GRID_END - GRID_START) * HOUR_PX;
-  const nowTop = (NOW_H - GRID_START) * HOUR_PX;
+  const nowTop = nowH !== undefined ? (nowH - GRID_START) * HOUR_PX : null;
 
-  const dayEvents = events.filter((e) => e.day === 3);
+  // Check if viewDate is today
+  const todayLocal = new Date();
+  const isToday =
+    displayDate.getFullYear() === todayLocal.getFullYear() &&
+    displayDate.getMonth() === todayLocal.getMonth() &&
+    displayDate.getDate() === todayLocal.getDate();
+
+  // Day label: Mon-first index
+  const jsDay = displayDate.getDay(); // 0=Sun
+  const monFirstIdx = (jsDay + 6) % 7;
+  const dayLabel = SHORT_DAY[monFirstIdx];
+  const dayNum = displayDate.getDate();
+  const monthStr = SHORT_MONTH[displayDate.getMonth()];
 
   const renderEvent = (ev: CalEvent) => {
     const evTop = (ev.startH - GRID_START) * HOUR_PX + 2;
@@ -113,7 +136,7 @@ export function DayView({
 
   return (
     <div style={{ flex: 1, display: "flex", flexDirection: "column", overflow: "hidden" }}>
-      {/* Today header banner */}
+      {/* Day header banner */}
       <div
         style={{
           display: "flex",
@@ -136,7 +159,7 @@ export function DayView({
               fontSize: 10,
               fontWeight: 600,
               letterSpacing: "0.07em",
-              color: "#5549C0",
+              color: isToday ? "#5549C0" : "#B8B3AB",
               textTransform: "uppercase",
               fontFamily: "var(--font-ui, 'DM Sans', system-ui, sans-serif)",
             }}
@@ -148,11 +171,11 @@ export function DayView({
               fontSize: 22,
               fontWeight: 700,
               letterSpacing: "-0.04em",
-              color: "#FFF",
+              color: isToday ? "#FFF" : "#2D2C2A",
               width: 38,
               height: 38,
               borderRadius: "50%",
-              background: "#5549C0",
+              background: isToday ? "#5549C0" : "transparent",
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
@@ -161,6 +184,16 @@ export function DayView({
             }}
           >
             {dayNum}
+          </div>
+          <div
+            style={{
+              fontSize: 10.5,
+              color: "#C5C0B8",
+              marginTop: 2,
+              fontFamily: "var(--font-ui, 'DM Sans', system-ui, sans-serif)",
+            }}
+          >
+            {monthStr} {displayDate.getFullYear()}
           </div>
         </div>
       </div>
@@ -195,7 +228,7 @@ export function DayView({
               flex: 1,
               position: "relative",
               borderLeft: "1px solid #EDEAE4",
-              background: "rgba(85,73,192,0.012)",
+              background: isToday ? "rgba(85,73,192,0.012)" : "transparent",
             }}
           >
             {/* Hour lines */}
@@ -214,34 +247,38 @@ export function DayView({
             ))}
 
             {/* Events for today */}
-            {dayEvents.map((ev) => renderEvent(ev))}
+            {events.map((ev) => renderEvent(ev))}
 
-            {/* Current time needle */}
-            <div
-              style={{
-                position: "absolute",
-                top: nowTop - 4.5,
-                left: -6,
-                width: 10,
-                height: 10,
-                borderRadius: "50%",
-                background: "#5549C0",
-                zIndex: 3,
-                pointerEvents: "none",
-              }}
-            />
-            <div
-              style={{
-                position: "absolute",
-                top: nowTop,
-                left: 0,
-                right: 0,
-                height: 1.5,
-                background: "rgba(85,73,192,0.45)",
-                zIndex: 3,
-                pointerEvents: "none",
-              }}
-            />
+            {/* Current time needle (only if today) */}
+            {isToday && nowTop !== null && nowTop >= 0 && (
+              <>
+                <div
+                  style={{
+                    position: "absolute",
+                    top: nowTop - 4.5,
+                    left: -6,
+                    width: 10,
+                    height: 10,
+                    borderRadius: "50%",
+                    background: "#5549C0",
+                    zIndex: 3,
+                    pointerEvents: "none",
+                  }}
+                />
+                <div
+                  style={{
+                    position: "absolute",
+                    top: nowTop,
+                    left: 0,
+                    right: 0,
+                    height: 1.5,
+                    background: "rgba(85,73,192,0.45)",
+                    zIndex: 3,
+                    pointerEvents: "none",
+                  }}
+                />
+              </>
+            )}
           </div>
         </div>
       </div>

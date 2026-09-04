@@ -2,32 +2,39 @@
 
 import React, { useRef, useEffect } from "react";
 import { CalEvent, fmtTime, WeekDay } from "./types";
-import { EV_S, GRID_END, GRID_START, HOUR_PX, NOW_H, WEEK_DAYS } from "./constants";
+import { EV_S, GRID_END, GRID_START, HOUR_PX } from "./constants";
 
 export interface WeekViewProps {
   events: CalEvent[];
   selectedEventId?: number | string | null;
   onSelectEvent: (event: CalEvent) => void;
-  weekDays?: WeekDay[];
+  weekDays: WeekDay[];
+  nowH?: number; // fractional current hour, e.g. 14.5 = 2:30 PM
 }
 
 export function WeekView({
   events,
   selectedEventId,
   onSelectEvent,
-  weekDays = WEEK_DAYS,
+  weekDays,
+  nowH,
 }: WeekViewProps) {
   const gridRef = useRef<HTMLDivElement>(null);
 
+  // Scroll to current time on mount
   useEffect(() => {
-    if (gridRef.current) {
-      gridRef.current.scrollTop = Math.max(0, (NOW_H - GRID_START - 2) * HOUR_PX);
+    if (gridRef.current && nowH !== undefined) {
+      gridRef.current.scrollTop = Math.max(0, (nowH - GRID_START - 2) * HOUR_PX);
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const hours = Array.from({ length: GRID_END - GRID_START }, (_, i) => GRID_START + i);
   const totalH = (GRID_END - GRID_START) * HOUR_PX;
-  const nowTop = (NOW_H - GRID_START) * HOUR_PX;
+
+  // today's column index for showing the time needle
+  const todayColIndex = weekDays.findIndex((d) => d.isToday);
+  const nowTop = nowH !== undefined ? (nowH - GRID_START) * HOUR_PX : null;
 
   const renderEvent = (ev: CalEvent) => {
     const evTop = (ev.startH - GRID_START) * HOUR_PX + 2;
@@ -208,13 +215,13 @@ export function WeekView({
                 />
               ))}
 
-              {/* Events for this day */}
+              {/* Events for this column (by day index) */}
               {events
                 .filter((e) => e.day === di)
                 .map((ev) => renderEvent(ev))}
 
               {/* Today current time needle */}
-              {d.isToday && (
+              {d.isToday && nowTop !== null && nowTop >= 0 && (
                 <>
                   <div
                     style={{

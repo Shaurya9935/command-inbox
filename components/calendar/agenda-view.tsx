@@ -2,7 +2,7 @@
 
 import React from "react";
 import { CalEvent, fmtTime, WeekDay } from "./types";
-import { EV_S, WEEK_DAYS } from "./constants";
+import { EV_S } from "./constants";
 
 export interface AgendaViewProps {
   events: CalEvent[];
@@ -15,7 +15,7 @@ export function AgendaView({
   events,
   selectedEventId,
   onSelectEvent,
-  weekDays = WEEK_DAYS,
+  weekDays = [],
 }: AgendaViewProps) {
   return (
     <div style={{ flex: 1, overflowY: "auto", padding: "24px 32px" }}>

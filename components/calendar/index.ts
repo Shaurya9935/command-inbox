@@ -1,5 +1,6 @@
 export * from "./types";
 export * from "./constants";
+export * from "./date-utils";
 export * from "./calendar-header";
 export * from "./week-view";
 export * from "./month-view";
