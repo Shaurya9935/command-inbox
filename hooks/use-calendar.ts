@@ -2,7 +2,6 @@
 
 import { useEffect, useState, useCallback, useRef, useMemo } from "react";
 import { CalEvent, EventType } from "@/components/calendar/types";
-import { CAL_EVENTS } from "@/components/calendar/constants";
 import { CalendarEvent } from "@/components/dashboard/types";
 
 export interface GoogleCalendarApiEvent {
@@ -169,7 +168,7 @@ const AUTO_SYNC_INTERVAL_MS = 15 * 60 * 1000; // 15 minutes
 
 export function useCalendarEvents() {
   const [rawEvents, setRawEvents] = useState<GoogleCalendarApiEvent[]>([]);
-  const [events, setEvents] = useState<CalEvent[]>(CAL_EVENTS);
+  const [events, setEvents] = useState<CalEvent[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [isSyncing, setIsSyncing] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);

@@ -4,17 +4,17 @@ import React, { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Sidebar } from "@/components/dashboard/sidebar";
 import { RightPanel } from "@/components/dashboard/right-panel";
-import { CalendarIcon, SearchIcon } from "@/components/dashboard/icons";
-import { CalendarWorkspace } from "@/components/calendar";
+import { CalendarIcon, SearchIcon, SidebarToggleIcon } from "@/components/dashboard/icons";
+import { CalendarWorkspace, CalendarSyncingView, CalendarEmptyView } from "@/components/calendar";
 import { useGmailThreads } from "@/hooks/use-gmail";
 import { useCalendarEvents } from "@/hooks/use-calendar";
 
 export default function CalendarPage() {
   const router = useRouter();
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const { threads } = useGmailThreads();
-  const { events, todayEvents, isSyncing, sync, lastSyncedAt } = useCalendarEvents();
+  const { events, todayEvents, isLoading, isSyncing, sync, lastSyncedAt } = useCalendarEvents();
 
   const unreadCount = Array.isArray(threads)
     ? threads.filter((t) => t.unread || t.data?.unread).length
@@ -77,6 +77,33 @@ export default function CalendarPage() {
         >
           {/* Service Title */}
           <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+            <button
+              onClick={() => setSidebarCollapsed((prev) => !prev)}
+              title={sidebarCollapsed ? "Open primary sidebar" : "Collapse primary sidebar"}
+              style={{
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                background: "transparent",
+                border: "1px solid #E4DED4",
+                borderRadius: 6,
+                padding: "4px 6px",
+                cursor: "pointer",
+                color: "#6B6762",
+                transition: "background 0.12s, color 0.12s",
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.background = "#EEE9E1";
+                e.currentTarget.style.color = "#1A1917";
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.background = "transparent";
+                e.currentTarget.style.color = "#6B6762";
+              }}
+            >
+              <SidebarToggleIcon size={14} />
+            </button>
+            <div style={{ width: 1, height: 16, background: "#E8E4DC" }} />
             <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
               <span style={{ color: "#5549C0", display: "flex" }}>
                 <CalendarIcon size={16} />
@@ -204,9 +231,46 @@ export default function CalendarPage() {
           </div>
         </header>
 
-        {/* ── Calendar Workspace ── */}
-        <div style={{ flex: 1, display: "flex", flexDirection: "column", overflow: "hidden" }}>
-          <CalendarWorkspace initialEvents={events} />
+        {/* ── Calendar Workspace / Syncing View / Empty View ── */}
+        <div style={{ flex: 1, display: "flex", flexDirection: "column", overflow: "hidden", position: "relative" }}>
+          {(isLoading || isSyncing) && events.length === 0 ? (
+            <CalendarSyncingView />
+          ) : events.length === 0 ? (
+            <CalendarEmptyView onSync={() => sync()} isSyncing={isSyncing} />
+          ) : (
+            <>
+              {isSyncing && (
+                <div
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    gap: 8,
+                    padding: "6px 14px",
+                    background: "#F0EEFB",
+                    borderBottom: "1px solid #DDD8F5",
+                    fontSize: 12,
+                    color: "#5549C0",
+                    fontWeight: 500,
+                    fontFamily: "var(--font-ui, 'DM Sans', system-ui, sans-serif)",
+                  }}
+                >
+                  <svg
+                    width="12"
+                    height="12"
+                    viewBox="0 0 16 16"
+                    fill="none"
+                    style={{ animation: "spin 0.8s linear infinite" }}
+                  >
+                    <circle cx="8" cy="8" r="6" stroke="#DDD8F5" strokeWidth="2.5" />
+                    <path d="M8 2a6 6 0 016 6" stroke="#5549C0" strokeWidth="2.5" strokeLinecap="round" />
+                  </svg>
+                  <span>Syncing latest updates from Google Calendar…</span>
+                </div>
+              )}
+              <CalendarWorkspace initialEvents={events} />
+            </>
+          )}
         </div>
       </div>
 

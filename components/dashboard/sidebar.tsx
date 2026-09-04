@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   LogoIcon,
   InboxIcon,
@@ -908,6 +908,14 @@ export function Sidebar({
     return propActiveWorkspace !== undefined && propActiveWorkspace !== null;
   });
 
+  useEffect(() => {
+    if (propActiveWorkspace) {
+      if (propCollapsed === undefined) {
+        setInternalCollapsed(true);
+      }
+    }
+  }, [propActiveWorkspace, propCollapsed]);
+
   const isPrimaryCollapsed =
     propCollapsed !== undefined ? propCollapsed : internalCollapsed;
 
@@ -932,6 +940,7 @@ export function Sidebar({
   };
 
   const handleSelectWorkspace = (id: WorkspaceId) => {
+    setInternalCollapsed(true);
     if (propOnSelectWorkspace) {
       propOnSelectWorkspace(id);
     } else {
@@ -952,6 +961,7 @@ export function Sidebar({
   };
 
   const handleSwitchWorkspace = (id: WorkspaceId) => {
+    setInternalCollapsed(true);
     if (propOnSelectWorkspace) {
       propOnSelectWorkspace(id);
     } else {

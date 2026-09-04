@@ -15,61 +15,8 @@ export const WEEK_DAYS: WeekDay[] = [
   { label: "Sun", dateNum: 6, monthStr: "Sep", isToday: false },
 ];
 
-export const CAL_EVENTS: CalEvent[] = [
-  { id: 1, title: "Focus time", day: 0, startH: 9.5, endH: 11.0, type: "focus" },
-  {
-    id: 2,
-    title: "1:1 with Jordan",
-    day: 1,
-    startH: 10.0,
-    endH: 10.5,
-    type: "meeting",
-    location: "Google Meet",
-    attendees: ["Jordan K.", "Shaurya G."],
-  },
-  {
-    id: 3,
-    title: "Team sync",
-    day: 1,
-    startH: 11.0,
-    endH: 12.0,
-    type: "meeting",
-    location: "Google Meet",
-    attendees: ["Sarah C.", "Alex M.", "Lena P.", "Shaurya G."],
-  },
-  { id: 4, title: "Lunch", day: 2, startH: 12.5, endH: 13.25, type: "personal" },
-  {
-    id: 5,
-    title: "Design critique",
-    day: 2,
-    startH: 14.0,
-    endH: 15.0,
-    type: "meeting",
-    attendees: ["Sarah C.", "Lena P.", "Shaurya G."],
-  },
-  {
-    id: 6,
-    title: "Project review",
-    day: 3,
-    startH: 15.5,
-    endH: 16.5,
-    type: "meeting",
-    attendees: ["Sarah C.", "Alex M."],
-  },
-  { id: 7, title: "Gym", day: 3, startH: 18.0, endH: 19.0, type: "personal" },
-  {
-    id: 8,
-    title: "Sprint planning",
-    day: 4,
-    startH: 9.0,
-    endH: 10.5,
-    type: "meeting",
-    location: "Google Meet",
-    attendees: ["Sarah C.", "Alex M.", "Lena P.", "Shaurya G."],
-  },
-  { id: 9, title: "Happy hour", day: 4, startH: 17.5, endH: 18.5, type: "personal" },
-  { id: 10, title: "Family brunch", day: 6, startH: 11.0, endH: 13.0, type: "personal" },
-];
+export const CAL_EVENTS: CalEvent[] = [];
+
 
 export const EV_S: Record<EventType, EventStyle> = {
   meeting: { bg: "#EDEAFB", border: "#C4BFF0", text: "#5549C0", bar: "#7B72D4" },

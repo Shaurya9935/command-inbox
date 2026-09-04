@@ -2,7 +2,7 @@
 
 import React, { useState } from "react";
 import { CalEvent, CalViewType } from "./types";
-import { CAL_EVENTS, SEP_CELLS, WEEK_DAYS } from "./constants";
+import { SEP_CELLS, WEEK_DAYS } from "./constants";
 import { CalendarHeader } from "./calendar-header";
 import { WeekView } from "./week-view";
 import { MonthView } from "./month-view";
@@ -16,7 +16,7 @@ export interface CalendarWorkspaceProps {
   onBack?: () => void;
 }
 
-export function CalendarWorkspace({ initialEvents = CAL_EVENTS, onBack }: CalendarWorkspaceProps) {
+export function CalendarWorkspace({ initialEvents = [], onBack }: CalendarWorkspaceProps) {
   const [calView, setCalView] = useState<CalViewType>("week");
   const [events, setEvents] = useState<CalEvent[]>(initialEvents);
   const [selectedEv, setSelectedEv] = useState<CalEvent | null>(null);
@@ -24,7 +24,7 @@ export function CalendarWorkspace({ initialEvents = CAL_EVENTS, onBack }: Calend
   const [periodOffset, setPeriodOffset] = useState(0);
 
   React.useEffect(() => {
-    if (initialEvents && initialEvents.length > 0) {
+    if (initialEvents) {
       setEvents(initialEvents);
     }
   }, [initialEvents]);
