@@ -29,6 +29,94 @@ interface ChatMessage {
   };
 }
 
+function renderFormattedMessage(text: string, isUser: boolean) {
+  if (isUser) {
+    return text;
+  }
+
+  const lines = text.split("\n");
+  return lines.map((line, lineIdx) => {
+    // Markdown headings e.g. ### Header or ## Header
+    const headingMatch = line.match(/^(#{1,4})\s+(.+)$/);
+    if (headingMatch) {
+      return (
+        <div
+          key={lineIdx}
+          style={{
+            fontWeight: 700,
+            color: "#1A1917",
+            marginTop: lineIdx > 0 ? 10 : 0,
+            marginBottom: 4,
+            fontSize: headingMatch[1].length <= 2 ? "1.1em" : "1.02em",
+          }}
+        >
+          {headingMatch[2]}
+        </div>
+      );
+    }
+
+    // Bullets e.g. - or * or • or 1.
+    const bulletMatch = line.match(/^(\s*)([-*•]|\d+\.)\s+(.+)$/);
+    const content = bulletMatch ? bulletMatch[3] : line;
+
+    // Parse **bold** and `code`
+    const parts = content.split(/(\*\*.*?\*\*|`.*?`)/g);
+    const formattedLine = parts.map((part, pIdx) => {
+      if (part.startsWith("**") && part.endsWith("**")) {
+        return (
+          <strong key={pIdx} style={{ fontWeight: 600, color: "#1A1917" }}>
+            {part.slice(2, -2)}
+          </strong>
+        );
+      }
+      if (part.startsWith("`") && part.endsWith("`")) {
+        return (
+          <code
+            key={pIdx}
+            style={{
+              background: "#F2EFE8",
+              padding: "1px 5px",
+              borderRadius: 4,
+              fontSize: "0.9em",
+              fontFamily: "var(--font-mono, 'JetBrains Mono', monospace)",
+            }}
+          >
+            {part.slice(1, -1)}
+          </code>
+        );
+      }
+      return part;
+    });
+
+    if (bulletMatch) {
+      const isNumbered = /^\d+\./.test(bulletMatch[2]);
+      return (
+        <div
+          key={lineIdx}
+          style={{
+            display: "flex",
+            gap: 8,
+            marginTop: 4,
+            marginBottom: 4,
+            paddingLeft: bulletMatch[1].length * 4,
+          }}
+        >
+          <span style={{ color: "#5549C0", flexShrink: 0, fontWeight: 500 }}>
+            {isNumbered ? bulletMatch[2] : "•"}
+          </span>
+          <span style={{ flex: 1 }}>{formattedLine}</span>
+        </div>
+      );
+    }
+
+    return (
+      <div key={lineIdx} style={{ minHeight: line.trim() === "" ? 8 : undefined }}>
+        {formattedLine}
+      </div>
+    );
+  });
+}
+
 export function DefaultWorkspace({
   onSelectEmail,
   onSelectCalendar,
@@ -57,13 +145,14 @@ export function DefaultWorkspace({
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, isTyping]);
 
-  const handleSendMessage = (text: string) => {
-    if (!text.trim()) return;
+  const handleSendMessage = async (text: string) => {
+    if (!text.trim() || isTyping) return;
 
+    const userText = text.trim();
     const userMsg: ChatMessage = {
       id: `msg-${Date.now()}`,
       role: "user",
-      text: text.trim(),
+      text: userText,
       timestamp: new Date().toLocaleTimeString([], { hour: "numeric", minute: "2-digit" }),
     };
 
@@ -71,89 +160,97 @@ export function DefaultWorkspace({
     setCommandInput("");
     setIsTyping(true);
 
-    // Generate intelligent AI response
-    setTimeout(() => {
-      const lower = text.toLowerCase();
+    try {
+      const res = await fetch("/api/ai", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ message: userText }),
+      });
+
+      const data = await res.json();
+
       let reply = "";
       let action: { label: string; onClick: () => void } | undefined = undefined;
 
-      const unreadEmails = emails.filter((e) => e.unread);
-
-      if (
-        lower.includes("email") ||
-        lower.includes("unread") ||
-        lower.includes("inbox") ||
-        lower.includes("who sent") ||
-        lower.includes("who emailed") ||
-        lower.includes("summarize")
-      ) {
-        if (emails.length === 0) {
-          reply = "Your inbox is clear! No active emails were found.";
+      if (!res.ok) {
+        if (res.status === 401) {
+          reply = "You need to be logged in to use the Command AI assistant. Please log in and try again.";
         } else {
-          const list = (unreadEmails.length > 0 ? unreadEmails : emails).slice(0, 4);
-          reply = `Here is a summary of your recent ${unreadEmails.length > 0 ? "unread " : ""}emails:\n\n` +
-            list
-              .map(
-                (e, i) =>
-                  `${i + 1}. **${e.from}** — *"${e.subject}"* (${e.time})\n   ${e.preview.slice(0, 100)}...`
-              )
-              .join("\n\n") +
-            (emails.length > 4 ? `\n\n...plus ${emails.length - 4} more in your inbox.` : "");
-          
-          action = {
-            label: "Open Full Inbox →",
-            onClick: () => {
-              if (onSelectInbox) onSelectInbox();
-              else if (emails[0]) onSelectEmail(emails[0]);
-            },
-          };
-        }
-      } else if (
-        lower.includes("calendar") ||
-        lower.includes("meeting") ||
-        lower.includes("schedule") ||
-        lower.includes("today")
-      ) {
-        reply = "Here is your agenda for today:\n\n" +
-          "• **09:30 AM** — Morning standup & alignment\n" +
-          "• **11:00 AM** — Product roadmap review\n" +
-          "• **02:30 PM** — 1:1 Sync\n" +
-          "• **04:00 PM** — Deep work & code review\n\n" +
-          "Would you like me to reschedule anything or block focus time?";
-        
-        action = {
-          label: "View Calendar →",
-          onClick: onSelectCalendar,
-        };
-      } else if (lower.includes("draft") || lower.includes("reply") || lower.includes("write")) {
-        const target = emails[0];
-        if (target) {
-          reply = `I've prepared a draft reply for **${target.from}** regarding *"${target.subject}"*:\n\n` +
-            `"Hi ${target.from.split(" ")[0]},\n\nThanks for reaching out. I've reviewed your message and would like to move forward. Let me know what time works best for you this week.\n\nBest,\n${firstName}"\n\n` +
-            `Would you like to send this now or make changes?`;
-          
-          action = {
-            label: "Open Thread to Reply →",
-            onClick: () => onSelectEmail(target),
-          };
-        } else {
-          reply = "Who would you like to draft an email to? Give me a recipient and brief prompt, and I'll compose it for you.";
+          reply = data.error || "Sorry, I ran into an issue processing your request. Please try again.";
         }
       } else {
-        reply = `I'm here to help manage your inbox and schedule. You can ask me to summarize unread emails, draft replies, check your meetings, or prioritize your day.`;
+        reply =
+          typeof data.response === "string"
+            ? data.response
+            : typeof data.response?.text === "string"
+            ? data.response.text
+            : JSON.stringify(data.response, null, 2);
+
+        // Intelligently infer quick action buttons based on content or user request
+        const lowerText = userText.toLowerCase();
+        const lowerReply = (reply || "").toLowerCase();
+
+        if (
+          lowerReply.includes("calendar") ||
+          lowerReply.includes("meeting") ||
+          lowerReply.includes("schedule") ||
+          lowerReply.includes("event") ||
+          lowerText.includes("calendar") ||
+          lowerText.includes("meeting") ||
+          lowerText.includes("schedule")
+        ) {
+          if (onSelectCalendar) {
+            action = {
+              label: "View Calendar →",
+              onClick: onSelectCalendar,
+            };
+          }
+        } else if (
+          lowerReply.includes("email") ||
+          lowerReply.includes("unread") ||
+          lowerReply.includes("inbox") ||
+          lowerReply.includes("thread") ||
+          lowerText.includes("email") ||
+          lowerText.includes("unread") ||
+          lowerText.includes("inbox")
+        ) {
+          if (onSelectInbox) {
+            action = {
+              label: "Open Full Inbox →",
+              onClick: onSelectInbox,
+            };
+          } else if (emails.length > 0 && onSelectEmail) {
+            action = {
+              label: "Open Thread →",
+              onClick: () => onSelectEmail(emails[0]),
+            };
+          }
+        }
       }
 
       const assistantMsg: ChatMessage = {
         id: `msg-${Date.now() + 1}`,
         role: "assistant",
-        text: reply,
+        text: reply || "I couldn't generate a response. Please try again.",
         timestamp: new Date().toLocaleTimeString([], { hour: "numeric", minute: "2-digit" }),
         action,
       };
 
       setMessages((prev) => [...prev, assistantMsg]);
+    } catch (err) {
+      console.error("Failed to send message to /api/ai:", err);
+      const errorMsg: ChatMessage = {
+        id: `msg-${Date.now() + 1}`,
+        role: "assistant",
+        text: "Failed to connect to the assistant. Please check your connection and try again.",
+        timestamp: new Date().toLocaleTimeString([], { hour: "numeric", minute: "2-digit" }),
+      };
+      setMessages((prev) => [...prev, errorMsg]);
+    } finally {
       setIsTyping(false);
-    }, 400);
+    }
   };
 
   const handleSelectSuggestion = (suggestion: string) => {
@@ -294,6 +391,7 @@ export function DefaultWorkspace({
               value={commandInput}
               onChange={setCommandInput}
               onSubmit={handleSendMessage}
+              loading={isTyping}
               placeholder="Ask anything about your emails, draft replies, or schedule..."
             />
 
@@ -369,7 +467,7 @@ export function DefaultWorkspace({
                     whiteSpace: "pre-wrap",
                   }}
                 >
-                  {msg.text}
+                  {renderFormattedMessage(msg.text, msg.role === "user")}
 
                   {msg.action && (
                     <div style={{ marginTop: 14, paddingTop: 12, borderTop: "1px solid #F0ECE4" }}>
@@ -418,7 +516,7 @@ export function DefaultWorkspace({
                 }}
               >
                 <Dot color="#5549C0" size={6} />
-                <span>Thinking…</span>
+                <span>Command AI is thinking…</span>
               </div>
             )}
 
@@ -441,6 +539,7 @@ export function DefaultWorkspace({
               value={commandInput}
               onChange={setCommandInput}
               onSubmit={handleSendMessage}
+              loading={isTyping}
               placeholder="Reply or ask follow-up..."
             />
           </div>

@@ -9,6 +9,8 @@ export interface CommandSurfaceProps {
   onSubmit?: (val: string) => void;
   placeholder?: string;
   className?: string;
+  disabled?: boolean;
+  loading?: boolean;
 }
 
 export function CommandSurface({
@@ -17,6 +19,8 @@ export function CommandSurface({
   onSubmit,
   placeholder = "What's on your mind?",
   className = "",
+  disabled = false,
+  loading = false,
 }: CommandSurfaceProps) {
   const [focused, setFocused] = useState(false);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -89,13 +93,14 @@ export function CommandSurface({
           onChange={(e) => onChange(e.target.value)}
           onFocus={() => setFocused(true)}
           onBlur={() => setFocused(false)}
+          disabled={disabled || loading}
           onKeyDown={(e) => {
             if (e.key === "Enter" && !e.shiftKey) {
               e.preventDefault();
               handleSubmit();
             }
           }}
-          placeholder={placeholder}
+          placeholder={loading ? "Command AI is processing…" : placeholder}
           rows={1}
           style={{
             flex: 1,
@@ -110,6 +115,7 @@ export function CommandSurface({
             minHeight: 24,
             maxHeight: 140,
             overflowY: "auto",
+            opacity: disabled || loading ? 0.7 : 1,
           }}
         />
       </div>
@@ -163,25 +169,43 @@ export function CommandSurface({
           <button
             type="button"
             onClick={handleSubmit}
-            disabled={!value.trim()}
+            disabled={!value.trim() || disabled || loading}
             style={{
               width: 32,
               height: 32,
               borderRadius: 8,
               border: "none",
-              background: value.trim() ? "#5549C0" : "#EAE8F8",
-              cursor: value.trim() ? "pointer" : "default",
+              background: loading ? "#5549C0" : value.trim() ? "#5549C0" : "#EAE8F8",
+              cursor: value.trim() && !disabled && !loading ? "pointer" : "default",
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
-              color: value.trim() ? "#FFF" : "#9B9691",
+              color: value.trim() || loading ? "#FFF" : "#9B9691",
               transition: "background 0.15s, color 0.15s",
             }}
           >
-            <ArrowUpIcon />
+            {loading ? (
+              <svg
+                width={14}
+                height={14}
+                viewBox="0 0 16 16"
+                fill="none"
+                style={{ animation: "spin 1s linear infinite" }}
+              >
+                <circle cx="8" cy="8" r="6" stroke="currentColor" strokeWidth="2" strokeDasharray="16" />
+              </svg>
+            ) : (
+              <ArrowUpIcon />
+            )}
           </button>
         </div>
       </div>
+      <style>{`
+        @keyframes spin {
+          from { transform: rotate(0deg); }
+          to { transform: rotate(360deg); }
+        }
+      `}</style>
     </div>
   );
 }
