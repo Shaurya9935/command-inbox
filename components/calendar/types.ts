@@ -13,6 +13,7 @@ export interface CalEvent {
   attendees?: string[];
   description?: string;
   startDateIso?: string; // ISO string of the event's start datetime
+  endDateIso?: string; // ISO string of the event's end datetime
 }
 
 export interface WeekDay {

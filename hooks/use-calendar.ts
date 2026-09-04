@@ -103,6 +103,7 @@ export function mapGoogleEventToCalEvent(
     attendees: attendees && attendees.length > 0 ? attendees : undefined,
     description: event.description || undefined,
     startDateIso: startStr || undefined,
+    endDateIso: endStr || undefined,
   };
 }
 

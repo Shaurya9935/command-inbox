@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useMemo, useEffect, useRef } from "react";
-import { CalEvent, CalViewType } from "./types";
+import { CalEvent, CalViewType, EventType } from "./types";
 import { EV_S, GRID_START } from "./constants";
 import {
   today,
@@ -15,6 +15,7 @@ import {
   monthTitle,
   isSameDay,
   parseEventDate,
+  getEventDateKeys,
 } from "./date-utils";
 import { CalendarHeader } from "./calendar-header";
 import { WeekView } from "./week-view";
@@ -84,6 +85,25 @@ export function CalendarWorkspace({ initialEvents = [], onBack }: CalendarWorksp
     () => calView === "month" ? buildMonthCells(anchorDate.getFullYear(), anchorDate.getMonth(), todayDate) : [],
     [calView, anchorDate, todayDate]
   );
+
+  // Map events to date cell keys for the month view
+  const monthEvents = useMemo(() => {
+    if (calView !== "month") return {};
+    const map: Record<string, { title: string; type: EventType; raw: CalEvent }[]> = {};
+    for (const ev of events) {
+      if (!ev.startDateIso) continue;
+      const keys = getEventDateKeys(ev.startDateIso, ev.endDateIso);
+      for (const k of keys) {
+        if (!map[k]) map[k] = [];
+        map[k].push({
+          title: ev.title,
+          type: ev.type,
+          raw: ev,
+        });
+      }
+    }
+    return map;
+  }, [calView, events]);
 
   // ── Period title ──────────────────────────────────────────────────────────
   const periodTitle = useMemo(() => {
@@ -157,16 +177,35 @@ export function CalendarWorkspace({ initialEvents = [], onBack }: CalendarWorksp
     const dayIdx = calView === "day"
       ? (anchorDate.getDay() + 6) % 7
       : (todayDate.getDay() + 6) % 7;
+
+    const evDate = calView === "day"
+      ? anchorDate
+      : calView === "week"
+      ? addDays(anchorDate, newEventData.day ?? dayIdx)
+      : todayDate;
+
+    const startH = newEventData.startH ?? 9.0;
+    const endH = newEventData.endH ?? 10.0;
+    const startHour = Math.floor(startH);
+    const startMin = Math.round((startH % 1) * 60);
+    const endHour = Math.floor(endH);
+    const endMin = Math.round((endH % 1) * 60);
+
+    const startD = new Date(evDate.getFullYear(), evDate.getMonth(), evDate.getDate(), startHour, startMin);
+    const endD = new Date(evDate.getFullYear(), evDate.getMonth(), evDate.getDate(), endHour, endMin);
+
     const created: CalEvent = {
       id: Date.now(),
       title: newEventData.title || "Untitled event",
       day: newEventData.day ?? dayIdx,
-      startH: newEventData.startH ?? 9.0,
-      endH: newEventData.endH ?? 10.0,
+      startH,
+      endH,
       type: newEventData.type ?? "meeting",
       location: newEventData.location,
       attendees: newEventData.attendees,
       description: newEventData.description,
+      startDateIso: startD.toISOString(),
+      endDateIso: endD.toISOString(),
     };
     setEvents((prev) => [...prev, created]);
     setSelectedEv(created);
@@ -225,6 +264,8 @@ export function CalendarWorkspace({ initialEvents = [], onBack }: CalendarWorksp
       {calView === "month" && (
         <MonthView
           cells={monthCells}
+          monthEvents={monthEvents}
+          onSelectEvent={handleToggleEv}
           onSelectDate={(dateKey, fullDate) => {
             // Navigate to day view on that date
             if (fullDate) {

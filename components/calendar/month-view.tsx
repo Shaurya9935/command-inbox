@@ -1,19 +1,21 @@
 "use client";
 
 import React from "react";
-import { EventType, MonthCell } from "./types";
+import { CalEvent, EventType, MonthCell } from "./types";
 import { EV_S } from "./constants";
 
 export interface MonthViewProps {
   cells: MonthCell[];
-  monthEvents?: Record<string, { title: string; type: EventType }[]>;
+  monthEvents?: Record<string, { title: string; type: EventType; raw?: CalEvent }[]>;
   onSelectDate?: (dateKey: string, fullDate?: Date) => void;
+  onSelectEvent?: (ev: CalEvent) => void;
 }
 
 export function MonthView({
   cells,
   monthEvents = {},
   onSelectDate,
+  onSelectEvent,
 }: MonthViewProps) {
   // How many rows does the grid have?
   const rowCount = Math.ceil(cells.length / 7);
@@ -108,6 +110,13 @@ export function MonthView({
                 return (
                   <div
                     key={ei}
+                    title={ev.title}
+                    onClick={(e) => {
+                      if (ev.raw && onSelectEvent) {
+                        e.stopPropagation();
+                        onSelectEvent(ev.raw);
+                      }
+                    }}
                     style={{
                       fontSize: 10.5,
                       color: s.text,

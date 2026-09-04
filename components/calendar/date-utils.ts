@@ -89,6 +89,11 @@ export function monthTitle(d: Date): string {
   return `${LONG_MONTH[d.getMonth()]} ${d.getFullYear()}`;
 }
 
+/** Format a Date to the unique cell key format e.g. "Sep-4-2026" */
+export function formatDateKey(d: Date): string {
+  return `${SHORT_MONTH[d.getMonth()]}-${d.getDate()}-${d.getFullYear()}`;
+}
+
 /**
  * MonthCell[] for a full Mon-first calendar month grid.
  * Always 6 rows (42 cells) so the layout stays stable.
@@ -113,11 +118,47 @@ export function buildMonthCells(year: number, month: number, todayDate: Date): M
       mlabel: SHORT_MONTH[d.getMonth()],
       inMonth,
       isToday,
-      key: `${SHORT_MONTH[d.getMonth()]}-${d.getDate()}-${d.getFullYear()}`,
+      key: formatDateKey(d),
       fullDate: d,
     });
   }
   return cells;
+}
+
+/**
+ * Given start and optional end ISO strings, returns all "Sep-4-2026" cell keys the event covers.
+ */
+export function getEventDateKeys(startDateIso: string, endDateIso?: string): string[] {
+  const start = parseEventDate(startDateIso);
+  if (!endDateIso) {
+    return [formatDateKey(start)];
+  }
+
+  const isAllDay = !startDateIso.includes("T");
+  let end = parseEventDate(endDateIso);
+
+  if (isAllDay) {
+    // End date is exclusive in Google Calendar all-day events (e.g. 2026-09-04 to 2026-09-05 is just Sep 4)
+    end = addDays(end, -1);
+  } else {
+    // Timed event ending at midnight (00:00) of next day belongs to previous day
+    if (end.getHours() === 0 && end.getMinutes() === 0 && end.getTime() > start.getTime()) {
+      end = addDays(end, -1);
+    }
+  }
+
+  const keys: string[] = [];
+  let curr = new Date(start.getFullYear(), start.getMonth(), start.getDate());
+  const targetEnd = new Date(end.getFullYear(), end.getMonth(), end.getDate());
+
+  let count = 0;
+  while (curr <= targetEnd && count < 31) {
+    keys.push(formatDateKey(curr));
+    curr = addDays(curr, 1);
+    count++;
+  }
+
+  return keys.length > 0 ? keys : [formatDateKey(start)];
 }
 
 /**

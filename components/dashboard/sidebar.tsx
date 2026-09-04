@@ -23,6 +23,7 @@ import {
   TrashIcon,
   AllMailIcon,
   SpamIcon,
+  ConnectIcon,
 } from "./icons";
 import { useRouter } from "next/navigation";
 import { authClient } from "@/lib/auth-client";
@@ -867,6 +868,16 @@ function PrimaryNav({
           active={activeNav === "command"}
           collapsed={collapsed}
           onClick={() => onSelectNav("command")}
+        />
+        <NavBtn
+          icon={ConnectIcon}
+          label="Connect Apps"
+          active={activeNav === "connect"}
+          collapsed={collapsed}
+          onClick={() => {
+            onSelectNav("connect");
+            router.push("/dashboard/connect");
+          }}
         />
       </div>
     </div>
