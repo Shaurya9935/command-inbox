@@ -12,6 +12,13 @@ import { EmailBodyContent } from "@/components/dashboard/email-body";
 import {
   BackIcon,
   InboxIcon,
+  StarIcon,
+  DraftIcon,
+  SendIcon,
+  AllMailIcon,
+  SpamIcon,
+  TrashIcon,
+  LabelIcon,
   SearchIcon,
   ReplyIcon,
   PaperclipIcon,
@@ -123,7 +130,10 @@ function mapThreadToEmail(thread: GmailThread, index: number): Email {
 
 export default function InboxPage() {
   const router = useRouter();
+  const [activeFolder, setActiveFolder] = useState("inbox");
+  const [starredIds, setStarredIds] = useState<Set<string | number>>(new Set());
   const [sidebarCollapsed, setSidebarCollapsed] = useState(true);
+  const [secondaryOpen, setSecondaryOpen] = useState(true);
   const { threads, isLoading, isSyncing, error, lastSyncedAt, sync } = useGmailThreads();
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedId, setSelectedId] = useState<string | number | null>(null);
@@ -132,28 +142,61 @@ export default function InboxPage() {
   const [loadingBodyThreadId, setLoadingBodyThreadId] = useState<string | null>(null);
   const [fullBodies, setFullBodies] = useState<Record<string, { body?: string; bodyHtml?: string }>>({});
 
+  const handleToggleStar = (e: React.MouseEvent, emailId: string | number) => {
+    e.stopPropagation();
+    setStarredIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(emailId)) next.delete(emailId);
+      else next.add(emailId);
+      return next;
+    });
+  };
+
   // Map and filter emails
   const emails: Email[] = useMemo(() => {
     if (!Array.isArray(threads)) return [];
     return threads.map((thread, idx) => {
       const email = mapThreadToEmail(thread, idx);
-      if (readIds.has(email.id)) {
-        return { ...email, unread: false };
-      }
-      return email;
+      const isRead = readIds.has(email.id);
+      const isStarred = starredIds.has(email.id);
+      return {
+        ...email,
+        unread: isRead ? false : email.unread,
+        starred: isStarred,
+      };
     });
-  }, [threads, readIds]);
+  }, [threads, readIds, starredIds]);
 
   const filteredEmails = useMemo(() => {
-    if (!searchQuery.trim()) return emails;
+    let result = emails;
+
+    // Filter by active folder
+    if (activeFolder === "starred") {
+      result = result.filter((e) => e.starred);
+    } else if (activeFolder === "drafts") {
+      result = result.filter((e) => e.tag?.toLowerCase().includes("draft"));
+    } else if (activeFolder === "sent") {
+      result = result.filter((e) => e.tag?.toLowerCase().includes("sent") || e.tag === "Needs reply");
+    } else if (activeFolder === "spam") {
+      result = result.filter((e) => e.tag?.toLowerCase().includes("spam"));
+    } else if (activeFolder === "trash") {
+      result = result.filter((e) => e.tag?.toLowerCase().includes("trash"));
+    } else if (activeFolder.startsWith("label-")) {
+      const labelName = activeFolder.replace("label-", "").toLowerCase();
+      result = result.filter(
+        (e) => e.tag?.toLowerCase().includes(labelName) || e.preview?.toLowerCase().includes(labelName)
+      );
+    }
+
+    if (!searchQuery.trim()) return result;
     const q = searchQuery.toLowerCase();
-    return emails.filter(
+    return result.filter(
       (e) =>
         e.from.toLowerCase().includes(q) ||
         e.subject.toLowerCase().includes(q) ||
         e.preview.toLowerCase().includes(q)
     );
-  }, [emails, searchQuery]);
+  }, [emails, activeFolder, searchQuery]);
 
   // Selected email
   const selectedEmail = useMemo(() => {
@@ -221,17 +264,27 @@ export default function InboxPage() {
         overflow: "hidden",
       }}
     >
-      {/* ── Sidebar (Collapsed with only icons by default) ── */}
+      {/* ── Sidebar (Collapsed 60px primary + 200px secondary Gmail sidebar) ── */}
       <Sidebar
-        activeNav="inbox"
+        activeWorkspace="gmail"
+        activeNav={activeFolder}
         collapsed={sidebarCollapsed}
         onToggleCollapse={() => setSidebarCollapsed((prev) => !prev)}
+        secondaryOpen={secondaryOpen}
+        onToggleSecondary={() => setSecondaryOpen((prev) => !prev)}
         onSelectNav={(nav) => {
-          if (nav !== "inbox") {
+          if (
+            ["inbox", "starred", "drafts", "sent", "all-mail", "spam", "trash"].includes(nav) ||
+            nav.startsWith("label-")
+          ) {
+            setActiveFolder(nav);
+          } else if (nav === "calendar" || nav === "today" || nav === "upcoming") {
+            router.push("/dashboard/calendar");
+          } else {
             router.push("/dashboard");
           }
         }}
-        onOpenCalendar={() => router.push("/dashboard")}
+        onOpenCalendar={() => router.push("/dashboard/calendar")}
         onGoBack={() => router.push("/dashboard")}
         inboxBadge={unreadCount}
       />
@@ -261,10 +314,52 @@ export default function InboxPage() {
           }}
         >
           <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+            <button
+              onClick={() => setSidebarCollapsed((prev) => !prev)}
+              title={sidebarCollapsed ? "Open primary sidebar" : "Collapse primary sidebar"}
+              style={{
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                background: "transparent",
+                border: "1px solid #E4DED4",
+                borderRadius: 6,
+                padding: "4px 6px",
+                cursor: "pointer",
+                color: "#6B6762",
+                transition: "background 0.12s, color 0.12s",
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.background = "#EEE9E1";
+                e.currentTarget.style.color = "#1A1917";
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.background = "transparent";
+                e.currentTarget.style.color = "#6B6762";
+              }}
+            >
+              <SidebarToggleIcon size={14} />
+            </button>
             <div style={{ width: 1, height: 16, background: "#E8E4DC" }} />
             <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
               <span style={{ color: "#5549C0", display: "flex" }}>
-                <InboxIcon size={16} />
+                {activeFolder === "starred" ? (
+                  <StarIcon size={16} />
+                ) : activeFolder === "drafts" ? (
+                  <DraftIcon size={16} />
+                ) : activeFolder === "sent" ? (
+                  <SendIcon size={16} />
+                ) : activeFolder === "all-mail" ? (
+                  <AllMailIcon size={16} />
+                ) : activeFolder === "trash" ? (
+                  <TrashIcon size={16} />
+                ) : activeFolder === "spam" ? (
+                  <SpamIcon size={16} />
+                ) : activeFolder.startsWith("label-") ? (
+                  <LabelIcon size={16} />
+                ) : (
+                  <InboxIcon size={16} />
+                )}
               </span>
               <h1
                 style={{
@@ -273,9 +368,14 @@ export default function InboxPage() {
                   color: "#1A1917",
                   margin: 0,
                   letterSpacing: "-0.02em",
+                  textTransform: "capitalize",
                 }}
               >
-                Inbox
+                {activeFolder.startsWith("label-")
+                  ? `Label: ${activeFolder.replace("label-", "")}`
+                  : activeFolder === "all-mail"
+                  ? "All Mail"
+                  : activeFolder}
               </h1>
               <span
                 style={{
@@ -569,6 +669,22 @@ export default function InboxPage() {
                         >
                           {email.time}
                         </span>
+                        <button
+                          onClick={(e) => handleToggleStar(e, email.id)}
+                          title={email.starred ? "Starred" : "Not starred"}
+                          style={{
+                            background: "none",
+                            border: "none",
+                            padding: "0 2px",
+                            cursor: "pointer",
+                            color: email.starred ? "#F59E0B" : "#C5C0B9",
+                            display: "flex",
+                            alignItems: "center",
+                            flexShrink: 0,
+                          }}
+                        >
+                          <StarIcon size={12} />
+                        </button>
                       </div>
                       <div
                         style={{

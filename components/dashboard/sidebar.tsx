@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState } from "react";
 import {
   LogoIcon,
   InboxIcon,
@@ -16,7 +16,6 @@ import {
   HelpIcon,
   SidebarToggleIcon,
   LogoutIcon,
-  BackIcon,
   GmailIcon,
   OutlookIcon,
   ChevronRightIcon,
@@ -42,6 +41,10 @@ export interface SidebarProps {
   inboxBadge?: number;
   collapsed?: boolean;
   onToggleCollapse?: () => void;
+  activeWorkspace?: WorkspaceId | null;
+  onSelectWorkspace?: (id: WorkspaceId | null) => void;
+  secondaryOpen?: boolean;
+  onToggleSecondary?: () => void;
 }
 
 // ─── Primitive helpers ────────────────────────────────────────────────────────
@@ -248,56 +251,6 @@ function Divider() {
   return <div style={{ height: 1, background: "#E4DED4", margin: "8px 10px" }} />;
 }
 
-// ─── Animated Panel Wrapper ───────────────────────────────────────────────────
-
-type PanelDir = "from-right" | "from-left";
-
-function AnimatedPanel({
-  children,
-  panelKey,
-  direction,
-}: {
-  children: React.ReactNode;
-  panelKey: string;
-  direction: PanelDir;
-}) {
-  const [mounted, setMounted] = useState(false);
-  const prevKeyRef = useRef(panelKey);
-
-  useEffect(() => {
-    // Short delay so the initial translate has painted before we transition in
-    const raf = requestAnimationFrame(() => setMounted(true));
-    return () => cancelAnimationFrame(raf);
-  }, []);
-
-  // Reset when key changes
-  useEffect(() => {
-    if (prevKeyRef.current !== panelKey) {
-      prevKeyRef.current = panelKey;
-      setMounted(false);
-      const raf = requestAnimationFrame(() => setMounted(true));
-      return () => cancelAnimationFrame(raf);
-    }
-  });
-
-  const initialX = direction === "from-right" ? 22 : -22;
-
-  return (
-    <div
-      style={{
-        flex: 1,
-        overflowY: "auto",
-        overflowX: "hidden",
-        transform: mounted ? "translateX(0)" : `translateX(${initialX}px)`,
-        opacity: mounted ? 1 : 0,
-        transition: "transform 0.2s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.18s ease",
-      }}
-    >
-      {children}
-    </div>
-  );
-}
-
 // ─── Footer (shared) ──────────────────────────────────────────────────────────
 
 function SidebarFooter({
@@ -405,83 +358,127 @@ function SidebarFooter({
   );
 }
 
-// ─── Back header (shared across workspace panels) ─────────────────────────────
+// ─── Secondary Sidebar Header ───────────────────────────────────────────────────
 
-function WorkspacePanelHeader({
-  label,
-  onBack,
+function SecondaryHeader({
+  icon: Icon,
+  title,
+  subtitle,
+  onClose,
 }: {
-  label: string;
-  onBack: () => void;
+  icon: IconComponent;
+  title: string;
+  subtitle?: string;
+  onClose?: () => void;
 }) {
   const [hov, setHov] = useState(false);
 
   return (
-    <button
-      onClick={onBack}
-      onMouseEnter={() => setHov(true)}
-      onMouseLeave={() => setHov(false)}
+    <div
       style={{
         display: "flex",
         alignItems: "center",
-        gap: 7,
-        padding: "18px 10px 20px",
-        background: "none",
-        border: "none",
-        cursor: "pointer",
-        width: "100%",
-        textAlign: "left",
-        fontFamily: "var(--font-ui, 'DM Sans', system-ui, sans-serif)",
+        justifyContent: "space-between",
+        padding: "16px 8px 12px",
+        borderBottom: "1px solid #E4DED4",
+        marginBottom: 12,
         flexShrink: 0,
       }}
     >
-      <span
-        style={{
-          color: hov ? "#5549C0" : "#9B9691",
-          display: "flex",
-          transition: "color 0.12s, transform 0.15s",
-          transform: hov ? "translateX(-2px)" : "none",
-        }}
-      >
-        <BackIcon size={13} />
-      </span>
-      <span
-        style={{
-          fontSize: 13.5,
-          fontWeight: 600,
-          color: "#1A1917",
-          letterSpacing: "-0.02em",
-        }}
-      >
-        {label}
-      </span>
-    </button>
+      <div style={{ display: "flex", alignItems: "center", gap: 8, minWidth: 0 }}>
+        <div
+          style={{
+            width: 24,
+            height: 24,
+            borderRadius: 6,
+            background: "#EAE8F8",
+            color: "#5549C0",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            flexShrink: 0,
+          }}
+        >
+          <Icon size={14} />
+        </div>
+        <div style={{ minWidth: 0 }}>
+          <div
+            style={{
+              fontSize: 13.5,
+              fontWeight: 600,
+              color: "#1A1917",
+              letterSpacing: "-0.015em",
+              lineHeight: 1.2,
+            }}
+          >
+            {title}
+          </div>
+          {subtitle && (
+            <div
+              style={{
+                fontSize: 10.5,
+                color: "#9B9691",
+                overflow: "hidden",
+                textOverflow: "ellipsis",
+                whiteSpace: "nowrap",
+                maxWidth: 120,
+              }}
+            >
+              {subtitle}
+            </div>
+          )}
+        </div>
+      </div>
+
+      {onClose && (
+        <button
+          onClick={onClose}
+          onMouseEnter={() => setHov(true)}
+          onMouseLeave={() => setHov(false)}
+          title="Hide panel"
+          style={{
+            background: hov ? "#EAE5DB" : "transparent",
+            border: "none",
+            borderRadius: 5,
+            padding: "4px 5px",
+            cursor: "pointer",
+            color: hov ? "#1A1917" : "#9B9691",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            transition: "background 0.12s, color 0.12s",
+          }}
+        >
+          <SidebarToggleIcon size={13} />
+        </button>
+      )}
+    </div>
   );
 }
 
-// ─── Context panels ───────────────────────────────────────────────────────────
+// ─── Context panels (Secondary sidebar content) ─────────────────────────────────
 
-function GmailPanel({
+function GmailSecondaryPanel({
   activeNav,
   inboxBadge,
   otherWorkspaces,
   onSelectNav,
-  onBack,
   onSwitchWorkspace,
+  onClose,
 }: {
   activeNav: string;
   inboxBadge: number;
   otherWorkspaces: { id: WorkspaceId; icon: IconComponent; label: string }[];
   onSelectNav: (nav: string) => void;
-  onBack: () => void;
   onSwitchWorkspace: (id: WorkspaceId) => void;
+  onClose?: () => void;
 }) {
   return (
     <>
-      <WorkspacePanelHeader label="Gmail" onBack={onBack} />
+      <SecondaryHeader icon={GmailIcon} title="Gmail" subtitle="Inbox & Mail" onClose={onClose} />
 
       {/* Mail section */}
-      <div style={{ marginBottom: 20 }}>
+      <div style={{ marginBottom: 18 }}>
         <SectionLabel label="Mail" collapsed={false} />
         <NavBtn
           icon={InboxIcon}
@@ -531,7 +528,7 @@ function GmailPanel({
       </div>
 
       {/* Labels section */}
-      <div style={{ marginBottom: 20 }}>
+      <div style={{ marginBottom: 18 }}>
         <SectionLabel label="Labels" collapsed={false} />
         {["Work", "Personal", "Projects"].map((lbl) => (
           <NavBtn
@@ -566,27 +563,27 @@ function GmailPanel({
   );
 }
 
-function CalendarPanel({
+function CalendarSecondaryPanel({
   activeNav,
   otherWorkspaces,
   onSelectNav,
-  onBack,
   onSwitchWorkspace,
+  onClose,
   router,
 }: {
   activeNav: string;
   otherWorkspaces: { id: WorkspaceId; icon: IconComponent; label: string }[];
   onSelectNav: (nav: string) => void;
-  onBack: () => void;
   onSwitchWorkspace: (id: WorkspaceId) => void;
+  onClose?: () => void;
   router: ReturnType<typeof useRouter>;
 }) {
   return (
     <>
-      <WorkspacePanelHeader label="Calendar" onBack={onBack} />
+      <SecondaryHeader icon={CalendarIcon} title="Calendar" subtitle="Events & Schedule" onClose={onClose} />
 
-      <div style={{ marginBottom: 20 }}>
-        <SectionLabel label="Calendar" collapsed={false} />
+      <div style={{ marginBottom: 18 }}>
+        <SectionLabel label="Schedule" collapsed={false} />
         <NavBtn
           icon={CalendarIcon}
           label="Today"
@@ -607,7 +604,7 @@ function CalendarPanel({
         />
       </div>
 
-      <div style={{ marginBottom: 20 }}>
+      <div style={{ marginBottom: 18 }}>
         <SectionLabel label="My Calendars" collapsed={false} />
         {["Personal", "Work"].map((cal) => (
           <NavBtn
@@ -646,24 +643,24 @@ function CalendarPanel({
   );
 }
 
-function OutlookPanel({
+function OutlookSecondaryPanel({
   activeNav,
   otherWorkspaces,
   onSelectNav,
-  onBack,
   onSwitchWorkspace,
+  onClose,
 }: {
   activeNav: string;
   otherWorkspaces: { id: WorkspaceId; icon: IconComponent; label: string }[];
   onSelectNav: (nav: string) => void;
-  onBack: () => void;
   onSwitchWorkspace: (id: WorkspaceId) => void;
+  onClose?: () => void;
 }) {
   return (
     <>
-      <WorkspacePanelHeader label="Outlook" onBack={onBack} />
+      <SecondaryHeader icon={OutlookIcon} title="Outlook" subtitle="Microsoft 365" onClose={onClose} />
 
-      <div style={{ marginBottom: 20 }}>
+      <div style={{ marginBottom: 18 }}>
         <SectionLabel label="Mail" collapsed={false} />
         <NavBtn
           icon={InboxIcon}
@@ -705,7 +702,7 @@ function OutlookPanel({
         />
       </div>
 
-      <div style={{ marginBottom: 20 }}>
+      <div style={{ marginBottom: 18 }}>
         <SectionLabel label="Folders" collapsed={false} />
         {["Work", "Personal", "Projects"].map((folder) => (
           <NavBtn
@@ -739,10 +736,11 @@ function OutlookPanel({
   );
 }
 
-// ─── Main nav panel ───────────────────────────────────────────────────────────
+// ─── Main Nav (Column 1 - Primary Sidebar) ──────────────────────────────────────
 
-function MainNav({
+function PrimaryNav({
   activeNav,
+  activeWorkspace,
   inboxBadge,
   collapsed,
   onSelectNav,
@@ -752,6 +750,7 @@ function MainNav({
   router,
 }: {
   activeNav: string;
+  activeWorkspace: WorkspaceId | null;
   inboxBadge: number;
   collapsed: boolean;
   onSelectNav: (nav: string) => void;
@@ -761,19 +760,21 @@ function MainNav({
   router: ReturnType<typeof useRouter>;
 }) {
   return (
-    <div style={{ flex: 1, overflowY: "auto" }}>
+    <div style={{ flex: 1, overflowY: "auto", overflowX: "hidden" }}>
       {/* ── WORKSPACES ── */}
-      <div style={{ marginBottom: collapsed ? 16 : 22 }}>
+      <div style={{ marginBottom: collapsed ? 14 : 20 }}>
         <SectionLabel label="Workspaces" collapsed={collapsed} />
         <WorkspaceRow
           icon={GmailIcon}
           label="Gmail"
+          active={activeWorkspace === "gmail"}
           onClick={() => onSelectWorkspace("gmail")}
           collapsed={collapsed}
         />
         <WorkspaceRow
           icon={CalendarIcon}
           label="Calendar"
+          active={activeWorkspace === "calendar"}
           onClick={() => {
             onSelectWorkspace("calendar");
             router.push("/dashboard/calendar");
@@ -783,6 +784,7 @@ function MainNav({
         <WorkspaceRow
           icon={OutlookIcon}
           label="Outlook"
+          active={activeWorkspace === "outlook"}
           onClick={() => onSelectWorkspace("outlook")}
           collapsed={collapsed}
         />
@@ -791,12 +793,12 @@ function MainNav({
       {!collapsed && <Divider />}
 
       {/* ── UNIFIED ── */}
-      <div style={{ marginBottom: collapsed ? 16 : 22, marginTop: collapsed ? 0 : 4 }}>
+      <div style={{ marginBottom: collapsed ? 14 : 20, marginTop: collapsed ? 0 : 4 }}>
         <SectionLabel label="Unified" collapsed={collapsed} />
         <NavBtn
           icon={ChatIcon}
           label="Chat"
-          active={activeNav === "chat"}
+          active={activeNav === "chat" && activeWorkspace === null}
           collapsed={collapsed}
           onClick={() => {
             onSelectNav("chat");
@@ -806,10 +808,11 @@ function MainNav({
         <NavBtn
           icon={InboxIcon}
           label="Inbox"
-          active={activeNav === "inbox"}
+          active={activeNav === "inbox" && activeWorkspace === "gmail"}
           badge={inboxBadge}
           collapsed={collapsed}
           onClick={() => {
+            onSelectWorkspace("gmail");
             onSelectNav("inbox");
             router.push("/dashboard/inbox");
           }}
@@ -849,7 +852,7 @@ function MainNav({
       {!collapsed && <Divider />}
 
       {/* ── TOOLS ── */}
-      <div style={{ marginBottom: collapsed ? 16 : 8, marginTop: collapsed ? 0 : 4 }}>
+      <div style={{ marginBottom: collapsed ? 14 : 8, marginTop: collapsed ? 0 : 4 }}>
         <SectionLabel label="Tools" collapsed={collapsed} />
         <NavBtn
           icon={SearchIcon}
@@ -885,41 +888,81 @@ export function Sidebar({
   onGoBack,
   user = CURRENT_USER,
   inboxBadge = 0,
-  collapsed,
-  onToggleCollapse,
+  collapsed: propCollapsed,
+  onToggleCollapse: propOnToggleCollapse,
+  activeWorkspace: propActiveWorkspace,
+  onSelectWorkspace: propOnSelectWorkspace,
+  secondaryOpen: propSecondaryOpen,
+  onToggleSecondary: propOnToggleSecondary,
 }: SidebarProps) {
   const router = useRouter();
-  const [internalCollapsed, setInternalCollapsed] = useState(false);
-  const [activeWorkspace, setActiveWorkspace] = useState<WorkspaceId | null>(null);
-  const prevWorkspaceRef = useRef<WorkspaceId | null>(null);
+  const [internalActiveWorkspace, setInternalActiveWorkspace] = useState<WorkspaceId | null>(null);
+  const [internalSecondaryOpen, setInternalSecondaryOpen] = useState(true);
 
-  const isCollapsed = collapsed !== undefined ? collapsed : internalCollapsed;
+  // Determine active workspace
+  const currentWorkspace =
+    propActiveWorkspace !== undefined ? propActiveWorkspace : internalActiveWorkspace;
 
-  const handleToggle = () => {
-    if (onToggleCollapse) {
-      onToggleCollapse();
+  // Primary sidebar collapsed state: starts collapsed when workspace is active, but user can open/close!
+  const [internalCollapsed, setInternalCollapsed] = useState<boolean>(() => {
+    return propActiveWorkspace !== undefined && propActiveWorkspace !== null;
+  });
+
+  const isPrimaryCollapsed =
+    propCollapsed !== undefined ? propCollapsed : internalCollapsed;
+
+  // Secondary panel open state
+  const isSecondaryOpen =
+    propSecondaryOpen !== undefined ? propSecondaryOpen : internalSecondaryOpen;
+
+  const handleTogglePrimary = () => {
+    if (propOnToggleCollapse) {
+      propOnToggleCollapse();
     } else {
       setInternalCollapsed((prev) => !prev);
     }
-    // Collapse workspace panel when collapsing sidebar
-    if (!isCollapsed) setActiveWorkspace(null);
+  };
+
+  const handleToggleSecondary = () => {
+    if (propOnToggleSecondary) {
+      propOnToggleSecondary();
+    } else {
+      setInternalSecondaryOpen((prev) => !prev);
+    }
   };
 
   const handleSelectWorkspace = (id: WorkspaceId) => {
-    // Collapsed mode: don't open context panel, just navigate
-    if (isCollapsed) return;
-    prevWorkspaceRef.current = activeWorkspace;
-    setActiveWorkspace(id);
+    if (propOnSelectWorkspace) {
+      propOnSelectWorkspace(id);
+    } else {
+      // Toggle secondary if already on same workspace, else activate
+      if (currentWorkspace === id) {
+        setInternalSecondaryOpen((prev) => !prev);
+      } else {
+        setInternalActiveWorkspace(id);
+        setInternalSecondaryOpen(true);
+      }
+    }
+
+    if (id === "gmail") {
+      router.push("/dashboard/inbox");
+    } else if (id === "calendar") {
+      router.push("/dashboard/calendar");
+    }
   };
 
   const handleSwitchWorkspace = (id: WorkspaceId) => {
-    prevWorkspaceRef.current = activeWorkspace;
-    setActiveWorkspace(id);
-  };
-
-  const handleBack = () => {
-    prevWorkspaceRef.current = activeWorkspace;
-    setActiveWorkspace(null);
+    if (propOnSelectWorkspace) {
+      propOnSelectWorkspace(id);
+    } else {
+      setInternalActiveWorkspace(id);
+      setInternalSecondaryOpen(true);
+    }
+    if (id === "gmail") {
+      router.push("/dashboard/inbox");
+    } else if (id === "calendar") {
+      router.push("/dashboard/calendar");
+    }
   };
 
   const { data: session } = authClient.useSession();
@@ -949,134 +992,190 @@ export function Sidebar({
   }
 
   const otherWorkspaces = (Object.keys(WORKSPACE_META) as WorkspaceId[])
-    .filter((id) => id !== activeWorkspace)
+    .filter((id) => id !== currentWorkspace)
     .map((id) => ({ id, ...WORKSPACE_META[id] }));
 
-  // Determine slide direction: going into a workspace slides from right, going back slides from left
-  const panelDir: PanelDir = activeWorkspace !== null ? "from-right" : "from-left";
-  // When switching between workspaces directly, slide from right
-  const panelKey = activeWorkspace ?? "main";
-
   return (
-    <aside
+    <div
       style={{
-        width: isCollapsed ? 60 : 210,
-        flexShrink: 0,
-        background: "#EEE9E1",
-        borderRight: "1px solid #E4DED4",
         display: "flex",
-        flexDirection: "column",
-        padding: isCollapsed ? "0 6px 14px" : "0 10px 14px",
-        overflowY: "hidden",
-        transition: "width 0.22s cubic-bezier(0.4, 0, 0.2, 1), padding 0.22s",
+        height: "100%",
+        flexShrink: 0,
+        zIndex: 20,
       }}
     >
-      {/* ── Brand ── */}
-      <div
+      {/* ── 1. PRIMARY SIDEBAR COLUMN (60px when workspace active, 210px when root) ── */}
+      <aside
         style={{
-          display: "flex",
-          alignItems: "center",
-          justifyContent: isCollapsed ? "center" : "flex-start",
-          padding: isCollapsed ? "20px 0 20px" : "20px 8px 24px",
+          width: isPrimaryCollapsed ? 60 : 210,
           flexShrink: 0,
+          background: "#EEE9E1",
+          borderRight: "1px solid #E4DED4",
+          display: "flex",
+          flexDirection: "column",
+          padding: isPrimaryCollapsed ? "0 6px 14px" : "0 10px 14px",
+          overflowY: "hidden",
+          transition: "width 0.22s cubic-bezier(0.4, 0, 0.2, 1), padding 0.22s",
         }}
       >
+        {/* Brand */}
         <div
-          onClick={isCollapsed ? handleToggle : undefined}
-          title={isCollapsed ? "Expand sidebar" : undefined}
           style={{
             display: "flex",
             alignItems: "center",
-            gap: 9,
-            cursor: isCollapsed ? "pointer" : "default",
+            justifyContent: isPrimaryCollapsed ? "center" : "space-between",
+            padding: isPrimaryCollapsed ? "18px 0 16px" : "18px 6px 18px 8px",
+            flexShrink: 0,
           }}
         >
           <div
+            onClick={isPrimaryCollapsed ? handleTogglePrimary : () => router.push("/dashboard")}
+            title={isPrimaryCollapsed ? "Open sidebar" : "Command Inbox Dashboard"}
             style={{
-              width: 26,
-              height: 26,
-              borderRadius: 7,
-              background: "linear-gradient(140deg, #5549C0 0%, #7B6ED8 100%)",
               display: "flex",
               alignItems: "center",
-              justifyContent: "center",
-              boxShadow: "0 2px 8px rgba(85,73,192,0.3)",
-              flexShrink: 0,
+              gap: 9,
+              cursor: "pointer",
+              minWidth: 0,
             }}
           >
-            <LogoIcon />
-          </div>
-          {!isCollapsed && (
-            <span
+            <div
               style={{
-                fontSize: 13,
-                fontWeight: 600,
-                color: "#1A1917",
-                letterSpacing: "-0.025em",
-                whiteSpace: "nowrap",
+                width: 26,
+                height: 26,
+                borderRadius: 7,
+                background: "linear-gradient(140deg, #5549C0 0%, #7B6ED8 100%)",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                boxShadow: "0 2px 8px rgba(85,73,192,0.3)",
+                flexShrink: 0,
               }}
             >
-              Command Inbox
-            </span>
+              <LogoIcon />
+            </div>
+            {!isPrimaryCollapsed && (
+              <span
+                style={{
+                  fontSize: 13,
+                  fontWeight: 600,
+                  color: "#1A1917",
+                  letterSpacing: "-0.025em",
+                  whiteSpace: "nowrap",
+                }}
+              >
+                Command Inbox
+              </span>
+            )}
+          </div>
+
+          {!isPrimaryCollapsed && (
+            <button
+              onClick={handleTogglePrimary}
+              title="Collapse sidebar"
+              style={{
+                background: "transparent",
+                border: "none",
+                borderRadius: 5,
+                padding: "4px 5px",
+                cursor: "pointer",
+                color: "#9B9691",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                transition: "background 0.12s, color 0.12s",
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.background = "#E4DFD6";
+                e.currentTarget.style.color = "#1A1917";
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.background = "transparent";
+                e.currentTarget.style.color = "#9B9691";
+              }}
+            >
+              <SidebarToggleIcon size={14} />
+            </button>
           )}
         </div>
-      </div>
 
-      {/* ── Nav body with animated panel transition ── */}
-      {activeWorkspace === "gmail" && !isCollapsed ? (
-        <AnimatedPanel panelKey={panelKey} direction={panelDir}>
-          <GmailPanel
-            activeNav={activeNav}
-            inboxBadge={inboxBadge}
-            otherWorkspaces={otherWorkspaces}
-            onSelectNav={onSelectNav}
-            onBack={handleBack}
-            onSwitchWorkspace={handleSwitchWorkspace}
-          />
-        </AnimatedPanel>
-      ) : activeWorkspace === "calendar" && !isCollapsed ? (
-        <AnimatedPanel panelKey={panelKey} direction={panelDir}>
-          <CalendarPanel
-            activeNav={activeNav}
-            otherWorkspaces={otherWorkspaces}
-            onSelectNav={onSelectNav}
-            onBack={handleBack}
-            onSwitchWorkspace={handleSwitchWorkspace}
-            router={router}
-          />
-        </AnimatedPanel>
-      ) : activeWorkspace === "outlook" && !isCollapsed ? (
-        <AnimatedPanel panelKey={panelKey} direction={panelDir}>
-          <OutlookPanel
-            activeNav={activeNav}
-            otherWorkspaces={otherWorkspaces}
-            onSelectNav={onSelectNav}
-            onBack={handleBack}
-            onSwitchWorkspace={handleSwitchWorkspace}
-          />
-        </AnimatedPanel>
-      ) : (
-        <AnimatedPanel panelKey={panelKey} direction={panelDir}>
-          <MainNav
-            activeNav={activeNav}
-            inboxBadge={inboxBadge}
-            collapsed={isCollapsed}
-            onSelectNav={onSelectNav}
-            onOpenCalendar={onOpenCalendar}
-            onGoBack={onGoBack}
-            onSelectWorkspace={handleSelectWorkspace}
-            router={router}
-          />
-        </AnimatedPanel>
+        {/* Primary nav items */}
+        <PrimaryNav
+          activeNav={activeNav}
+          activeWorkspace={currentWorkspace}
+          inboxBadge={inboxBadge}
+          collapsed={isPrimaryCollapsed}
+          onSelectNav={onSelectNav}
+          onOpenCalendar={onOpenCalendar}
+          onGoBack={onGoBack}
+          onSelectWorkspace={handleSelectWorkspace}
+          router={router}
+        />
+
+        {/* Footer */}
+        <SidebarFooter
+          collapsed={isPrimaryCollapsed}
+          handleToggle={handleTogglePrimary}
+          displayUser={displayUser}
+          handleLogout={handleLogout}
+        />
+      </aside>
+
+      {/* ── 2. SECONDARY CONTEXTUAL SIDEBAR COLUMN (Appears after collapsed sidebar) ── */}
+      {currentWorkspace && (
+        <aside
+          style={{
+            width: isSecondaryOpen ? 200 : 0,
+            opacity: isSecondaryOpen ? 1 : 0,
+            flexShrink: 0,
+            background: "#F7F4EE",
+            borderRight: isSecondaryOpen ? "1px solid #E4DED4" : "none",
+            display: "flex",
+            flexDirection: "column",
+            padding: isSecondaryOpen ? "0 10px 14px" : 0,
+            overflowY: "auto",
+            overflowX: "hidden",
+            transition: "width 0.22s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.18s ease, padding 0.22s",
+            whiteSpace: "nowrap",
+          }}
+        >
+          {isSecondaryOpen && (
+            <>
+              {currentWorkspace === "gmail" && (
+                <GmailSecondaryPanel
+                  activeNav={activeNav}
+                  inboxBadge={inboxBadge}
+                  otherWorkspaces={otherWorkspaces}
+                  onSelectNav={onSelectNav}
+                  onSwitchWorkspace={handleSwitchWorkspace}
+                  onClose={handleToggleSecondary}
+                />
+              )}
+
+              {currentWorkspace === "calendar" && (
+                <CalendarSecondaryPanel
+                  activeNav={activeNav}
+                  otherWorkspaces={otherWorkspaces}
+                  onSelectNav={onSelectNav}
+                  onSwitchWorkspace={handleSwitchWorkspace}
+                  onClose={handleToggleSecondary}
+                  router={router}
+                />
+              )}
+
+              {currentWorkspace === "outlook" && (
+                <OutlookSecondaryPanel
+                  activeNav={activeNav}
+                  otherWorkspaces={otherWorkspaces}
+                  onSelectNav={onSelectNav}
+                  onSwitchWorkspace={handleSwitchWorkspace}
+                  onClose={handleToggleSecondary}
+                />
+              )}
+            </>
+          )}
+        </aside>
       )}
-
-      {/* ── Footer ── */}
-      <SidebarFooter
-        collapsed={isCollapsed}
-        handleToggle={handleToggle}
-        displayUser={displayUser}
-        handleLogout={handleLogout}
-      />
-    </aside>
+    </div>
   );
 }

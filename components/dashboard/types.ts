@@ -12,6 +12,7 @@ export interface Email {
   time: string;
   unread: boolean;
   tag: string;
+  starred?: boolean;
   body?: string;
   bodyHtml?: string;
 }

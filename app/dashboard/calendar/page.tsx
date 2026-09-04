@@ -33,6 +33,7 @@ export default function CalendarPage() {
     >
       {/* ── Sidebar ── */}
       <Sidebar
+        activeWorkspace="calendar"
         activeNav="today"
         collapsed={sidebarCollapsed}
         onToggleCollapse={() => setSidebarCollapsed((prev) => !prev)}
