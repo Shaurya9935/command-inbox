@@ -9,15 +9,18 @@ import { NextRequest, NextResponse } from "next/server";
  * GET /api/gmail/threads?sync=1
  *   – Fetches live from the Gmail API, enriches each thread with from/subject/date/unread,
  *     upserts basic metadata to the DB, and returns the fully enriched list.
- *     Used by the 15-min auto-refresh and the manual refresh button.
+ *     The server skips the live request when a successful sync is under 15 min old.
+ *
+ * GET /api/gmail/threads?sync=1&force=1
+ *   – Bypasses the 15-min guard for an explicit user refresh.
  */
 export async function GET(req: NextRequest) {
   try {
     const wantsSync = req.nextUrl.searchParams.get("sync") === "1";
+    const force = req.nextUrl.searchParams.get("force") === "1";
 
     if (wantsSync) {
-      // Return fully enriched threads straight from the API — no stale DB data
-      const enrichedThreads = await syncInboxThreadsFromApi();
+      const enrichedThreads = await syncInboxThreadsFromApi(10, { force });
       return NextResponse.json(enrichedThreads);
     }
 

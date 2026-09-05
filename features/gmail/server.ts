@@ -1,7 +1,7 @@
 import { getCorsairTenant } from "@/lib/corsair-client";
 import { db } from "@/lib/db";
 import { corsairAccounts, corsairEntities, corsairIntegrations } from "@/db/corsair";
-import { and, eq } from "drizzle-orm";
+import { and, desc, eq } from "drizzle-orm";
 import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
 import crypto from "crypto";
@@ -33,6 +33,10 @@ export interface EnrichedThread {
   messages?: ThreadMessageItem[];
 }
 
+const GMAIL_SYNC_STATE_ENTITY_TYPE = "gmail_sync_state";
+const GMAIL_SYNC_STATE_ENTITY_ID = "inbox";
+const GMAIL_SYNC_INTERVAL_MS = 15 * 60 * 1000;
+
 function decodeBase64Url(base64UrlStr: string): string {
   try {
     const base64 = base64UrlStr.replace(/-/g, "+").replace(/_/g, "/");
@@ -45,6 +49,48 @@ function decodeBase64Url(base64UrlStr: string): string {
 export interface ParsedBody {
   text?: string;
   html?: string;
+}
+
+type GmailMessage = {
+  internalDate?: string;
+  labelIds?: string[];
+  payload?: { headers?: Array<{ name?: string; value?: string }> };
+};
+
+function getMessageHeader(message: GmailMessage | undefined, name: string): string | undefined {
+  return message?.payload?.headers?.find(
+    (header) => header.name?.toLowerCase() === name.toLowerCase()
+  )?.value;
+}
+
+/** Prefer the latest message received by the user over a later sent reply. */
+function getLatestIncomingMessage(messages: GmailMessage[]): GmailMessage | undefined {
+  return [...messages].reverse().find((message) => !message.labelIds?.includes("SENT")) ?? messages.at(-1);
+}
+
+function getMessageTime(message: GmailMessage | undefined, fallback?: string): string {
+  if (message?.internalDate) {
+    const date = new Date(Number(message.internalDate));
+    if (!Number.isNaN(date.getTime())) return date.toISOString();
+  }
+
+  if (fallback) {
+    const date = new Date(fallback);
+    if (!Number.isNaN(date.getTime())) return date.toISOString();
+  }
+
+  return new Date().toISOString();
+}
+
+function hasUsableThreadMetadata(thread: EnrichedThread | undefined): boolean {
+  return Boolean(
+    thread &&
+      thread.from &&
+      thread.from !== "Unknown Sender" &&
+      thread.from !== "Gmail User" &&
+      thread.subject &&
+      thread.subject !== "No Subject"
+  );
 }
 
 export function parseMessagePart(part: any): ParsedBody {
@@ -116,19 +162,26 @@ export async function getInboxThreadsFromDb(userId: string): Promise<EnrichedThr
           eq(corsairEntities.accountId, accountId),
           eq(corsairEntities.entityType, "threads")
         )
-      );
+      )
+      .orderBy(desc(corsairEntities.updatedAt));
 
     const threads: EnrichedThread[] = [];
+    const seenThreadIds = new Set<string>();
     for (const row of rows) {
       const d = (row.data || {}) as Record<string, any>;
+      const threadId = row.entityId || d.id || "";
+      // Earlier development builds could create duplicate rows during
+      // overlapping syncs. Prefer the newest version and hide older copies.
+      if (!threadId || seenThreadIds.has(threadId)) continue;
+      seenThreadIds.add(threadId);
       const ts =
         d.createdAt ||
         d.created_at ||
         (row.createdAt ? row.createdAt.toISOString() : new Date().toISOString());
 
       threads.push({
-        id: row.entityId || d.id || "",
-        entity_id: row.entityId || d.id || "",
+        id: threadId,
+        entity_id: threadId,
         snippet: d.snippet || "",
         subject: d.subject || "",
         from: d.from || "",
@@ -173,6 +226,7 @@ export async function saveEnrichedThreadsToDb(accountId: string, threads: Enrich
             eq(corsairEntities.entityId, thread.id)
           )
         )
+        .orderBy(desc(corsairEntities.updatedAt))
         .limit(1);
 
       const dataToSave = {
@@ -214,8 +268,66 @@ export async function saveEnrichedThreadsToDb(accountId: string, threads: Enrich
       }
     } catch (err) {
       console.warn(`Failed to save thread ${thread.id} to DB:`, err);
+      // A successful Gmail response is not a successful sync unless it was
+      // persisted. Propagate this so callers do not silently keep serving
+      // stale cache data.
+      throw err;
     }
   }
+}
+
+async function getLastGmailSyncAt(accountId: string): Promise<Date | null> {
+  const row = await db
+    .select({ data: corsairEntities.data })
+    .from(corsairEntities)
+    .where(
+      and(
+        eq(corsairEntities.accountId, accountId),
+        eq(corsairEntities.entityType, GMAIL_SYNC_STATE_ENTITY_TYPE),
+        eq(corsairEntities.entityId, GMAIL_SYNC_STATE_ENTITY_ID)
+      )
+    )
+    .limit(1);
+
+  const value = (row[0]?.data as { lastSyncedAt?: unknown } | undefined)?.lastSyncedAt;
+  if (typeof value !== "string") return null;
+
+  const date = new Date(value);
+  return Number.isNaN(date.getTime()) ? null : date;
+}
+
+async function markGmailSyncComplete(accountId: string): Promise<void> {
+  const existing = await db
+    .select({ id: corsairEntities.id })
+    .from(corsairEntities)
+    .where(
+      and(
+        eq(corsairEntities.accountId, accountId),
+        eq(corsairEntities.entityType, GMAIL_SYNC_STATE_ENTITY_TYPE),
+        eq(corsairEntities.entityId, GMAIL_SYNC_STATE_ENTITY_ID)
+      )
+    )
+    .limit(1);
+
+  const data = { lastSyncedAt: new Date().toISOString() };
+  if (existing[0]) {
+    await db
+      .update(corsairEntities)
+      .set({ data, updatedAt: new Date() })
+      .where(eq(corsairEntities.id, existing[0].id));
+    return;
+  }
+
+  await db.insert(corsairEntities).values({
+    id: crypto.randomUUID(),
+    accountId,
+    entityId: GMAIL_SYNC_STATE_ENTITY_ID,
+    entityType: GMAIL_SYNC_STATE_ENTITY_TYPE,
+    version: "1.0.0",
+    data,
+    createdAt: new Date(),
+    updatedAt: new Date(),
+  });
 }
 
 /**
@@ -258,6 +370,7 @@ export async function getThreadById(threadId: string): Promise<EnrichedThread | 
               eq(corsairEntities.entityId, threadId)
             )
           )
+          .orderBy(desc(corsairEntities.updatedAt))
           .limit(1);
 
         if (row.length > 0) {
@@ -321,6 +434,7 @@ export async function getThreadById(threadId: string): Promise<EnrichedThread | 
 
     const lastMsg = messages[messages.length - 1] || {};
     const firstMsg = messages[0] || {};
+    const latestIncomingMessage = getLatestIncomingMessage(messages);
     const getHeader = (name: string): string | undefined => {
       let h = (lastMsg?.payload?.headers || []).find(
         (h: any) => h.name?.toLowerCase() === name.toLowerCase()
@@ -340,14 +454,12 @@ export async function getThreadById(threadId: string): Promise<EnrichedThread | 
     };
 
     const subject = getHeader("subject") || full.snippet?.slice(0, 60) || "No Subject";
-    const fromRaw = getHeader("from") || "Unknown Sender";
+    const fromRaw =
+      getMessageHeader(latestIncomingMessage, "from") ||
+      getHeader("from") ||
+      "Unknown Sender";
     const dateRaw = getHeader("date");
-    const internalDate = lastMsg.internalDate || firstMsg.internalDate;
-    const createdAt = internalDate
-      ? new Date(Number(internalDate)).toISOString()
-      : dateRaw
-      ? new Date(dateRaw).toISOString()
-      : new Date().toISOString();
+    const createdAt = getMessageTime(latestIncomingMessage, dateRaw);
     const isUnread = messages.some((m: any) => m.labelIds?.includes("UNREAD"));
 
     const enrichedResult: EnrichedThread = {
@@ -367,7 +479,8 @@ export async function getThreadById(threadId: string): Promise<EnrichedThread | 
       messages: parsedMessages,
     };
 
-    // Save to DB in background if user account is accessible
+    // Persist before responding. Background writes made this endpoint report
+    // success even when the cache write failed, causing repeated Gmail reads.
     try {
       const session = await auth.api.getSession({
         headers: await headers(),
@@ -375,10 +488,12 @@ export async function getThreadById(threadId: string): Promise<EnrichedThread | 
       if (session?.user?.id) {
         const accountId = await getGmailAccountId(session.user.id);
         if (accountId) {
-          saveEnrichedThreadsToDb(accountId, [enrichedResult]).catch(() => {});
+          await saveEnrichedThreadsToDb(accountId, [enrichedResult]);
         }
       }
-    } catch {}
+    } catch (err) {
+      console.warn(`Failed to cache thread ${threadId}:`, err);
+    }
 
     return enrichedResult;
   } catch (err) {
@@ -411,12 +526,17 @@ async function batchedMap<T, R>(
 /**
  * Smart sync:
  * 1. Makes 1 threads.list call to the Gmail API.
- * 2. Checks local DB: if a thread is already cached with sender & subject, skips threads.get (0 quota cost!).
- * 3. Only calls threads.get for new/uncached threads, batched safely.
+ * 2. Checks local DB: skips threads.get only when the cached Gmail historyId
+ *    matches the list result. A changed historyId means labels, unread state,
+ *    messages, or metadata changed and the cache must be refreshed.
+ * 3. Only calls threads.get for new/changed threads, batched safely.
  * 4. Saves newly fetched threads into the DB.
  * 5. Returns all threads from the DB.
  */
-export async function syncInboxThreadsFromApi(limit = 10): Promise<EnrichedThread[]> {
+export async function syncInboxThreadsFromApi(
+  limit = 10,
+  { force = false }: { force?: boolean } = {}
+): Promise<EnrichedThread[]> {
   let userId: string | undefined;
   let accountId: string | null = null;
   let existingDbThreads: EnrichedThread[] = [];
@@ -436,6 +556,27 @@ export async function syncInboxThreadsFromApi(limit = 10): Promise<EnrichedThrea
     console.warn("Could not load user account for DB caching:", err);
   }
 
+  if (!userId) {
+    throw new Error("Unauthorized");
+  }
+
+  if (!accountId) {
+    throw new Error("Gmail is not connected for this user");
+  }
+
+  // Keep normal page loads cache-only until the scheduled refresh is due.
+  // `force` is reserved for an explicit user refresh.
+  const cacheNeedsRepair = existingDbThreads.some(
+    (thread) => !hasUsableThreadMetadata(thread)
+  );
+
+  if (!force && existingDbThreads.length > 0 && !cacheNeedsRepair) {
+    const lastSyncedAt = await getLastGmailSyncAt(accountId);
+    if (lastSyncedAt && Date.now() - lastSyncedAt.getTime() < GMAIL_SYNC_INTERVAL_MS) {
+      return existingDbThreads;
+    }
+  }
+
   const corsair = await getCorsairTenant();
 
   // 1. Single threads.list call (1 API call)
@@ -449,28 +590,47 @@ export async function syncInboxThreadsFromApi(limit = 10): Promise<EnrichedThrea
   }
 
   if (!rawThreads.length) {
+    await markGmailSyncComplete(accountId);
     return existingDbThreads;
   }
 
-  // 2. Identify which threads are NOT yet cached with valid from and subject
+  // 2. Fetch newly discovered threads and cached threads whose Gmail history
+  // changed. The previous implementation only tested for sender/subject, so a
+  // cache entry became permanently stale after its first successful sync.
   const cachedMap = new Map<string, EnrichedThread>(
     existingDbThreads.map((t) => [t.id, t])
   );
 
   const threadsToFetch: { id: string; snippet?: string; historyId?: string }[] = [];
+  const cachedThreadsToRestore: EnrichedThread[] = [];
 
   for (const t of rawThreads) {
     if (!t.id) continue;
     const cached = cachedMap.get(t.id);
-    const isFullyCached =
-      cached &&
-      cached.from &&
-      cached.from !== "Unknown Sender" &&
-      cached.subject &&
-      cached.subject !== "No Subject";
-    if (!isFullyCached) {
+    const hasUsableCache = hasUsableThreadMetadata(cached);
+    const hasChangedOnGmail = Boolean(
+      t.historyId && cached?.historyId !== t.historyId
+    );
+
+    // A manual refresh intentionally rehydrates all displayed threads. This
+    // repairs cache entries created by earlier builds that lacked sender or
+    // Gmail internalDate metadata, while normal scheduled syncs stay sparse.
+    if (force || !hasUsableCache || hasChangedOnGmail) {
       threadsToFetch.push({ id: t.id, snippet: t.snippet, historyId: t.historyId });
+    } else if (cached) {
+      // Corsair's threads.list persists a minimal `{ id, snippet, historyId }`
+      // entity as a side effect. Restore our richer cache entry so an unchanged
+      // thread does not lose its sender, internal date, or body after a sync.
+      cachedThreadsToRestore.push({
+        ...cached,
+        snippet: t.snippet || cached.snippet,
+        historyId: t.historyId || cached.historyId,
+      });
     }
+  }
+
+  if (cachedThreadsToRestore.length > 0) {
+    await saveEnrichedThreadsToDb(accountId, cachedThreadsToRestore);
   }
 
   // 3. Fetch ONLY uncached threads, batched safely
@@ -483,6 +643,7 @@ export async function syncInboxThreadsFromApi(limit = 10): Promise<EnrichedThrea
           const messages: any[] = full?.messages || [];
           const lastMsg = messages[messages.length - 1] || {};
           const firstMsg = messages[0] || {};
+          const latestIncomingMessage = getLatestIncomingMessage(messages);
 
           const getHeader = (name: string): string | undefined => {
             let h = (lastMsg?.payload?.headers || []).find(
@@ -503,14 +664,12 @@ export async function syncInboxThreadsFromApi(limit = 10): Promise<EnrichedThrea
           };
 
           const subject = getHeader("subject") || t.snippet?.slice(0, 60) || "No Subject";
-          const fromRaw = getHeader("from") || "Unknown Sender";
+          const fromRaw =
+            getMessageHeader(latestIncomingMessage, "from") ||
+            getHeader("from") ||
+            "Unknown Sender";
           const dateRaw = getHeader("date");
-          const internalDate = lastMsg.internalDate || firstMsg.internalDate;
-          const createdAt = internalDate
-            ? new Date(Number(internalDate)).toISOString()
-            : dateRaw
-            ? new Date(dateRaw).toISOString()
-            : new Date().toISOString();
+          const createdAt = getMessageTime(latestIncomingMessage, dateRaw);
           const isUnread = messages.some((m: any) => m.labelIds?.includes("UNREAD"));
 
           // Extract full email bodies
@@ -573,6 +732,9 @@ export async function syncInboxThreadsFromApi(limit = 10): Promise<EnrichedThrea
       await saveEnrichedThreadsToDb(accountId, validNew);
     }
   }
+
+  // Only mark the sync after all changed threads were durably written.
+  await markGmailSyncComplete(accountId);
 
   // 4. Return the updated list from the DB
   if (userId) {

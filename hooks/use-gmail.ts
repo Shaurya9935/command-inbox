@@ -15,6 +15,7 @@ export interface GmailThread {
     subject?: string;
     from?: string;
     unread?: boolean;
+    created_at?: string | Date;
     createdAt?: string | Date;
     tag?: string;
     body?: string;
@@ -92,12 +93,12 @@ export function useGmailThreads() {
   }, []);
 
   // ── Sync from Gmail API then refresh DB read ──────────────────────────────
-  const syncFromApi = useCallback(async () => {
+  const syncFromApi = useCallback(async (force = false) => {
     if (!mountedRef.current) return;
     setIsSyncing(true);
     setError(null);
     try {
-      const res = await fetch("/api/gmail/threads?sync=1");
+      const res = await fetch(`/api/gmail/threads?sync=1${force ? "&force=1" : ""}`);
       if (!res.ok) {
         const errorData = (await res.json().catch(() => null)) as { error?: string } | null;
         throw new Error(errorData?.error || `Sync failed (${res.status})`);
@@ -165,7 +166,7 @@ export function useGmailThreads() {
     lastSyncedAt,
     /** Re-read from the local DB (fast, no API call) */
     refetch: () => fetchFromDb(),
-    /** Manually trigger a full Gmail API sync + DB refresh */
-    sync: syncFromApi,
+    /** Bypass the refresh interval after the user explicitly requests a refresh. */
+    sync: () => syncFromApi(true),
   };
 }

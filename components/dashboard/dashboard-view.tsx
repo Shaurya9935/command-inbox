@@ -28,7 +28,7 @@ export interface DashboardViewProps {
 const PALETTE_COLORS = ["#8B72BE", "#5B8FAB", "#B07D4E", "#5549C0", "#3E7868", "#C5B49A"];
 
 function formatSenderName(fromRaw: string): string {
-  if (!fromRaw) return "Gmail User";
+  if (!fromRaw) return "Unknown sender";
   const match = fromRaw.match(/^(.*?)\s*<.*?>$/);
   if (match && match[1]?.trim()) {
     return match[1].replace(/^["']|["']$/g, "").trim();
@@ -66,7 +66,7 @@ function mapThreadToEmail(thread: GmailThread, index: number): Email {
   const data = thread?.data || thread || {};
   const id = thread?.entity_id || thread?.id || data?.id || `thread-${index}`;
   const snippet = data?.snippet || thread?.snippet || "";
-  const rawFrom = data?.from || thread?.from || "Gmail User";
+  const rawFrom = data?.from || thread?.from || "";
   const from = formatSenderName(rawFrom);
   const subject =
     data?.subject ||
@@ -87,7 +87,7 @@ function mapThreadToEmail(thread: GmailThread, index: number): Email {
 
   const dateVal =
     thread?.created_at ||
-    thread?.updated_at ||
+    data?.created_at ||
     thread?.createdAt ||
     data?.createdAt;
   const time = formatEmailTime(dateVal);
