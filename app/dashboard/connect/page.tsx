@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, Suspense } from "react";
 import { useRouter } from "next/navigation";
 import { Sidebar } from "@/components/dashboard/sidebar";
 import { ConnectIcon, SidebarToggleIcon, BackIcon } from "@/components/dashboard/icons";
@@ -164,7 +164,9 @@ export default function ConnectPage() {
         </header>
 
         {/* Content Workspace */}
-        <ConnectWorkspace />
+        <Suspense fallback={<div style={{ padding: 20 }}>Loading integrations...</div>}>
+          <ConnectWorkspace />
+        </Suspense>
       </div>
     </div>
   );

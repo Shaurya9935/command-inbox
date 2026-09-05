@@ -71,7 +71,11 @@ export function CalendarView({
           marginBottom: 32,
         }}
       >
-        Sunday, August 31
+        {new Date().toLocaleDateString("en-US", {
+          weekday: "long",
+          month: "long",
+          day: "numeric",
+        })}
       </div>
 
       {/* Events List */}

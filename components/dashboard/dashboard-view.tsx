@@ -130,7 +130,6 @@ export function DashboardView({
   const [activeNav, setActiveNav] = useState("chat");
   const [statusOpen, setStatusOpen] = useState(false);
   const [readEmailIds, setReadEmailIds] = useState<Set<string | number>>(new Set());
-  const [events] = useState<CalendarEvent[]>(initialEvents);
 
   // Fetch threads using the useGmailThreads hook
   const { threads, isLoading } = useGmailThreads();
@@ -287,7 +286,7 @@ export function DashboardView({
           {view === "email" && selectedEmail ? (
             <EmailThreadView email={selectedEmail} onBack={goBack} />
           ) : view === "calendar" ? (
-            <CalendarView events={events} onBack={goBack} />
+            <CalendarView events={todayEvents} onBack={goBack} />
           ) : (
             <DefaultWorkspace
               onSelectEmail={openEmail}

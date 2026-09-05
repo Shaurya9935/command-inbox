@@ -53,10 +53,11 @@ export function useGmailThreads() {
   const [lastSyncedAt, setLastSyncedAt] = useState<Date | null>(null);
   const mountedRef = useRef(true);
 
-  // ── Read from DB (fast, no API call) ─────────────────────────────────────
-  const fetchFromDb = useCallback(async (silent = false) => {
+  // ── Read from DB (fast, no API call). Returns the number of threads loaded.
+  const fetchFromDb = useCallback(async (silent = false): Promise<number> => {
     if (!silent) setIsLoading(true);
     setError(null);
+    let count = 0;
     try {
       const res = await fetch("/api/gmail/threads");
       if (!res.ok) {
@@ -72,8 +73,10 @@ export function useGmailThreads() {
       ) {
         throw new Error((data as { error: string }).error);
       }
+      const extracted = extractThreads(data);
+      count = extracted.length;
       if (mountedRef.current) {
-        setThreads(extractThreads(data));
+        setThreads(extracted);
       }
     } catch (err: unknown) {
       if (mountedRef.current) {
@@ -85,6 +88,7 @@ export function useGmailThreads() {
     } finally {
       if (mountedRef.current && !silent) setIsLoading(false);
     }
+    return count;
   }, []);
 
   // ── Sync from Gmail API then refresh DB read ──────────────────────────────
@@ -107,25 +111,34 @@ export function useGmailThreads() {
       if (mountedRef.current) {
         const message = err instanceof Error ? err.message : "Sync failed";
         console.error("useGmailThreads syncFromApi error:", err);
-        setError(message);
+        // Only show error banner if we don't already have threads displaying from DB
+        setThreads((prev) => {
+          if (prev.length === 0) {
+            setError(message);
+          }
+          return prev;
+        });
       }
     } finally {
       if (mountedRef.current) setIsSyncing(false);
     }
   }, []);
 
-  // ── Mount: sync from API immediately (returns enriched from/subject/unread),
-  // then set a 15-min recurring auto-sync. Fall back to DB on sync failure.
+  // ── Mount: load from DB immediately, then trigger API sync to fetch & store new mails
   useEffect(() => {
     mountedRef.current = true;
 
     async function init() {
-      // Always sync on mount so from/subject/unread are populated immediately
-      try {
-        await syncFromApi();
-      } catch {
-        // Sync failed (e.g. network, rate limit) — load whatever is in the DB
-        await fetchFromDb();
+      // 1. Immediately show whatever is already in the DB (fast, 0 API quota)
+      await fetchFromDb();
+
+      // 2. When user opens the site or refreshes, sync new emails from API into DB
+      if (mountedRef.current) {
+        try {
+          await syncFromApi();
+        } catch {
+          // DB data already shown
+        }
       }
     }
 
