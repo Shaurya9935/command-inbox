@@ -1,9 +1,9 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { Email } from "./types";
-import { Avatar } from "./avatar";
-import { BackIcon, ReplyIcon, PaperclipIcon } from "./icons";
+import { Email } from "../dashboard/types";
+import { Avatar } from "../dashboard/avatar";
+import { BackIcon, ReplyIcon, PaperclipIcon } from "../dashboard/icons";
 import { EmailBodyContent } from "./email-body";
 
 export interface EmailThreadViewProps {

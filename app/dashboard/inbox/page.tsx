@@ -8,7 +8,7 @@ import { Email } from "@/components/dashboard/types";
 import { Avatar } from "@/components/dashboard/avatar";
 import { Dot } from "@/components/dashboard/dot";
 import { Sidebar } from "@/components/dashboard/sidebar";
-import { EmailBodyContent } from "@/components/dashboard/email-body";
+import { EmailBodyContent } from "@/components/inbox/email-body";
 import {
   BackIcon,
   InboxIcon,

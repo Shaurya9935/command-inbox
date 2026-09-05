@@ -10,7 +10,6 @@ export * from "./suggestions";
 export * from "./focus-section";
 export * from "./needs-attention";
 export * from "./default-workspace";
-export * from "./email-thread-view";
 export * from "./calendar-view";
 export * from "./right-panel";
 export * from "./dashboard-view";

@@ -6,7 +6,7 @@ import { View, Email, CalendarEvent, UserProfile, ServiceConnection, FocusItem }
 import { Sidebar } from "./sidebar";
 import { TopBar } from "./top-bar";
 import { DefaultWorkspace } from "./default-workspace";
-import { EmailThreadView } from "./email-thread-view";
+import { EmailThreadView } from "../inbox/email-thread-view";
 import { CalendarView } from "./calendar-view";
 import { RightPanel } from "./right-panel";
 import {

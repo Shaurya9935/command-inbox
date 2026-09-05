@@ -133,17 +133,16 @@ function HtmlEmailIframe({ html }: { html: string }) {
     function notifyHeight() {
       try {
         const root = document.getElementById('email-inner-root');
-        const height = Math.max(
-          root ? root.scrollHeight : 0,
-          document.body.scrollHeight,
-          document.documentElement.scrollHeight
-        );
+        if (!root) return;
+        const height = Math.ceil(root.getBoundingClientRect().height);
         window.parent.postMessage({ type: 'EMAIL_FRAME_HEIGHT', height }, '*');
       } catch (e) {}
     }
     window.addEventListener('load', notifyHeight);
-    window.addEventListener('resize', notifyHeight);
     document.addEventListener('DOMContentLoaded', notifyHeight);
+    const root = document.getElementById('email-inner-root');
+    const observer = root ? new ResizeObserver(notifyHeight) : null;
+    if (root && observer) observer.observe(root);
     setTimeout(notifyHeight, 50);
     setTimeout(notifyHeight, 200);
     setTimeout(notifyHeight, 600);
@@ -155,7 +154,11 @@ function HtmlEmailIframe({ html }: { html: string }) {
 
   useEffect(() => {
     function handleMessage(event: MessageEvent) {
-      if (event.data?.type === "EMAIL_FRAME_HEIGHT" && typeof event.data.height === "number") {
+      if (
+        event.source === frameRef.current?.contentWindow &&
+        event.data?.type === "EMAIL_FRAME_HEIGHT" &&
+        typeof event.data.height === "number"
+      ) {
         setIframeHeight(Math.max(120, event.data.height + 24));
       }
     }
