@@ -29,6 +29,8 @@ interface ChatMessage {
   };
 }
 
+const ACTIVE_CONVERSATION_STORAGE_KEY = "command-inbox-active-conversation";
+
 function renderFormattedMessage(text: string, isUser: boolean) {
   if (isUser) {
     return text;
@@ -126,6 +128,7 @@ export function DefaultWorkspace({
 }: DefaultWorkspaceProps) {
   const [commandInput, setCommandInput] = useState("");
   const [messages, setMessages] = useState<ChatMessage[]>([]);
+  const [conversationId, setConversationId] = useState<string | null>(null);
   const [isTyping, setIsTyping] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
@@ -144,6 +147,64 @@ export function DefaultWorkspace({
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, isTyping]);
+
+  // Restore the user's active conversation when they return to the dashboard.
+  useEffect(() => {
+    const savedConversationId = window.localStorage.getItem(ACTIVE_CONVERSATION_STORAGE_KEY);
+    if (!savedConversationId) {
+      return;
+    }
+    const activeConversationId = savedConversationId;
+
+    let cancelled = false;
+
+    async function loadHistory() {
+      try {
+        const response = await fetch(
+          `/api/ai?conversationId=${encodeURIComponent(activeConversationId)}`,
+        );
+
+        if (!response.ok) {
+          if (response.status === 404) {
+            window.localStorage.removeItem(ACTIVE_CONVERSATION_STORAGE_KEY);
+          }
+          return;
+        }
+
+        const data = (await response.json()) as {
+          conversationId: string;
+          messages: Array<{
+            id: string;
+            role: "user" | "assistant";
+            content: string;
+            createdAt: string;
+          }>;
+        };
+
+        if (cancelled) return;
+
+        setConversationId(data.conversationId);
+        setMessages(
+          data.messages.map((message) => ({
+            id: message.id,
+            role: message.role,
+            text: message.content,
+            timestamp: new Date(message.createdAt).toLocaleTimeString([], {
+              hour: "numeric",
+              minute: "2-digit",
+            }),
+          })),
+        );
+      } catch (error) {
+        console.error("Failed to load chat history:", error);
+      }
+    }
+
+    loadHistory();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   const handleSendMessage = async (text: string) => {
     if (!text.trim() || isTyping) return;
@@ -166,7 +227,7 @@ export function DefaultWorkspace({
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ message: userText }),
+        body: JSON.stringify({ message: userText, conversationId }),
       });
 
       const data = await res.json();
@@ -181,6 +242,11 @@ export function DefaultWorkspace({
           reply = data.error || "Sorry, I ran into an issue processing your request. Please try again.";
         }
       } else {
+        if (typeof data.conversationId === "string") {
+          setConversationId(data.conversationId);
+          window.localStorage.setItem(ACTIVE_CONVERSATION_STORAGE_KEY, data.conversationId);
+        }
+
         reply =
           typeof data.response === "string"
             ? data.response
@@ -308,7 +374,11 @@ export function DefaultWorkspace({
         {messages.length > 0 && (
           <button
             type="button"
-            onClick={() => setMessages([])}
+            onClick={() => {
+              setMessages([]);
+              setConversationId(null);
+              window.localStorage.removeItem(ACTIVE_CONVERSATION_STORAGE_KEY);
+            }}
             style={{
               background: "none",
               border: "none",
