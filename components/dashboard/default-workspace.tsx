@@ -16,6 +16,8 @@ export interface DefaultWorkspaceProps {
   focusItems?: FocusItem[];
   emails?: Email[];
   isLoading?: boolean;
+  activeConversationId?: string | null;
+  onActiveConversationChange?: (id: string | null) => void;
 }
 
 interface ChatMessage {
@@ -125,10 +127,11 @@ export function DefaultWorkspace({
   onSelectInbox,
   user = CURRENT_USER,
   emails = [],
+  activeConversationId = null,
+  onActiveConversationChange,
 }: DefaultWorkspaceProps) {
   const [commandInput, setCommandInput] = useState("");
   const [messages, setMessages] = useState<ChatMessage[]>([]);
-  const [conversationId, setConversationId] = useState<string | null>(null);
   const [isTyping, setIsTyping] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
@@ -148,31 +151,28 @@ export function DefaultWorkspace({
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, isTyping]);
 
-  // Restore the user's active conversation when they return to the dashboard.
+  // Load conversation when activeConversationId changes
   useEffect(() => {
-    const savedConversationId = window.localStorage.getItem(ACTIVE_CONVERSATION_STORAGE_KEY);
-    if (!savedConversationId) {
+    if (!activeConversationId) {
+      setMessages([]);
       return;
     }
-    const activeConversationId = savedConversationId;
 
     let cancelled = false;
 
     async function loadHistory() {
       try {
-        const response = await fetch(
-          `/api/ai?conversationId=${encodeURIComponent(activeConversationId)}`,
-        );
+        const response = await fetch(`/api/conversations/${activeConversationId}`);
 
         if (!response.ok) {
-          if (response.status === 404) {
-            window.localStorage.removeItem(ACTIVE_CONVERSATION_STORAGE_KEY);
+          if (response.status === 404 && onActiveConversationChange) {
+            onActiveConversationChange(null);
           }
           return;
         }
 
         const data = (await response.json()) as {
-          conversationId: string;
+          id: string;
           messages: Array<{
             id: string;
             role: "user" | "assistant";
@@ -183,7 +183,6 @@ export function DefaultWorkspace({
 
         if (cancelled) return;
 
-        setConversationId(data.conversationId);
         setMessages(
           data.messages.map((message) => ({
             id: message.id,
@@ -204,7 +203,7 @@ export function DefaultWorkspace({
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [activeConversationId, onActiveConversationChange]);
 
   const handleSendMessage = async (text: string) => {
     if (!text.trim() || isTyping) return;
@@ -227,7 +226,7 @@ export function DefaultWorkspace({
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ message: userText, conversationId }),
+        body: JSON.stringify({ message: userText, conversationId: activeConversationId }),
       });
 
       const data = await res.json();
@@ -242,9 +241,10 @@ export function DefaultWorkspace({
           reply = data.error || "Sorry, I ran into an issue processing your request. Please try again.";
         }
       } else {
-        if (typeof data.conversationId === "string") {
-          setConversationId(data.conversationId);
-          window.localStorage.setItem(ACTIVE_CONVERSATION_STORAGE_KEY, data.conversationId);
+        if (typeof data.conversationId === "string" && data.conversationId !== activeConversationId) {
+          if (onActiveConversationChange) {
+            onActiveConversationChange(data.conversationId);
+          }
         }
 
         reply =
@@ -374,10 +374,17 @@ export function DefaultWorkspace({
         {messages.length > 0 && (
           <button
             type="button"
-            onClick={() => {
+            onClick={async () => {
+              if (activeConversationId) {
+                try {
+                  await fetch(`/api/conversations/${activeConversationId}/clear`, {
+                    method: "POST",
+                  });
+                } catch (e) {
+                  console.error("Failed to clear chat", e);
+                }
+              }
               setMessages([]);
-              setConversationId(null);
-              window.localStorage.removeItem(ACTIVE_CONVERSATION_STORAGE_KEY);
             }}
             style={{
               background: "none",

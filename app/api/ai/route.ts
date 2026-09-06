@@ -95,7 +95,8 @@ export async function POST(request: Request) {
       await db.insert(conversations).values({
         id: conversationId,
         userId: session.user.id,
-        title: message.slice(0, 80),
+        title: message.slice(0, 40),
+        agentHistory: [],
       });
     }
 
@@ -103,6 +104,8 @@ export async function POST(request: Request) {
     const [conversation] = await db
       .select({
         id: conversations.id,
+        agentHistory: conversations.agentHistory,
+        title: conversations.title,
       })
       .from(conversations)
       .where(
@@ -119,21 +122,12 @@ export async function POST(request: Request) {
         { status: 404 },
       );
     }
-
-    // Load previous chat messages
-    const previousMessages = await db
-      .select({
-        role: chatMessages.role,
-        content: chatMessages.content,
-      })
-      .from(chatMessages)
-      .where(
-        eq(chatMessages.conversationId, conversationId),
-      )
-      .orderBy(desc(chatMessages.createdAt))
-      .limit(10);
-
-    const history = previousMessages.reverse();
+    
+    // Set title on first message if not set
+    let updatedTitle = conversation.title;
+    if (!updatedTitle) {
+      updatedTitle = message.slice(0, 40);
+    }
 
     // Save current user message
     await db.insert(chatMessages).values({
@@ -143,15 +137,24 @@ export async function POST(request: Request) {
       content: message,
     });
 
+    const currentAgentHistory = conversation.agentHistory as any[] || [];
+
     // Give previous conversation to the agent
-    const response = await runCommand({
+    const { response, newItems } = await runCommand({
       tenantId: session.user.id,
       message,
-      history: history.map((msg) => ({
-        role: msg.role as "user" | "assistant",
-        content: msg.content,
-      })),
+      agentHistory: currentAgentHistory,
     });
+
+    // Update agent history by appending user message and new items
+    const nextAgentHistory = [
+      ...currentAgentHistory,
+      {
+        role: "user",
+        content: message,
+      },
+      ...newItems,
+    ];
 
     // Save assistant response
     await db.insert(chatMessages).values({
@@ -161,10 +164,12 @@ export async function POST(request: Request) {
       content: response,
     });
 
-    // Update conversation timestamp
+    // Update conversation timestamp and history
     await db
       .update(conversations)
       .set({
+        title: updatedTitle,
+        agentHistory: nextAgentHistory,
         updatedAt: new Date(),
       })
       .where(eq(conversations.id, conversationId));

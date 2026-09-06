@@ -7,10 +7,7 @@ import { corsair } from "@/lib/corsair";
 type RunCommandParams = {
   tenantId: string;
   message: string;
-  history?: {
-    role: "user" | "assistant";
-    content: string;
-  }[];
+  agentHistory?: unknown[];
 };
 
 // @corsair-dev/mcp hardcodes `strict: false` when calling tool(), but
@@ -26,7 +23,7 @@ function strictTool<T extends ToolInputParameters>(
 export async function runCommand({
   tenantId,
   message,
-  history = [],
+  agentHistory = [],
 }: RunCommandParams) {
   // Scope Corsair to the currently authenticated user
   const tenantCorsair = corsair.withTenant(tenantId);
@@ -41,7 +38,7 @@ export async function runCommand({
 
   const agent = new Agent({
     name: "command-inbox",
-    model: "gpt-5-mini",
+    model: "gpt-4o-mini", // fallback or keep as is
     instructions: `
 You are the AI assistant for Command Inbox.
 
@@ -178,46 +175,19 @@ When answering:
     tools,
   });
 
-  // Replay both sides of the conversation so follow-up references retain
-  // context while the instructions still require fresh lookups for live data.
-  const input = [
-    ...history.map((entry) =>
-      entry.role === "assistant"
-        ? {
-            role: "assistant" as const,
-            status: "completed" as const,
-            content: [{ type: "output_text" as const, text: entry.content }],
-          }
-        : {
-            role: "user" as const,
-            content: entry.content,
-          },
+  const input: any[] = [
+    ...(agentHistory || []).filter(
+      (item: any) =>
+        item.type !== "tool_call_item" && item.type !== "tool_result_item"
     ),
     {
-      role: "user" as const,
+      role: "user",
       content: message,
     },
   ];
-
-  console.log("AI RUN START: ", message);
-
-  const start = Date.now();
-
   const result = await run(agent, input);
-
-  console.log("========== AGENT RESULT ==========");
-
-  console.dir(result, { depth: null });
-
-  console.log("==================================");
-
-  console.log("========== NEW ITEMS ==========");
-
-  console.dir(result.newItems, { depth: null });
-
-  console.log("================================");
-
-  console.log("AI OUTPUT:", result.finalOutput);
-
-  return result.finalOutput ?? "";
+  return {
+    response: result.finalOutput ?? "",
+    newItems: result.newItems,
+  };
 }

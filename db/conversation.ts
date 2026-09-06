@@ -19,6 +19,13 @@ export const conversations = pgTable(
 
     title: text("title"),
 
+    // OpenAI Agents SDK history.
+    // Contains AgentInputItems including tool calls/results.
+    agentHistory: jsonb("agent_history")
+      .$type<unknown[]>()
+      .notNull()
+      .default([]),
+
     createdAt: timestamp("created_at", {
       withTimezone: true,
     })

@@ -288,7 +288,7 @@ The most important foundation has been established:
 - [x] Emails appearing inside Command Inbox
 - [x] Inbox/dashboard foundation
 - [x] AI assistant architecture
-- [ ] Complete AI command/action layer
+- [x] Complete AI command/action layer
 - [ ] Calendar experience
 - [ ] Cross-service actions
 - [ ] Advanced search

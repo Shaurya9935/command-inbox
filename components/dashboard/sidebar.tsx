@@ -31,7 +31,7 @@ import { Avatar } from "./avatar";
 import { UserProfile } from "./types";
 import { CURRENT_USER } from "./mock-data";
 
-export type WorkspaceId = "gmail" | "calendar" | "outlook";
+export type WorkspaceId = "gmail" | "calendar" | "outlook" | "chat";
 
 export interface SidebarProps {
   activeNav: string;
@@ -161,6 +161,53 @@ function NavBtn({
           {badge}
         </span>
       )}
+    </button>
+  );
+}
+
+function PrimaryActionBtn({
+  icon: Icon,
+  label,
+  collapsed = false,
+  onClick,
+}: {
+  icon: IconComponent;
+  label: string;
+  collapsed?: boolean;
+  onClick: () => void;
+}) {
+  const [hov, setHov] = useState(false);
+
+  return (
+    <button
+      onClick={onClick}
+      onMouseEnter={() => setHov(true)}
+      onMouseLeave={() => setHov(false)}
+      title={collapsed ? label : undefined}
+      style={{
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        gap: collapsed ? 0 : 8,
+        padding: collapsed ? "10px 0" : "8px 14px",
+        borderRadius: 8,
+        width: "100%",
+        border: "none",
+        cursor: "pointer",
+        fontSize: 13.5,
+        fontWeight: 500,
+        fontFamily: "var(--font-ui, 'DM Sans', system-ui, sans-serif)",
+        color: "#FFFFFF",
+        background: hov ? "#463AA3" : "#5549C0",
+        transition: "background 0.15s, transform 0.1s",
+        transform: hov ? "scale(1.02)" : "scale(1)",
+        boxShadow: "0 2px 4px rgba(85, 73, 192, 0.2)",
+      }}
+    >
+      <span style={{ display: "flex", flexShrink: 0 }}>
+        <Icon size={16} />
+      </span>
+      {!collapsed && <span>{label}</span>}
     </button>
   );
 }
@@ -737,6 +784,183 @@ function OutlookSecondaryPanel({
   );
 }
 
+function ChatSecondaryPanel({
+  activeNav,
+  otherWorkspaces,
+  onSelectNav,
+  onSwitchWorkspace,
+  onClose,
+  onNewChat,
+}: {
+  activeNav: string;
+  otherWorkspaces: { id: WorkspaceId; icon: IconComponent; label: string }[];
+  onSelectNav: (nav: string) => void;
+  onSwitchWorkspace: (id: WorkspaceId) => void;
+  onClose?: () => void;
+  onNewChat: () => void;
+}) {
+  const [conversations, setConversations] = useState<any[]>([]);
+
+  useEffect(() => {
+    async function loadConversations() {
+      try {
+        const res = await fetch("/api/conversations");
+        if (res.ok) {
+          const data = await res.json();
+          setConversations(data);
+        }
+      } catch (e) {
+        console.error("Failed to load conversations:", e);
+      }
+    }
+    loadConversations();
+  }, []);
+
+  const today = new Date();
+  const yesterday = new Date(today);
+  yesterday.setDate(yesterday.getDate() - 1);
+  const sevenDaysAgo = new Date(today);
+  sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+
+  const isSameDay = (d1: Date, d2: Date) => 
+    d1.getFullYear() === d2.getFullYear() && d1.getMonth() === d2.getMonth() && d1.getDate() === d2.getDate();
+
+  const grouped = {
+    today: [] as any[],
+    yesterday: [] as any[],
+    previous7days: [] as any[],
+    older: [] as any[],
+  };
+
+  conversations.forEach((conv) => {
+    const d = new Date(conv.updatedAt);
+    if (isSameDay(d, today)) {
+      grouped.today.push(conv);
+    } else if (isSameDay(d, yesterday)) {
+      grouped.yesterday.push(conv);
+    } else if (d > sevenDaysAgo) {
+      grouped.previous7days.push(conv);
+    } else {
+      grouped.older.push(conv);
+    }
+  });
+
+  return (
+    <>
+      <SecondaryHeader icon={ChatIcon} title="Chat" subtitle="Conversations" onClose={onClose} />
+
+      <div style={{ padding: "0 10px", marginBottom: 12 }}>
+        <button
+          onClick={onNewChat}
+          style={{
+            width: "100%",
+            padding: "8px",
+            background: "#EAE8F8",
+            color: "#5549C0",
+            border: "1px dashed #C3BCEB",
+            borderRadius: 6,
+            cursor: "pointer",
+            fontWeight: 500,
+            fontSize: 13,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            gap: 6,
+            transition: "background 0.15s"
+          }}
+          onMouseEnter={(e) => (e.currentTarget.style.background = "#DFDbf1")}
+          onMouseLeave={(e) => (e.currentTarget.style.background = "#EAE8F8")}
+        >
+          <span style={{ fontSize: 16 }}>+</span> New chat
+        </button>
+      </div>
+
+      <div style={{ flex: 1, overflowY: "auto", paddingBottom: 20 }}>
+        {grouped.today.length > 0 && (
+          <div style={{ marginBottom: 16 }}>
+            <SectionLabel label="Today" collapsed={false} />
+            {grouped.today.map((c) => (
+              <NavBtn
+                key={c.id}
+                icon={ChatIcon}
+                label={c.title || "New chat"}
+                active={activeNav === `chat-${c.id}`}
+                onClick={() => onSelectNav(`chat-${c.id}`)}
+              />
+            ))}
+          </div>
+        )}
+        
+        {grouped.yesterday.length > 0 && (
+          <div style={{ marginBottom: 16 }}>
+            <SectionLabel label="Yesterday" collapsed={false} />
+            {grouped.yesterday.map((c) => (
+              <NavBtn
+                key={c.id}
+                icon={ChatIcon}
+                label={c.title || "New chat"}
+                active={activeNav === `chat-${c.id}`}
+                onClick={() => onSelectNav(`chat-${c.id}`)}
+                muted
+              />
+            ))}
+          </div>
+        )}
+
+        {grouped.previous7days.length > 0 && (
+          <div style={{ marginBottom: 16 }}>
+            <SectionLabel label="Previous 7 Days" collapsed={false} />
+            {grouped.previous7days.map((c) => (
+              <NavBtn
+                key={c.id}
+                icon={ChatIcon}
+                label={c.title || "New chat"}
+                active={activeNav === `chat-${c.id}`}
+                onClick={() => onSelectNav(`chat-${c.id}`)}
+                muted
+              />
+            ))}
+          </div>
+        )}
+
+        {grouped.older.length > 0 && (
+          <div style={{ marginBottom: 16 }}>
+            <SectionLabel label="Older" collapsed={false} />
+            {grouped.older.map((c) => (
+              <NavBtn
+                key={c.id}
+                icon={ChatIcon}
+                label={c.title || "New chat"}
+                active={activeNav === `chat-${c.id}`}
+                onClick={() => onSelectNav(`chat-${c.id}`)}
+                muted
+              />
+            ))}
+          </div>
+        )}
+      </div>
+
+      {otherWorkspaces.length > 0 && (
+        <>
+          <Divider />
+          <div style={{ marginBottom: 8 }}>
+            <SectionLabel label="Other Workspaces" collapsed={false} />
+            {otherWorkspaces.map((w) => (
+              <NavBtn
+                key={w.id}
+                icon={w.icon}
+                label={w.label}
+                muted
+                onClick={() => onSwitchWorkspace(w.id)}
+              />
+            ))}
+          </div>
+        </>
+      )}
+    </>
+  );
+}
+
 // ─── Main Nav (Column 1 - Primary Sidebar) ──────────────────────────────────────
 
 function PrimaryNav({
@@ -760,8 +984,38 @@ function PrimaryNav({
   onSelectWorkspace: (id: WorkspaceId) => void;
   router: ReturnType<typeof useRouter>;
 }) {
+  const [conversations, setConversations] = useState<any[]>([]);
+
+  useEffect(() => {
+    async function loadConversations() {
+      try {
+        const res = await fetch("/api/conversations");
+        if (res.ok) {
+          const data = await res.json();
+          setConversations(data);
+        }
+      } catch (e) {
+        console.error("Failed to load conversations:", e);
+      }
+    }
+    loadConversations();
+  }, []);
+
   return (
     <div style={{ flex: 1, overflowY: "auto", overflowX: "hidden" }}>
+      {/* ── ACTIONS ── */}
+      <div style={{ marginBottom: collapsed ? 14 : 20 }}>
+        <PrimaryActionBtn
+          icon={ChatIcon}
+          label="New Chat"
+          collapsed={collapsed}
+          onClick={() => {
+            onSelectNav("chat");
+            onGoBack();
+          }}
+        />
+      </div>
+
       {/* ── WORKSPACES ── */}
       <div style={{ marginBottom: collapsed ? 14 : 20 }}>
         <SectionLabel label="Workspaces" collapsed={collapsed} />
@@ -793,61 +1047,38 @@ function PrimaryNav({
 
       {!collapsed && <Divider />}
 
-      {/* ── UNIFIED ── */}
+      {/* ── CHATS ── */}
       <div style={{ marginBottom: collapsed ? 14 : 20, marginTop: collapsed ? 0 : 4 }}>
-        <SectionLabel label="Unified" collapsed={collapsed} />
-        <NavBtn
-          icon={ChatIcon}
-          label="Chat"
-          active={activeNav === "chat" && activeWorkspace === null}
-          collapsed={collapsed}
-          onClick={() => {
-            onSelectNav("chat");
-            onGoBack();
-          }}
-        />
-        <NavBtn
-          icon={InboxIcon}
-          label="Inbox"
-          active={activeNav === "inbox" && activeWorkspace === "gmail"}
-          badge={inboxBadge}
-          collapsed={collapsed}
-          onClick={() => {
-            onSelectWorkspace("gmail");
-            onSelectNav("inbox");
-            router.push("/dashboard/inbox");
-          }}
-        />
-        <NavBtn
-          icon={StarIcon}
-          label="Starred"
-          active={activeNav === "starred"}
-          collapsed={collapsed}
-          onClick={() => {
-            onSelectNav("starred");
-            onGoBack();
-          }}
-        />
-        <NavBtn
-          icon={CalendarIcon}
-          label="Today"
-          active={activeNav === "today"}
-          collapsed={collapsed}
-          onClick={() => {
-            onOpenCalendar();
-            router.push("/dashboard/calendar");
-          }}
-        />
-        <NavBtn
-          icon={UpcomingIcon}
-          label="Upcoming"
-          active={activeNav === "upcoming"}
-          collapsed={collapsed}
-          onClick={() => {
-            onSelectNav("upcoming");
-            router.push("/dashboard/calendar");
-          }}
-        />
+        <SectionLabel label="Chats" collapsed={collapsed} />
+        {conversations.length > 0 ? (
+          conversations.slice(0, 5).map((c) => (
+            <NavBtn
+              key={c.id}
+              icon={ChatIcon}
+              label={c.title || "New chat"}
+              active={activeNav === `chat-${c.id}`}
+              collapsed={collapsed}
+              muted
+              onClick={() => {
+                onSelectNav(`chat-${c.id}`);
+              }}
+            />
+          ))
+        ) : (
+          !collapsed && (
+            <div
+              style={{
+                fontSize: 12,
+                color: "#9B9691",
+                padding: "8px 12px",
+                fontFamily: "var(--font-body, 'Inter', system-ui, sans-serif)",
+                fontStyle: "italic",
+              }}
+            >
+              Nothing to show. Start a new chat to see history.
+            </div>
+          )
+        )}
       </div>
 
       {!collapsed && <Divider />}
@@ -890,6 +1121,7 @@ const WORKSPACE_META: Record<WorkspaceId, { icon: IconComponent; label: string }
   gmail: { icon: GmailIcon, label: "Gmail" },
   calendar: { icon: CalendarIcon, label: "Calendar" },
   outlook: { icon: OutlookIcon, label: "Outlook" },
+  chat: { icon: ChatIcon, label: "Chat" },
 };
 
 export function Sidebar({
@@ -1191,6 +1423,19 @@ export function Sidebar({
                   onSelectNav={onSelectNav}
                   onSwitchWorkspace={handleSwitchWorkspace}
                   onClose={handleToggleSecondary}
+                />
+              )}
+
+              {currentWorkspace === "chat" && (
+                <ChatSecondaryPanel
+                  activeNav={activeNav}
+                  otherWorkspaces={otherWorkspaces}
+                  onSelectNav={onSelectNav}
+                  onSwitchWorkspace={handleSwitchWorkspace}
+                  onClose={handleToggleSecondary}
+                  onNewChat={() => {
+                    onSelectNav("chat-new");
+                  }}
                 />
               )}
             </>

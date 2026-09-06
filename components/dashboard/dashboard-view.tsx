@@ -128,6 +128,7 @@ export function DashboardView({
   const [view, setView] = useState<View>("default");
   const [selectedEmail, setSelectedEmail] = useState<Email | null>(null);
   const [activeNav, setActiveNav] = useState("chat");
+  const [activeConversationId, setActiveConversationId] = useState<string | null>(null);
   const [statusOpen, setStatusOpen] = useState(false);
   const [readEmailIds, setReadEmailIds] = useState<Set<string | number>>(new Set());
 
@@ -171,9 +172,14 @@ export function DashboardView({
       setView("calendar");
     } else if (nav === "inbox") {
       router.push("/dashboard/inbox");
-    } else if (nav === "chat") {
+    } else if (nav === "chat" || nav === "chat-new") {
       setView("default");
       setSelectedEmail(null);
+      setActiveConversationId(null);
+    } else if (nav.startsWith("chat-")) {
+      setView("default");
+      setSelectedEmail(null);
+      setActiveConversationId(nav.replace("chat-", ""));
     } else if (nav === "starred" || nav === "drafts" || nav === "sent") {
       setView("default");
       setSelectedEmail(null);
@@ -297,6 +303,8 @@ export function DashboardView({
               focusItems={dynamicFocusItems}
               emails={emails}
               isLoading={isLoading}
+              activeConversationId={activeConversationId}
+              onActiveConversationChange={setActiveConversationId}
             />
           )}
         </div>
