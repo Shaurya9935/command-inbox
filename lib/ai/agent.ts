@@ -175,11 +175,14 @@ When answering:
     tools,
   });
 
+  console.log("Original agentHistory length:", agentHistory?.length);
+  const cleanHistory = (agentHistory || []).filter((item: any) => {
+    return item.role === "user" || item.type === "message_item";
+  });
+  console.log("Clean history length:", cleanHistory.length);
+
   const input: any[] = [
-    ...(agentHistory || []).filter(
-      (item: any) =>
-        item.type !== "tool_call_item" && item.type !== "tool_result_item"
-    ),
+    ...cleanHistory,
     {
       role: "user",
       content: message,
