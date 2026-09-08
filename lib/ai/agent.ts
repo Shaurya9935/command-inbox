@@ -194,3 +194,6 @@ When answering:
     newItems: result.newItems,
   };
 }
+
+
+// Todo: have to fix agent problem not retaining history and giving something went wrong as a response
