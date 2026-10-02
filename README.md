@@ -330,7 +330,7 @@ The following bugs and required fixes have been identified across the codebase a
   - **Problem**: Visiting `/` currently loads the default Next.js starter template ("To get started, edit page.tsx... Deploy Now").
   - **Fix**: Inspect user session using Better Auth: redirect authenticated users to `/dashboard` and unauthenticated visitors to `/login` (or render a dedicated marketing landing page).
 
-- [ ] **Fix Calendar Hook Initial Load & Sync Fallback Order**
+- [x] **Fix Calendar Hook Initial Load & Sync Fallback Order**
   - **Location**: [`hooks/use-calendar.ts#L252-L258`](file:///Users/shauryagupta/Dev/Projects/command-inbox/hooks/use-calendar.ts#L252-L258)
   - **Problem**: In `useCalendarEvents`, `syncFromApi()` is called before `fetchFromDb()`. Because `syncFromApi` swallows exceptions internally, the `catch` block that triggers `fetchFromDb()` never runs. If calendar sync fails or the network is slow, cached DB events are never rendered on initial mount.
   - **Fix**: Mirror the pattern in [`hooks/use-gmail.ts`](file:///Users/shauryagupta/Dev/Projects/command-inbox/hooks/use-gmail.ts): load cached DB events immediately on mount for 0ms initial render, then trigger background sync.

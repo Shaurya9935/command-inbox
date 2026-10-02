@@ -250,10 +250,16 @@ export function useCalendarEvents() {
     mountedRef.current = true;
 
     async function init() {
-      try {
-        await syncFromApi();
-      } catch {
-        await fetchFromDb();
+      // 1. Immediately show whatever is already in the DB (fast, 0 API quota, 0ms latency)
+      await fetchFromDb();
+
+      // 2. When user opens the site or refreshes, sync new events from API into DB
+      if (mountedRef.current) {
+        try {
+          await syncFromApi();
+        } catch {
+          // DB data already shown
+        }
       }
     }
 
