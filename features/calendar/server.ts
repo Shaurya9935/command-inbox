@@ -235,3 +235,73 @@ export async function syncCalendarEventsFromApi(): Promise<EnrichedCalendarEvent
     return timeA - timeB;
   });
 }
+
+export interface CreateCalendarEventInput {
+  summary: string;
+  description?: string;
+  location?: string;
+  start: {
+    date?: string;
+    dateTime?: string;
+    timeZone?: string;
+  };
+  end: {
+    date?: string;
+    dateTime?: string;
+    timeZone?: string;
+  };
+  attendees?: Array<{ email: string; displayName?: string }>;
+}
+
+export async function createCalendarEvent(
+  input: CreateCalendarEventInput
+): Promise<EnrichedCalendarEvent> {
+  const corsair = await getCorsairTenant();
+  const res = await corsair.googlecalendar.api.events.create({
+    calendarId: "primary",
+    event: {
+      summary: input.summary,
+      description: input.description,
+      location: input.location,
+      start: input.start,
+      end: input.end,
+      attendees: input.attendees,
+    },
+  });
+
+  const createdIso = res.created || new Date().toISOString();
+  return {
+    id: res.id || "",
+    entity_id: res.id || "",
+    summary: res.summary || input.summary || "No Title",
+    description: res.description || input.description,
+    location: res.location || input.location,
+    start: {
+      date: res.start?.date || input.start.date,
+      dateTime: res.start?.dateTime || input.start.dateTime,
+      timeZone: res.start?.timeZone || input.start.timeZone,
+    },
+    end: {
+      date: res.end?.date || input.end.date,
+      dateTime: res.end?.dateTime || input.end.dateTime,
+      timeZone: res.end?.timeZone || input.end.timeZone,
+    },
+    status: (res.status as "tentative" | "confirmed" | "cancelled") || "confirmed",
+    htmlLink: res.htmlLink,
+    hangoutLink: res.hangoutLink,
+    creator: res.creator
+      ? { email: res.creator.email, displayName: res.creator.displayName }
+      : undefined,
+    organizer: res.organizer
+      ? { email: res.organizer.email, displayName: res.organizer.displayName }
+      : undefined,
+    attendees: res.attendees?.map((a) => ({
+      email: a.email,
+      displayName: a.displayName,
+      responseStatus: a.responseStatus,
+    })),
+    created: res.created,
+    updated: res.updated,
+    createdAt: createdIso,
+  };
+}

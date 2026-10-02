@@ -173,29 +173,49 @@ export function CalendarWorkspace({ initialEvents = [], onBack }: CalendarWorksp
     setSelectedEv((prev) => (prev?.id === ev.id ? null : ev));
   };
 
-  const handleCreateEvent = (newEventData: Partial<CalEvent>) => {
-    const dayIdx = calView === "day"
-      ? (anchorDate.getDay() + 6) % 7
-      : (todayDate.getDay() + 6) % 7;
+  const handleCreateEvent = async (newEventData: Partial<CalEvent>) => {
+    const dayIdx =
+      calView === "day"
+        ? (anchorDate.getDay() + 6) % 7
+        : (todayDate.getDay() + 6) % 7;
 
-    const evDate = calView === "day"
-      ? anchorDate
-      : calView === "week"
-      ? addDays(anchorDate, newEventData.day ?? dayIdx)
-      : todayDate;
+    const evDate =
+      calView === "day"
+        ? anchorDate
+        : calView === "week"
+        ? addDays(anchorDate, newEventData.day ?? dayIdx)
+        : todayDate;
 
     const startH = newEventData.startH ?? 9.0;
     const endH = newEventData.endH ?? 10.0;
-    const startHour = Math.floor(startH);
-    const startMin = Math.round((startH % 1) * 60);
-    const endHour = Math.floor(endH);
-    const endMin = Math.round((endH % 1) * 60);
 
-    const startD = new Date(evDate.getFullYear(), evDate.getMonth(), evDate.getDate(), startHour, startMin);
-    const endD = new Date(evDate.getFullYear(), evDate.getMonth(), evDate.getDate(), endHour, endMin);
+    let startIso = newEventData.startDateIso;
+    let endIso = newEventData.endDateIso;
 
+    if (!startIso || !endIso) {
+      const startHour = Math.floor(startH);
+      const startMin = Math.round((startH % 1) * 60);
+      const endHour = Math.floor(endH);
+      const endMin = Math.round((endH % 1) * 60);
+      startIso = new Date(
+        evDate.getFullYear(),
+        evDate.getMonth(),
+        evDate.getDate(),
+        startHour,
+        startMin
+      ).toISOString();
+      endIso = new Date(
+        evDate.getFullYear(),
+        evDate.getMonth(),
+        evDate.getDate(),
+        endHour,
+        endMin
+      ).toISOString();
+    }
+
+    const tempId = `temp-${Date.now()}`;
     const created: CalEvent = {
-      id: Date.now(),
+      id: tempId,
       title: newEventData.title || "Untitled event",
       day: newEventData.day ?? dayIdx,
       startH,
@@ -204,11 +224,41 @@ export function CalendarWorkspace({ initialEvents = [], onBack }: CalendarWorksp
       location: newEventData.location,
       attendees: newEventData.attendees,
       description: newEventData.description,
-      startDateIso: startD.toISOString(),
-      endDateIso: endD.toISOString(),
+      startDateIso: startIso,
+      endDateIso: endIso,
     };
+
     setEvents((prev) => [...prev, created]);
     setSelectedEv(created);
+
+    try {
+      const res = await fetch("/api/calendar/events", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          summary: created.title,
+          description: created.description,
+          location: created.location,
+          start: { dateTime: created.startDateIso },
+          end: { dateTime: created.endDateIso },
+          attendees: created.attendees?.map((email) => ({ email })),
+        }),
+      });
+
+      if (res.ok) {
+        const saved = await res.json();
+        if (saved?.id) {
+          setEvents((prev) =>
+            prev.map((e) => (e.id === tempId ? { ...e, id: saved.id } : e))
+          );
+          setSelectedEv((cur) => (cur?.id === tempId ? { ...cur, id: saved.id } : cur));
+        }
+      } else {
+        console.error("Failed to persist calendar event to server:", await res.text());
+      }
+    } catch (err) {
+      console.error("Failed to post calendar event:", err);
+    }
   };
 
   const handleDeleteEvent = (ev: CalEvent) => {
@@ -308,6 +358,7 @@ export function CalendarWorkspace({ initialEvents = [], onBack }: CalendarWorksp
 
       {showNew && (
         <NewEventForm
+          initialDate={calView === "day" ? anchorDate : todayDate}
           onClose={() => setShowNew(false)}
           onCreateEvent={handleCreateEvent}
         />

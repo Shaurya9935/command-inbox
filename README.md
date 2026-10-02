@@ -335,7 +335,7 @@ The following bugs and required fixes have been identified across the codebase a
   - **Problem**: In `useCalendarEvents`, `syncFromApi()` is called before `fetchFromDb()`. Because `syncFromApi` swallows exceptions internally, the `catch` block that triggers `fetchFromDb()` never runs. If calendar sync fails or the network is slow, cached DB events are never rendered on initial mount.
   - **Fix**: Mirror the pattern in [`hooks/use-gmail.ts`](file:///Users/shauryagupta/Dev/Projects/command-inbox/hooks/use-gmail.ts): load cached DB events immediately on mount for 0ms initial render, then trigger background sync.
 
-- [ ] **Implement Real Backend Endpoints for UI Actions (Replace Alerts & Mocks)**
+- [x] **Implement Real Backend Endpoints for UI Actions (Replace Alerts & Mocks)**
   - **Location 1**: [`app/dashboard/inbox/page.tsx#L247-L252`](file:///Users/shauryagupta/Dev/Projects/command-inbox/app/dashboard/inbox/page.tsx#L247-L252) (`handleSendReply` displays browser `alert("Reply sent...")`).
   - **Location 2**: [`components/calendar/new-event-form.tsx#L21-L39`](file:///Users/shauryagupta/Dev/Projects/command-inbox/components/calendar/new-event-form.tsx#L21-L39) (Hardcodes `day: 3, startH: 9.0, endH: 10.0` and only mutates local state).
   - **Problem**: Neither feature has a backing server route; replies cannot be sent nor calendar events created from the UI.

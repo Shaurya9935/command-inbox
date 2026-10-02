@@ -1,16 +1,40 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import { CalEvent } from "./types";
 
 export interface NewEventFormProps {
   onClose: () => void;
   onCreateEvent?: (event: Partial<CalEvent>) => void;
+  initialDate?: Date;
 }
 
-export function NewEventForm({ onClose, onCreateEvent }: NewEventFormProps) {
+function parseTimeString(timeStr: string, fallbackH: number): number {
+  const trimmed = timeStr.trim().toLowerCase();
+  const match = trimmed.match(/^(\d{1,2})(?::(\d{2}))?\s*(am|pm)?$/);
+  if (!match) return fallbackH;
+  let hours = parseInt(match[1], 10);
+  const minutes = match[2] ? parseInt(match[2], 10) : 0;
+  const period = match[3];
+  if (period === "pm" && hours < 12) hours += 12;
+  if (period === "am" && hours === 12) hours = 0;
+  return hours + minutes / 60;
+}
+
+function parseDateString(dateStr: string, fallbackDate?: Date): Date {
+  const parsed = new Date(dateStr);
+  if (!isNaN(parsed.getTime())) return parsed;
+  return fallbackDate || new Date();
+}
+
+export function NewEventForm({ onClose, onCreateEvent, initialDate }: NewEventFormProps) {
+  const initialDateFormatted = useMemo(() => {
+    const d = initialDate || new Date();
+    return d.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
+  }, [initialDate]);
+
   const [title, setTitle] = useState("");
-  const [dateStr, setDateStr] = useState("Sep 3, 2026");
+  const [dateStr, setDateStr] = useState(initialDateFormatted);
   const [startTime, setStartTime] = useState("9:00 AM");
   const [endTime, setEndTime] = useState("10:00 AM");
   const [calendar, setCalendar] = useState("Work");
@@ -21,6 +45,32 @@ export function NewEventForm({ onClose, onCreateEvent }: NewEventFormProps) {
   const handleSubmit = () => {
     if (!title.trim()) return;
 
+    const baseDate = parseDateString(dateStr, initialDate);
+    const startH = parseTimeString(startTime, 9.0);
+    const endH = parseTimeString(endTime, 10.0);
+    const validEndH = endH > startH ? endH : startH + 1.0;
+
+    const day = (baseDate.getDay() + 6) % 7;
+    const startHour = Math.floor(startH);
+    const startMin = Math.round((startH % 1) * 60);
+    const endHour = Math.floor(validEndH);
+    const endMin = Math.round((validEndH % 1) * 60);
+
+    const startD = new Date(
+      baseDate.getFullYear(),
+      baseDate.getMonth(),
+      baseDate.getDate(),
+      startHour,
+      startMin
+    );
+    const endD = new Date(
+      baseDate.getFullYear(),
+      baseDate.getMonth(),
+      baseDate.getDate(),
+      endHour,
+      endMin
+    );
+
     onCreateEvent?.({
       title: title.trim(),
       type: calendar.toLowerCase().includes("work") ? "meeting" : "personal",
@@ -30,9 +80,11 @@ export function NewEventForm({ onClose, onCreateEvent }: NewEventFormProps) {
         .map((g) => g.trim())
         .filter(Boolean),
       description: description.trim() || undefined,
-      startH: 9.0,
-      endH: 10.0,
-      day: 3,
+      startH,
+      endH: validEndH,
+      day,
+      startDateIso: startD.toISOString(),
+      endDateIso: endD.toISOString(),
     });
 
     onClose();
@@ -157,7 +209,7 @@ export function NewEventForm({ onClose, onCreateEvent }: NewEventFormProps) {
               <input
                 value={dateStr}
                 onChange={(e) => setDateStr(e.target.value)}
-                placeholder="Sep 3, 2026"
+                placeholder={initialDateFormatted || "e.g. Oct 2, 2026"}
                 style={{
                   width: "100%",
                   border: "1px solid #E4E0D8",

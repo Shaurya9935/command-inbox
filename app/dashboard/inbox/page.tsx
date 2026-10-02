@@ -139,6 +139,8 @@ export default function InboxPage() {
   const [selectedId, setSelectedId] = useState<string | number | null>(null);
   const [readIds, setReadIds] = useState<Set<string | number>>(new Set());
   const [replyText, setReplyText] = useState("");
+  const [isSendingReply, setIsSendingReply] = useState(false);
+  const [replyError, setReplyError] = useState<string | null>(null);
   const [loadingBodyThreadId, setLoadingBodyThreadId] = useState<string | null>(null);
   const [fullBodies, setFullBodies] = useState<Record<string, { body?: string; bodyHtml?: string }>>({});
 
@@ -242,12 +244,51 @@ export default function InboxPage() {
   const handleSelect = (email: Email) => {
     setSelectedId(email.id);
     setReadIds((prev) => new Set(prev).add(email.id));
+    setReplyError(null);
   };
 
-  const handleSendReply = () => {
-    if (replyText.trim()) {
-      alert(`Reply sent: "${replyText.trim()}"`);
+  const handleSendReply = async () => {
+    if (!replyText.trim() || !selectedEmail || isSendingReply) return;
+
+    setIsSendingReply(true);
+    setReplyError(null);
+
+    try {
+      const emailIdStr = String(selectedEmail.id);
+      const isRealThread = !emailIdStr.startsWith("thread-");
+
+      const currentThread = threads.find(
+        (t) => (t.entity_id || t.id || t.data?.id) === selectedEmail.id
+      );
+      const rawFrom = currentThread?.data?.from || currentThread?.from;
+
+      const res = await fetch("/api/gmail/messages/send", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          threadId: isRealThread ? emailIdStr : undefined,
+          to: rawFrom || selectedEmail.from,
+          subject: selectedEmail.subject
+            ? selectedEmail.subject.toLowerCase().startsWith("re:")
+              ? selectedEmail.subject
+              : `Re: ${selectedEmail.subject}`
+            : undefined,
+          body: replyText.trim(),
+        }),
+      });
+
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data.error || `Send failed (${res.status})`);
+      }
+
       setReplyText("");
+      sync().catch(() => {});
+    } catch (err) {
+      console.error("Failed to send reply:", err);
+      setReplyError(err instanceof Error ? err.message : "Failed to send reply");
+    } finally {
+      setIsSendingReply(false);
     }
   };
 
@@ -869,6 +910,21 @@ export default function InboxPage() {
                     lineHeight: 1.6,
                   }}
                 />
+                {replyError && (
+                  <div
+                    style={{
+                      fontSize: 12,
+                      color: "#DC2626",
+                      background: "#FEF2F2",
+                      border: "1px solid #FCA5A5",
+                      borderRadius: 6,
+                      padding: "6px 10px",
+                      marginTop: 8,
+                    }}
+                  >
+                    {replyError}
+                  </div>
+                )}
                 <div
                   style={{
                     display: "flex",
@@ -938,26 +994,45 @@ export default function InboxPage() {
                   <button
                     type="button"
                     onClick={handleSendReply}
-                    disabled={!replyText.trim()}
+                    disabled={!replyText.trim() || isSendingReply}
                     style={{
                       fontSize: 12.5,
                       fontWeight: 500,
                       color: "#FFF",
-                      background: replyText.trim() ? "#5549C0" : "#A8A49E",
+                      background: replyText.trim() && !isSendingReply ? "#5549C0" : "#A8A49E",
                       border: "none",
                       borderRadius: 8,
                       padding: "7px 16px",
-                      cursor: replyText.trim() ? "pointer" : "default",
+                      cursor: replyText.trim() && !isSendingReply ? "pointer" : "default",
                       transition: "opacity 0.12s, background 0.12s",
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 6,
                     }}
                     onMouseEnter={(e) => {
-                      if (replyText.trim()) e.currentTarget.style.opacity = "0.88";
+                      if (replyText.trim() && !isSendingReply) e.currentTarget.style.opacity = "0.88";
                     }}
                     onMouseLeave={(e) => {
-                      if (replyText.trim()) e.currentTarget.style.opacity = "1";
+                      if (replyText.trim() && !isSendingReply) e.currentTarget.style.opacity = "1";
                     }}
                   >
-                    Send
+                    {isSendingReply ? (
+                      <>
+                        <svg
+                          width="12"
+                          height="12"
+                          viewBox="0 0 16 16"
+                          fill="none"
+                          style={{ animation: "spin 0.8s linear infinite" }}
+                        >
+                          <circle cx="8" cy="8" r="6" stroke="rgba(255,255,255,0.4)" strokeWidth="2.5" />
+                          <path d="M8 2a6 6 0 016 6" stroke="#FFF" strokeWidth="2.5" strokeLinecap="round" />
+                        </svg>
+                        <span>Sending…</span>
+                      </>
+                    ) : (
+                      "Send"
+                    )}
                   </button>
                 </div>
               </div>

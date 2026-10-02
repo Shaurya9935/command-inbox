@@ -746,3 +746,114 @@ export async function syncInboxThreadsFromApi(
 
   return existingDbThreads;
 }
+
+export interface SendGmailMessageInput {
+  threadId?: string;
+  to?: string;
+  subject?: string;
+  body: string;
+  inReplyTo?: string;
+  references?: string;
+}
+
+export interface SentGmailMessageResult {
+  success: boolean;
+  id: string;
+  threadId?: string;
+}
+
+export function buildRfc2822Raw({
+  to,
+  from,
+  subject,
+  inReplyTo,
+  references,
+  body,
+}: {
+  to: string;
+  from?: string;
+  subject?: string;
+  inReplyTo?: string;
+  references?: string;
+  body: string;
+}): string {
+  const lines: string[] = [];
+  lines.push(`To: ${to}`);
+  if (from) lines.push(`From: ${from}`);
+  if (subject) lines.push(`Subject: ${subject}`);
+  if (inReplyTo) lines.push(`In-Reply-To: ${inReplyTo}`);
+  if (references) lines.push(`References: ${references}`);
+  lines.push("MIME-Version: 1.0");
+  lines.push("Content-Type: text/plain; charset=UTF-8");
+  lines.push("Content-Transfer-Encoding: 7bit");
+
+  const message = `${lines.join("\r\n")}\r\n\r\n${body}`;
+  return Buffer.from(message, "utf-8")
+    .toString("base64")
+    .replace(/\+/g, "-")
+    .replace(/\//g, "_")
+    .replace(/=+$/, "");
+}
+
+export async function sendGmailMessage(
+  input: SendGmailMessageInput
+): Promise<SentGmailMessageResult> {
+  const corsair = await getCorsairTenant();
+  let to = input.to?.trim();
+  let subject = input.subject?.trim();
+  let inReplyTo = input.inReplyTo?.trim();
+  let references = input.references?.trim();
+  const threadId = input.threadId?.trim();
+
+  // If threadId is provided and missing 'to' or 'subject', resolve from thread
+  if (threadId && (!to || !subject || !inReplyTo)) {
+    try {
+      const thread = await getThreadById(threadId);
+      if (thread) {
+        if (!to && thread.from && thread.from !== "Unknown Sender") {
+          to = thread.from;
+        }
+        if (!subject && thread.subject) {
+          subject = thread.subject.toLowerCase().startsWith("re:")
+            ? thread.subject
+            : `Re: ${thread.subject}`;
+        }
+        if (!inReplyTo && thread.messages && thread.messages.length > 0) {
+          const lastMsg = thread.messages[thread.messages.length - 1];
+          if (lastMsg.id) {
+            inReplyTo = `<${lastMsg.id}@mail.gmail.com>`;
+            references = inReplyTo;
+          }
+        }
+      }
+    } catch (err) {
+      console.warn("Failed to fetch thread info for reply:", err);
+    }
+  }
+
+  if (!to) {
+    throw new Error("Recipient ('to') is required to send an email");
+  }
+  if (!input.body || !input.body.trim()) {
+    throw new Error("Email body cannot be empty");
+  }
+
+  const raw = buildRfc2822Raw({
+    to,
+    subject,
+    inReplyTo,
+    references,
+    body: input.body.trim(),
+  });
+
+  const res = await corsair.gmail.api.messages.send({
+    raw,
+    threadId: threadId || undefined,
+  });
+
+  return {
+    success: true,
+    id: res.id || "",
+    threadId: res.threadId || threadId,
+  };
+}
