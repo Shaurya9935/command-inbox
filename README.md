@@ -320,7 +320,7 @@ The following bugs and required fixes have been identified across the codebase a
 
 ### 🔴 Critical & High Priority Fixes
 
-- [ ] **Fix Integration Status Boolean Overwrite in API Route**
+- [x] **Fix Integration Status Boolean Overwrite in API Route**
   - **Location**: [`app/api/integrations/status/route.ts#L31-L38`](file:///Users/shauryagupta/Dev/Projects/command-inbox/app/api/integrations/status/route.ts#L31-L38)
   - **Problem**: The route constructs `statuses: { gmail: statuses.gmail === "connected", ..., ...statuses }`. Spreading raw `...statuses` at the end overwrites the boolean flags with strings like `"connected"` or `"disconnected"`. On the client ([`connect-workspace.tsx`](file:///Users/shauryagupta/Dev/Projects/command-inbox/components/connect/connect-workspace.tsx#L92)), `Boolean(statuses.gmail)` checks `Boolean("disconnected")`, which evaluates to `true` (non-empty string). Disconnected integrations are falsely shown as connected.
   - **Fix**: Return clean booleans without spreading raw status strings.

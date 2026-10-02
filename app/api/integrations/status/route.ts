@@ -21,6 +21,13 @@ export async function GET(request: Request) {
       console.warn("Could not fetch connectionStatus from corsair:", e);
     }
 
+    const booleanStatuses: Record<string, boolean> = Object.fromEntries(
+      Object.entries(statuses).map(([plugin, status]) => [
+        plugin,
+        status === "connected",
+      ])
+    );
+
     return Response.json({
       user: {
         id: session.user.id,
@@ -29,12 +36,9 @@ export async function GET(request: Request) {
         image: session.user.image,
       },
       statuses: {
-        gmail: statuses.gmail === "connected",
-        googlecalendar: statuses.googlecalendar === "connected",
-        outlook: false,
-        slack: false,
-        notion: false,
-        ...statuses,
+        gmail: false,
+        googlecalendar: false,
+        ...booleanStatuses,
       },
       email: session.user.email,
     });
