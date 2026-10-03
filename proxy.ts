@@ -4,11 +4,22 @@ import type { NextRequest } from "next/server";
 // Optimistic auth check per https://docs.corsair.dev + Next proxy docs
 // Does not verify JWT in proxy (DB check is in server actions); only checks cookie presence to avoid flash of unauth content.
 const PROTECTED_PREFIXES = ["/dashboard", "/connect"];
+const PROTECTED_API_PREFIXES = [
+  "/api/gmail",
+  "/api/integrations",
+  "/api/calendar",
+  "/api/conversations",
+  "/api/ai",
+];
 const AUTH_ROUTES = ["/login", "/register"];
 const PUBLIC_EXACT = ["/", "/api/auth", "/api/corsair", "/api/webhooks"];
 
 function isProtected(pathname: string) {
   return PROTECTED_PREFIXES.some((p) => pathname === p || pathname.startsWith(p + "/"));
+}
+
+function isProtectedApi(pathname: string) {
+  return PROTECTED_API_PREFIXES.some((p) => pathname === p || pathname.startsWith(p + "/"));
 }
 
 function isAuthRoute(pathname: string) {
@@ -28,6 +39,10 @@ export function proxy(request: NextRequest) {
 
   // better-auth sets cookies like better-auth.session_token; also check generic session cookie
   const hasSession = request.cookies.getAll().some((c) => c.name.includes("session") || c.name.includes("better-auth"));
+
+  if (isProtectedApi(pathname) && !hasSession) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
 
   if (isProtected(pathname) && !hasSession) {
     const url = new URL("/login", request.url);
@@ -50,5 +65,8 @@ export const config = {
     "/register",
     "/api/gmail/:path*",
     "/api/integrations/:path*",
+    "/api/calendar/:path*",
+    "/api/conversations/:path*",
+    "/api/ai/:path*",
   ],
 };

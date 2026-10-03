@@ -348,7 +348,7 @@ The following bugs and required fixes have been identified across the codebase a
   - **Problem**: `DashboardView` computes `dynamicFocusItems` and passes `focusItems` and `emails` to `DefaultWorkspace`. However, `DefaultWorkspace` ignores `focusItems`, and neither `FocusSection` nor `NeedsAttention` are rendered, leaving two high-value UI components completely orphaned.
   - **Fix**: Render `FocusSection` and `NeedsAttention` inside `DefaultWorkspace` below the main command area when no active chat is taking place, giving users immediate visibility over their pending tasks.
 
-- [ ] **Fix Protected Route Matching in `proxy.ts`**
+- [x] **Fix Protected Route Matching in `proxy.ts`**
   - **Location**: [`proxy.ts#L45-L54`](file:///Users/shauryagupta/Dev/Projects/command-inbox/proxy.ts#L45-L54)
   - **Problem**: The proxy matcher protects `/dashboard/:path*`, `/connect/:path*`, `/api/gmail/:path*`, and `/api/integrations/:path*`, but omits `/api/calendar/:path*`, `/api/conversations/:path*`, and `/api/ai/:path*`.
   - **Fix**: Add `/api/calendar/:path*`, `/api/conversations/:path*`, and `/api/ai/:path*` to the proxy matcher to guard all private API routes at the proxy boundary.
