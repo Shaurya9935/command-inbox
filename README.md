@@ -343,7 +343,7 @@ The following bugs and required fixes have been identified across the codebase a
 
 ### 🟡 Medium Priority Fixes
 
-- [ ] **Wire `FocusSection` and `NeedsAttention` into the Dashboard**
+- [x] **Wire `FocusSection` and `NeedsAttention` into the Dashboard**
   - **Location**: [`components/dashboard/dashboard-view.tsx#L297-L309`](file:///Users/shauryagupta/Dev/Projects/command-inbox/components/dashboard/dashboard-view.tsx#L297-L309) and [`components/dashboard/default-workspace.tsx`](file:///Users/shauryagupta/Dev/Projects/command-inbox/components/dashboard/default-workspace.tsx)
   - **Problem**: `DashboardView` computes `dynamicFocusItems` and passes `focusItems` and `emails` to `DefaultWorkspace`. However, `DefaultWorkspace` ignores `focusItems`, and neither `FocusSection` nor `NeedsAttention` are rendered, leaving two high-value UI components completely orphaned.
   - **Fix**: Render `FocusSection` and `NeedsAttention` inside `DefaultWorkspace` below the main command area when no active chat is taking place, giving users immediate visibility over their pending tasks.

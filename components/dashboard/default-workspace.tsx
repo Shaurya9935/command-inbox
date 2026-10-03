@@ -1,10 +1,12 @@
 "use client";
 
-import React, { useState, useRef, useEffect } from "react";
-import { Email, FocusItem, UserProfile } from "./types";
+import React, { useState, useRef, useEffect, useMemo } from "react";
+import { Email, FocusItem, UserProfile, View } from "./types";
 import { Dot } from "./dot";
 import { CommandSurface } from "./command-surface";
 import { Suggestions } from "./suggestions";
+import { FocusSection } from "./focus-section";
+import { NeedsAttention } from "./needs-attention";
 import { CURRENT_USER } from "./mock-data";
 
 export interface DefaultWorkspaceProps {
@@ -125,8 +127,11 @@ export function DefaultWorkspace({
   onSelectEmail,
   onSelectCalendar,
   onSelectInbox,
+  onSendCommand,
   user = CURRENT_USER,
+  focusItems,
   emails = [],
+  isLoading = false,
   activeConversationId = null,
   onActiveConversationChange,
 }: DefaultWorkspaceProps) {
@@ -134,6 +139,26 @@ export function DefaultWorkspace({
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [isTyping, setIsTyping] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  const handleTriggerFocusAction = (action: View) => {
+    if (action === "email") {
+      if (onSelectInbox) {
+        onSelectInbox();
+      } else if (emails.length > 0) {
+        onSelectEmail(emails[0]);
+      }
+    } else if (action === "calendar") {
+      onSelectCalendar();
+    } else if (action === "command") {
+      setCommandInput("What should I focus on next?");
+    }
+  };
+
+  const attentionEmails = useMemo(() => {
+    if (!emails || emails.length === 0) return [];
+    const urgent = emails.filter((e) => e.unread || e.tag === "Needs reply");
+    return urgent.length > 0 ? urgent.slice(0, 5) : emails.slice(0, 4);
+  }, [emails]);
 
   const firstName = user.name.split(" ")[0];
 
@@ -219,6 +244,7 @@ export function DefaultWorkspace({
     setMessages((prev) => [...prev, userMsg]);
     setCommandInput("");
     setIsTyping(true);
+    onSendCommand?.(userText);
 
     try {
       const res = await fetch("/api/ai", {
@@ -431,8 +457,9 @@ export function DefaultWorkspace({
               flex: 1,
               display: "flex",
               flexDirection: "column",
-              justifyContent: "center",
-              paddingBottom: 40,
+              justifyContent: "flex-start",
+              paddingTop: 8,
+              paddingBottom: 48,
               animation: "fadeSlideIn 0.25s ease",
             }}
           >
@@ -473,7 +500,7 @@ export function DefaultWorkspace({
             />
 
             {/* Prompt Suggestions */}
-            <div style={{ marginTop: 24 }}>
+            <div style={{ marginTop: 24, marginBottom: 36 }}>
               <div
                 style={{
                   fontSize: 11.5,
@@ -488,6 +515,20 @@ export function DefaultWorkspace({
               </div>
               <Suggestions onSelectSuggestion={handleSelectSuggestion} />
             </div>
+
+            {/* Focus Section */}
+            <FocusSection
+              items={focusItems}
+              onTriggerAction={handleTriggerFocusAction}
+            />
+
+            {/* Needs Attention */}
+            <NeedsAttention
+              emails={attentionEmails}
+              isLoading={isLoading}
+              onSelectEmail={onSelectEmail}
+              onViewInbox={onSelectInbox || (() => {})}
+            />
           </div>
         ) : (
           /* Active Chat Conversation Feed */
