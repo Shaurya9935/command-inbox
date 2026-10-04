@@ -353,7 +353,7 @@ The following bugs and required fixes have been identified across the codebase a
   - **Problem**: The proxy matcher protects `/dashboard/:path*`, `/connect/:path*`, `/api/gmail/:path*`, and `/api/integrations/:path*`, but omits `/api/calendar/:path*`, `/api/conversations/:path*`, and `/api/ai/:path*`.
   - **Fix**: Add `/api/calendar/:path*`, `/api/conversations/:path*`, and `/api/ai/:path*` to the proxy matcher to guard all private API routes at the proxy boundary.
 
-- [ ] **Safeguard Social Auth Configuration in `lib/auth.ts`**
+- [x] **Safeguard Social Auth Configuration in `lib/auth.ts`**
   - **Location**: [`lib/auth.ts#L20-L31`](file:///Users/shauryagupta/Dev/Projects/command-inbox/lib/auth.ts#L20-L31)
   - **Problem**: `apple`, `github`, and `gitlab` social providers use non-null assertions on environment variables (`process.env.APPLE_CLIENT_ID!`) that do not exist in `.env`, risking startup crashes in strict environments.
   - **Fix**: Only enable social providers conditionally if their credentials exist in `process.env`. Also add `APP_URL` to `.env.example`.
