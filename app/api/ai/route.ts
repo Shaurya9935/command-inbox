@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { headers } from "next/headers";
 import { randomUUID } from "crypto";
-import { and, eq, asc, desc } from "drizzle-orm";
+import { and, eq, asc } from "drizzle-orm";
 
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
@@ -137,7 +137,7 @@ export async function POST(request: Request) {
       content: message,
     });
 
-    const currentAgentHistory = conversation.agentHistory as any[] || [];
+    const currentAgentHistory = (conversation.agentHistory as unknown[]) || [];
 
     // Give previous conversation to the agent
     const { response, newItems } = await runCommand({

@@ -176,18 +176,20 @@ When answering:
   });
 
   console.log("Original agentHistory length:", agentHistory?.length);
-  const cleanHistory = (agentHistory || []).filter((item: any) => {
-    return item.role === "user" || item.type === "message_item";
+  const cleanHistory = (agentHistory || []).filter((item): item is Record<string, unknown> => {
+    if (!item || typeof item !== "object") return false;
+    const obj = item as Record<string, unknown>;
+    return obj.role === "user" || obj.type === "message_item";
   });
   console.log("Clean history length:", cleanHistory.length);
 
-  const input: any[] = [
+  const input = [
     ...cleanHistory,
     {
       role: "user",
       content: message,
     },
-  ];
+  ] as unknown as Parameters<typeof run>[1];
   const result = await run(agent, input);
   return {
     response: result.finalOutput ?? "",

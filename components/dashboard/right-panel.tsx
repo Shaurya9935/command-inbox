@@ -1,6 +1,7 @@
 "use client";
 
 import React from "react";
+import { useCurrentTime } from "@/hooks/use-current-time";
 import { CalendarEvent } from "./types";
 import { EVENT_COLORS } from "./mock-data";
 import { CalendarIcon } from "./icons";
@@ -32,14 +33,16 @@ export function RightPanel({
     day: "numeric",
   });
 
+  const currentMs = useCurrentTime();
+
   // Calculate relative time string for nextEvent
   const getRelativeTime = (ev: CalendarEvent): string => {
     if (ev.time === "All day") return "All day event";
     if (!ev.startIso) return "Today";
 
     const eventMs = new Date(ev.startIso).getTime();
-    const nowMs = Date.now();
-    const diffMin = Math.round((eventMs - nowMs) / 60000);
+    const effectiveNowMs = currentMs ?? eventMs;
+    const diffMin = Math.round((eventMs - effectiveNowMs) / 60000);
 
     if (diffMin < 0 && diffMin > -60) {
       return `Started ${Math.abs(diffMin)}m ago`;

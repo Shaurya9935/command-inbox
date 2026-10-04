@@ -11,12 +11,12 @@ import { CalendarView } from "./calendar-view";
 import { RightPanel } from "./right-panel";
 import {
   CURRENT_USER,
-  EVENTS,
   FOCUS_ITEMS,
   SERVICE_CONNECTIONS,
 } from "./mock-data";
 import { useGmailThreads, GmailThread } from "@/hooks/use-gmail";
 import { useCalendarEvents } from "@/hooks/use-calendar";
+import { useCurrentTime } from "@/hooks/use-current-time";
 
 export interface DashboardViewProps {
   initialUser?: UserProfile;
@@ -121,7 +121,6 @@ function mapThreadToEmail(thread: GmailThread, index: number): Email {
 export function DashboardView({
   initialUser = CURRENT_USER,
   initialEmails = [],
-  initialEvents = EVENTS,
   connections = SERVICE_CONNECTIONS,
 }: DashboardViewProps) {
   const router = useRouter();
@@ -131,6 +130,7 @@ export function DashboardView({
   const [activeConversationId, setActiveConversationId] = useState<string | null>(null);
   const [statusOpen, setStatusOpen] = useState(false);
   const [readEmailIds, setReadEmailIds] = useState<Set<string | number>>(new Set());
+  const nowMs = useCurrentTime();
 
   // Fetch threads using the useGmailThreads hook
   const { threads, isLoading } = useGmailThreads();
@@ -203,10 +203,11 @@ export function DashboardView({
     let nextMeetingLabel = "until Team sync";
 
     if (calendarNextEvent?.startIso) {
+      const currentMs = nowMs ?? new Date(calendarNextEvent.startIso).getTime();
       const diffMin = Math.max(
         0,
         Math.round(
-          (new Date(calendarNextEvent.startIso).getTime() - Date.now()) / 60000
+          (new Date(calendarNextEvent.startIso).getTime() - currentMs) / 60000
         )
       );
       if (diffMin < 60) nextMeetingStr = `${diffMin}m`;
@@ -232,7 +233,7 @@ export function DashboardView({
         action: "calendar",
       },
     ];
-  }, [emails, todayEvents, calendarNextEvent]);
+  }, [emails, todayEvents, calendarNextEvent, nowMs]);
 
   const inboxBadgeCount = emails.filter((e) => e.unread).length || emails.length || 0;
 

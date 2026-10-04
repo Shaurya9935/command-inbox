@@ -360,10 +360,10 @@ The following bugs and required fixes have been identified across the codebase a
 
 ### 🟢 Code Quality & Lint Hygiene (Fix Failing `pnpm lint`)
 
-- [ ] **Resolve React Compiler Cascading Render Violations**
+- [x] **Resolve React Compiler Cascading Render Violations**
   - **Location 1**: [`components/dashboard/sidebar.tsx#L1157`](file:///Users/shauryagupta/Dev/Projects/command-inbox/components/dashboard/sidebar.tsx#L1157): Avoid calling `setInternalCollapsed(true)` synchronously inside `useEffect`.
   - **Location 2**: [`components/inbox/email-thread-view.tsx#L31`](file:///Users/shauryagupta/Dev/Projects/command-inbox/components/inbox/email-thread-view.tsx#L31): Avoid calling `setIsLoadingBody(true)` synchronously inside `useEffect`.
-- [ ] **Eliminate Explicit `any` Types & Unused Variables**
+- [x] **Eliminate Explicit `any` Types & Unused Variables**
   - Replace `any` with strict TypeScript types across [`features/gmail/server.ts`](file:///Users/shauryagupta/Dev/Projects/command-inbox/features/gmail/server.ts) and [`lib/ai/agent.ts`](file:///Users/shauryagupta/Dev/Projects/command-inbox/lib/ai/agent.ts).
   - Remove unused variables: `firstName` in [`email-thread-view.tsx`](file:///Users/shauryagupta/Dev/Projects/command-inbox/components/inbox/email-thread-view.tsx), `now` in [`hooks/use-calendar.ts`](file:///Users/shauryagupta/Dev/Projects/command-inbox/hooks/use-calendar.ts), and unused `drizzle` in [`lib/auth.ts`](file:///Users/shauryagupta/Dev/Projects/command-inbox/lib/auth.ts).
   - Achieve clean exit code `0` on `pnpm lint`.

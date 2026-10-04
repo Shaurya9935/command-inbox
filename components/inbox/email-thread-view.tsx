@@ -19,8 +19,18 @@ export function EmailThreadView({
 }: EmailThreadViewProps) {
   const [replyText, setReplyText] = useState("");
   const [fetchedData, setFetchedData] = useState<{ body?: string; bodyHtml?: string } | null>(null);
-  const [isLoadingBody, setIsLoadingBody] = useState<boolean>(false);
-  const firstName = email.from.split(" ")[0];
+  const [fetchFailed, setFetchFailed] = useState<boolean>(false);
+  const [prevEmailId, setPrevEmailId] = useState(email.id);
+
+  if (email.id !== prevEmailId) {
+    setPrevEmailId(email.id);
+    setFetchFailed(false);
+    setFetchedData(null);
+  }
+
+  const isRealThread = Boolean(email.id && !String(email.id).startsWith("thread-"));
+  const hasBody = Boolean(email.bodyHtml || email.body || fetchedData?.bodyHtml || fetchedData?.body);
+  const isLoadingBody = isRealThread && !hasBody && !fetchFailed;
 
   useEffect(() => {
     if (!email.id || email.bodyHtml) return;
@@ -28,7 +38,6 @@ export function EmailThreadView({
     if (!idStr || idStr.startsWith("thread-")) return;
 
     let isMounted = true;
-    setIsLoadingBody(true);
 
     fetch(`/api/gmail/threads/${idStr}`)
       .then((res) => (res.ok ? res.json() : null))
@@ -40,9 +49,9 @@ export function EmailThreadView({
           });
         }
       })
-      .catch((err) => console.warn("Failed to fetch full thread:", err))
-      .finally(() => {
-        if (isMounted) setIsLoadingBody(false);
+      .catch((err) => {
+        console.warn("Failed to fetch full thread:", err);
+        if (isMounted) setFetchFailed(true);
       });
 
     return () => {

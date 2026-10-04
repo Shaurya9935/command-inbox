@@ -51,11 +51,46 @@ export interface ParsedBody {
   html?: string;
 }
 
-type GmailMessage = {
+export interface GmailHeader {
+  name?: string;
+  value?: string;
+}
+
+export interface GmailMessagePart {
+  mimeType?: string;
+  body?: {
+    data?: string;
+    size?: number;
+  };
+  parts?: GmailMessagePart[];
+  headers?: GmailHeader[];
+}
+
+export interface GmailMessage {
+  id?: string;
+  threadId?: string;
+  snippet?: string;
   internalDate?: string;
   labelIds?: string[];
-  payload?: { headers?: Array<{ name?: string; value?: string }> };
-};
+  payload?: GmailMessagePart;
+}
+
+interface CachedThreadData {
+  id?: string;
+  createdAt?: string;
+  created_at?: string;
+  updatedAt?: string;
+  snippet?: string;
+  subject?: string;
+  from?: string;
+  unread?: boolean;
+  historyId?: string;
+  messagesCount?: number;
+  body?: string;
+  bodyHtml?: string;
+  messages?: ThreadMessageItem[];
+  [key: string]: unknown;
+}
 
 function getMessageHeader(message: GmailMessage | undefined, name: string): string | undefined {
   return message?.payload?.headers?.find(
@@ -93,7 +128,7 @@ function hasUsableThreadMetadata(thread: EnrichedThread | undefined): boolean {
   );
 }
 
-export function parseMessagePart(part: any): ParsedBody {
+export function parseMessagePart(part?: GmailMessagePart): ParsedBody {
   if (!part) return {};
 
   let text: string | undefined;
@@ -168,7 +203,7 @@ export async function getInboxThreadsFromDb(userId: string): Promise<EnrichedThr
     const threads: EnrichedThread[] = [];
     const seenThreadIds = new Set<string>();
     for (const row of rows) {
-      const d = (row.data || {}) as Record<string, any>;
+      const d = (row.data || {}) as CachedThreadData;
       const threadId = row.entityId || d.id || "";
       // Earlier development builds could create duplicate rows during
       // overlapping syncs. Prefer the newest version and hide older copies.
@@ -374,7 +409,7 @@ export async function getThreadById(threadId: string): Promise<EnrichedThread | 
           .limit(1);
 
         if (row.length > 0) {
-          const d = (row[0].data || {}) as Record<string, any>;
+          const d = (row[0].data || {}) as CachedThreadData;
           if (d.body || d.bodyHtml) {
             return {
               id: threadId,
@@ -406,14 +441,14 @@ export async function getThreadById(threadId: string): Promise<EnrichedThread | 
     const full = await corsair.gmail.api.threads.get({ id: threadId, format: "full" });
     if (!full || !full.id) return null;
 
-    const messages: any[] = full.messages || [];
+    const messages: GmailMessage[] = full.messages || [];
     let primaryBodyHtml = "";
     let primaryBodyText = "";
 
-    const parsedMessages: ThreadMessageItem[] = messages.map((msg: any) => {
+    const parsedMessages: ThreadMessageItem[] = messages.map((msg: GmailMessage) => {
       const getMsgHeader = (name: string): string | undefined => {
         return (msg.payload?.headers || []).find(
-          (h: any) => h.name?.toLowerCase() === name.toLowerCase()
+          (h: GmailHeader) => h.name?.toLowerCase() === name.toLowerCase()
         )?.value;
       };
 
@@ -437,16 +472,16 @@ export async function getThreadById(threadId: string): Promise<EnrichedThread | 
     const latestIncomingMessage = getLatestIncomingMessage(messages);
     const getHeader = (name: string): string | undefined => {
       let h = (lastMsg?.payload?.headers || []).find(
-        (h: any) => h.name?.toLowerCase() === name.toLowerCase()
+        (h: GmailHeader) => h.name?.toLowerCase() === name.toLowerCase()
       );
       if (h) return h.value;
       h = (firstMsg?.payload?.headers || []).find(
-        (h: any) => h.name?.toLowerCase() === name.toLowerCase()
+        (h: GmailHeader) => h.name?.toLowerCase() === name.toLowerCase()
       );
       if (h) return h.value;
       for (const msg of messages) {
         h = (msg.payload?.headers || []).find(
-          (h: any) => h.name?.toLowerCase() === name.toLowerCase()
+          (h: GmailHeader) => h.name?.toLowerCase() === name.toLowerCase()
         );
         if (h) return h.value;
       }
@@ -460,7 +495,7 @@ export async function getThreadById(threadId: string): Promise<EnrichedThread | 
       "Unknown Sender";
     const dateRaw = getHeader("date");
     const createdAt = getMessageTime(latestIncomingMessage, dateRaw);
-    const isUnread = messages.some((m: any) => m.labelIds?.includes("UNREAD"));
+    const isUnread = messages.some((m: GmailMessage) => m.labelIds?.includes("UNREAD"));
 
     const enrichedResult: EnrichedThread = {
       id: full.id,
@@ -640,23 +675,23 @@ export async function syncInboxThreadsFromApi(
       async (t) => {
         try {
           const full = await corsair.gmail.api.threads.get({ id: t.id, format: "full" });
-          const messages: any[] = full?.messages || [];
+          const messages: GmailMessage[] = full?.messages || [];
           const lastMsg = messages[messages.length - 1] || {};
           const firstMsg = messages[0] || {};
           const latestIncomingMessage = getLatestIncomingMessage(messages);
 
           const getHeader = (name: string): string | undefined => {
             let h = (lastMsg?.payload?.headers || []).find(
-              (h: any) => h.name?.toLowerCase() === name.toLowerCase()
+              (h: GmailHeader) => h.name?.toLowerCase() === name.toLowerCase()
             );
             if (h) return h.value;
             h = (firstMsg?.payload?.headers || []).find(
-              (h: any) => h.name?.toLowerCase() === name.toLowerCase()
+              (h: GmailHeader) => h.name?.toLowerCase() === name.toLowerCase()
             );
             if (h) return h.value;
             for (const msg of messages) {
               h = (msg.payload?.headers || []).find(
-                (h: any) => h.name?.toLowerCase() === name.toLowerCase()
+                (h: GmailHeader) => h.name?.toLowerCase() === name.toLowerCase()
               );
               if (h) return h.value;
             }
@@ -670,7 +705,7 @@ export async function syncInboxThreadsFromApi(
             "Unknown Sender";
           const dateRaw = getHeader("date");
           const createdAt = getMessageTime(latestIncomingMessage, dateRaw);
-          const isUnread = messages.some((m: any) => m.labelIds?.includes("UNREAD"));
+          const isUnread = messages.some((m: GmailMessage) => m.labelIds?.includes("UNREAD"));
 
           // Extract full email bodies
           let bodyHtml = "";
@@ -682,10 +717,10 @@ export async function syncInboxThreadsFromApi(
             if (bodyHtml && bodyText) break;
           }
 
-          const parsedMessages: ThreadMessageItem[] = messages.map((msg: any) => {
+          const parsedMessages: ThreadMessageItem[] = messages.map((msg: GmailMessage) => {
             const getMsgH = (name: string): string | undefined => {
               return (msg.payload?.headers || []).find(
-                (h: any) => h.name?.toLowerCase() === name.toLowerCase()
+                (h: GmailHeader) => h.name?.toLowerCase() === name.toLowerCase()
               )?.value;
             };
             const { text, html } = parseMessagePart(msg.payload);

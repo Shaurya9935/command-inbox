@@ -33,8 +33,6 @@ interface ChatMessage {
   };
 }
 
-const ACTIVE_CONVERSATION_STORAGE_KEY = "command-inbox-active-conversation";
-
 function renderFormattedMessage(text: string, isUser: boolean) {
   if (isUser) {
     return text;
@@ -176,10 +174,17 @@ export function DefaultWorkspace({
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, isTyping]);
 
+  const [prevActiveConversationId, setPrevActiveConversationId] = useState(activeConversationId);
+  if (activeConversationId !== prevActiveConversationId) {
+    setPrevActiveConversationId(activeConversationId);
+    if (!activeConversationId) {
+      setMessages([]);
+    }
+  }
+
   // Load conversation when activeConversationId changes
   useEffect(() => {
     if (!activeConversationId) {
-      setMessages([]);
       return;
     }
 

@@ -2,7 +2,6 @@
 
 import React, { useState, useMemo, useEffect, useRef } from "react";
 import { CalEvent, CalViewType, EventType } from "./types";
-import { EV_S, GRID_START } from "./constants";
 import {
   today,
   nowHour,
@@ -30,7 +29,7 @@ export interface CalendarWorkspaceProps {
   onBack?: () => void;
 }
 
-export function CalendarWorkspace({ initialEvents = [], onBack }: CalendarWorkspaceProps) {
+export function CalendarWorkspace({ initialEvents = [] }: CalendarWorkspaceProps) {
   const [calView, setCalView] = useState<CalViewType>("week");
   const [events, setEvents] = useState<CalEvent[]>(initialEvents);
   const [selectedEv, setSelectedEv] = useState<CalEvent | null>(null);
@@ -47,10 +46,11 @@ export function CalendarWorkspace({ initialEvents = [], onBack }: CalendarWorksp
     return () => { if (nowRef.current) clearInterval(nowRef.current); };
   }, []);
 
-  // Sync events when parent provides updated data
-  useEffect(() => {
-    if (initialEvents) setEvents(initialEvents);
-  }, [initialEvents]);
+  const [prevInitialEvents, setPrevInitialEvents] = useState(initialEvents);
+  if (initialEvents !== prevInitialEvents) {
+    setPrevInitialEvents(initialEvents);
+    setEvents(initialEvents);
+  }
 
   // ── Anchor date: the "primary" date for the current view ──────────────────
   const anchorDate = useMemo<Date>(() => {
@@ -268,9 +268,6 @@ export function CalendarWorkspace({ initialEvents = [], onBack }: CalendarWorksp
 
   // Day view props
   const dayViewDate = calView === "day" ? anchorDate : todayDate;
-  const dayLabel = weekDays.length
-    ? weekDays[(anchorDate.getDay() + 6) % 7]?.label
-    : ["Mon","Tue","Wed","Thu","Fri","Sat","Sun"][(anchorDate.getDay() + 6) % 7];
 
   return (
     <div

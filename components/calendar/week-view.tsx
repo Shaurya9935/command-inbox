@@ -32,8 +32,6 @@ export function WeekView({
   const hours = Array.from({ length: GRID_END - GRID_START }, (_, i) => GRID_START + i);
   const totalH = (GRID_END - GRID_START) * HOUR_PX;
 
-  // today's column index for showing the time needle
-  const todayColIndex = weekDays.findIndex((d) => d.isToday);
   const nowTop = nowH !== undefined ? (nowH - GRID_START) * HOUR_PX : null;
 
   const renderEvent = (ev: CalEvent) => {

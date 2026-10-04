@@ -784,6 +784,13 @@ function OutlookSecondaryPanel({
   );
 }
 
+interface SidebarConversation {
+  id: string;
+  title: string | null;
+  createdAt?: string | Date;
+  updatedAt: string | Date;
+}
+
 function ChatSecondaryPanel({
   activeNav,
   otherWorkspaces,
@@ -799,7 +806,7 @@ function ChatSecondaryPanel({
   onClose?: () => void;
   onNewChat: () => void;
 }) {
-  const [conversations, setConversations] = useState<any[]>([]);
+  const [conversations, setConversations] = useState<SidebarConversation[]>([]);
 
   useEffect(() => {
     async function loadConversations() {
@@ -825,11 +832,16 @@ function ChatSecondaryPanel({
   const isSameDay = (d1: Date, d2: Date) => 
     d1.getFullYear() === d2.getFullYear() && d1.getMonth() === d2.getMonth() && d1.getDate() === d2.getDate();
 
-  const grouped = {
-    today: [] as any[],
-    yesterday: [] as any[],
-    previous7days: [] as any[],
-    older: [] as any[],
+  const grouped: {
+    today: SidebarConversation[];
+    yesterday: SidebarConversation[];
+    previous7days: SidebarConversation[];
+    older: SidebarConversation[];
+  } = {
+    today: [],
+    yesterday: [],
+    previous7days: [],
+    older: [],
   };
 
   conversations.forEach((conv) => {
@@ -966,10 +978,8 @@ function ChatSecondaryPanel({
 function PrimaryNav({
   activeNav,
   activeWorkspace,
-  inboxBadge,
   collapsed,
   onSelectNav,
-  onOpenCalendar,
   onGoBack,
   onSelectWorkspace,
   router,
@@ -984,7 +994,7 @@ function PrimaryNav({
   onSelectWorkspace: (id: WorkspaceId) => void;
   router: ReturnType<typeof useRouter>;
 }) {
-  const [conversations, setConversations] = useState<any[]>([]);
+  const [conversations, setConversations] = useState<SidebarConversation[]>([]);
 
   useEffect(() => {
     async function loadConversations() {
@@ -1151,13 +1161,13 @@ export function Sidebar({
     return propActiveWorkspace !== undefined && propActiveWorkspace !== null;
   });
 
-  useEffect(() => {
-    if (propActiveWorkspace) {
-      if (propCollapsed === undefined) {
-        setInternalCollapsed(true);
-      }
+  const [prevPropActiveWorkspace, setPrevPropActiveWorkspace] = useState(propActiveWorkspace);
+  if (propActiveWorkspace !== prevPropActiveWorkspace) {
+    setPrevPropActiveWorkspace(propActiveWorkspace);
+    if (propActiveWorkspace && propCollapsed === undefined) {
+      setInternalCollapsed(true);
     }
-  }, [propActiveWorkspace, propCollapsed]);
+  }
 
   const isPrimaryCollapsed =
     propCollapsed !== undefined ? propCollapsed : internalCollapsed;

@@ -2,7 +2,7 @@ import { auth } from "@/lib/auth";
 import { corsair } from "@/lib/corsair";
 import { headers } from "next/headers";
 
-export async function GET(request: Request) {
+export async function GET() {
   try {
     const session = await auth.api.getSession({
       headers: await headers(),

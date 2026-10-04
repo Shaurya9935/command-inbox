@@ -1,16 +1,15 @@
 "use client";
 
 import React, { useState, useMemo, useEffect } from "react";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useGmailThreads, GmailThread } from "@/hooks/use-gmail";
+import { useCurrentTime } from "@/hooks/use-current-time";
 import { Email } from "@/components/dashboard/types";
 import { Avatar } from "@/components/dashboard/avatar";
 import { Dot } from "@/components/dashboard/dot";
 import { Sidebar } from "@/components/dashboard/sidebar";
 import { EmailBodyContent } from "@/components/inbox/email-body";
 import {
-  BackIcon,
   InboxIcon,
   StarIcon,
   DraftIcon,
@@ -141,8 +140,9 @@ export default function InboxPage() {
   const [replyText, setReplyText] = useState("");
   const [isSendingReply, setIsSendingReply] = useState(false);
   const [replyError, setReplyError] = useState<string | null>(null);
-  const [loadingBodyThreadId, setLoadingBodyThreadId] = useState<string | null>(null);
+  const [failedBodyThreadIds, setFailedBodyThreadIds] = useState<Set<string>>(new Set());
   const [fullBodies, setFullBodies] = useState<Record<string, { body?: string; bodyHtml?: string }>>({});
+  const currentMs = useCurrentTime();
 
   const handleToggleStar = (e: React.MouseEvent, emailId: string | number) => {
     e.stopPropagation();
@@ -206,6 +206,15 @@ export default function InboxPage() {
     return emails.find((e) => e.id === selectedId) || filteredEmails[0] || null;
   }, [emails, filteredEmails, selectedId]);
 
+  const isSelectedBodyLoading = Boolean(
+    selectedEmail?.id &&
+      !String(selectedEmail.id).startsWith("thread-") &&
+      !selectedEmail.bodyHtml &&
+      !selectedEmail.body &&
+      !fullBodies[String(selectedEmail.id)]?.bodyHtml &&
+      !failedBodyThreadIds.has(String(selectedEmail.id))
+  );
+
   useEffect(() => {
     if (!selectedEmail?.id) return;
     const idStr = String(selectedEmail.id);
@@ -214,7 +223,6 @@ export default function InboxPage() {
     if (selectedEmail.bodyHtml || fullBodies[idStr]?.bodyHtml) return;
 
     let isMounted = true;
-    setLoadingBodyThreadId(idStr);
 
     fetch(`/api/gmail/threads/${idStr}`)
       .then((res) => (res.ok ? res.json() : null))
@@ -229,10 +237,10 @@ export default function InboxPage() {
           }));
         }
       })
-      .catch((err) => console.warn("Failed to fetch full thread body:", err))
-      .finally(() => {
+      .catch((err) => {
+        console.warn("Failed to fetch full thread body:", err);
         if (isMounted) {
-          setLoadingBodyThreadId((cur) => (cur === idStr ? null : cur));
+          setFailedBodyThreadIds((prev) => new Set(prev).add(idStr));
         }
       });
 
@@ -480,7 +488,8 @@ export default function InboxPage() {
             >
               Synced{" "}
               {(() => {
-                const diffMs = Date.now() - lastSyncedAt.getTime();
+                if (!currentMs) return "recently";
+                const diffMs = currentMs - lastSyncedAt.getTime();
                 const diffMin = Math.floor(diffMs / 60000);
                 if (diffMin < 1) return "just now";
                 if (diffMin === 1) return "1 min ago";
@@ -866,11 +875,7 @@ export default function InboxPage() {
                   body={fullBodies[String(selectedEmail.id)]?.body || selectedEmail.body}
                   bodyHtml={fullBodies[String(selectedEmail.id)]?.bodyHtml || selectedEmail.bodyHtml}
                   preview={selectedEmail.preview}
-                  isLoading={
-                    loadingBodyThreadId === String(selectedEmail.id) &&
-                    !selectedEmail.bodyHtml &&
-                    !selectedEmail.body
-                  }
+                  isLoading={isSelectedBodyLoading}
                 />
               </div>
 

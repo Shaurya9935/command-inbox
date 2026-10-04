@@ -109,16 +109,56 @@ export function ConnectWorkspace({
   };
 
   useEffect(() => {
-    fetchLiveStatus();
+    let isCancelled = false;
+
+    fetch("/api/integrations/status")
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => {
+        if (isCancelled || !data) return;
+        if (data.user) setUser(data.user);
+
+        const statuses = data.statuses || {};
+        const userEmail = data.email || data.user?.email;
+
+        setApps((prev) =>
+          prev.map((app) => {
+            let isConnected = app.connected;
+            let email = app.connectedEmail;
+
+            if (app.id === "gmail") {
+              isConnected = Boolean(statuses.gmail);
+              if (isConnected && !email) email = userEmail;
+            } else if (app.id === "calendar") {
+              isConnected = Boolean(statuses.googlecalendar);
+              if (isConnected && !email) email = userEmail;
+            }
+
+            return {
+              ...app,
+              connected: isConnected,
+              connectedEmail: isConnected ? email : undefined,
+            };
+          })
+        );
+      })
+      .catch((err) => {
+        console.warn("Failed to fetch live integration statuses:", err);
+      });
 
     // Check query params for OAuth redirects like ?connected=gmail
     const connectedParam = searchParams.get("connected");
     if (connectedParam) {
-      showToast(`Successfully connected ${connectedParam.toUpperCase()}!`, "success");
+      setTimeout(() => {
+        showToast(`Successfully connected ${connectedParam.toUpperCase()}!`, "success");
+      }, 0);
       // Clean query parameter without full reload
       router.replace("/dashboard/connect");
     }
-  }, []);
+
+    return () => {
+      isCancelled = true;
+    };
+  }, [router, searchParams]);
 
   // Save state to localStorage for offline / mock integrations
   const persistLocalState = (appId: string, connected: boolean, email?: string) => {
@@ -145,7 +185,7 @@ export function ConnectWorkspace({
         } else {
           showToast(data.error || "Failed to generate authorization URL", "error");
         }
-      } catch (err) {
+      } catch {
         showToast("Connection failed. Please check network.", "error");
       } finally {
         setIsProcessing(false);
@@ -212,7 +252,7 @@ export function ConnectWorkspace({
 
       persistLocalState(app.id, false, undefined);
       showToast(`Disconnected ${app.name}`, "info");
-    } catch (err) {
+    } catch {
       showToast("Error disconnecting integration", "error");
     } finally {
       setIsProcessing(false);
@@ -484,7 +524,7 @@ export function ConnectWorkspace({
                   return (
                     <button
                       key={st.id}
-                      onClick={() => setStatusFilter(st.id as any)}
+                      onClick={() => setStatusFilter(st.id as "all" | "connected" | "disconnected")}
                       style={{
                         padding: "6px 11px",
                         borderRadius: 7,

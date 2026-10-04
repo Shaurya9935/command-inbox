@@ -8,6 +8,7 @@ import { CalendarIcon, SearchIcon, SidebarToggleIcon } from "@/components/dashbo
 import { CalendarWorkspace, CalendarSyncingView, CalendarEmptyView } from "@/components/calendar";
 import { useGmailThreads } from "@/hooks/use-gmail";
 import { useCalendarEvents } from "@/hooks/use-calendar";
+import { useCurrentTime } from "@/hooks/use-current-time";
 
 export default function CalendarPage() {
   const router = useRouter();
@@ -15,6 +16,7 @@ export default function CalendarPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const { threads } = useGmailThreads();
   const { events, todayEvents, isLoading, isSyncing, sync, lastSyncedAt } = useCalendarEvents();
+  const currentMs = useCurrentTime();
 
   const unreadCount = Array.isArray(threads)
     ? threads.filter((t) => t.unread || t.data?.unread).length
@@ -181,7 +183,8 @@ export default function CalendarPage() {
               >
                 Synced{" "}
                 {(() => {
-                  const diffMs = Date.now() - lastSyncedAt.getTime();
+                  if (!currentMs) return "recently";
+                  const diffMs = currentMs - lastSyncedAt.getTime();
                   const diffMin = Math.floor(diffMs / 60000);
                   if (diffMin < 1) return "just now";
                   if (diffMin === 1) return "1 min ago";

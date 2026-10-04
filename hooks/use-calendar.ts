@@ -111,8 +111,7 @@ export function mapGoogleEventToCalEvent(
  * Convert a Google Calendar API event to the RightPanel Today CalendarEvent format
  */
 export function mapGoogleEventToTodayEvent(
-  event: GoogleCalendarApiEvent,
-  now: Date = new Date()
+  event: GoogleCalendarApiEvent
 ): CalendarEvent {
   const startStr = event.start?.dateTime || event.start?.date;
   const startDate = startStr ? new Date(startStr) : new Date();
@@ -305,7 +304,7 @@ export function useCalendarEvents() {
       return tA - tB;
     });
 
-    const mapped = filtered.map((e) => mapGoogleEventToTodayEvent(e, now));
+    const mapped = filtered.map((e) => mapGoogleEventToTodayEvent(e));
 
     // Determine the next upcoming event
     const nowMs = now.getTime();
