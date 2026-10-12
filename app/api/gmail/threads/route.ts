@@ -32,6 +32,9 @@ export async function GET(req: NextRequest) {
     if (message === "Unauthorized") {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
+    if (message.includes("not connected")) {
+      return NextResponse.json({ error: message, notConnected: true }, { status: 404 });
+    }
     console.error("[gmail/threads]", error);
     return NextResponse.json({ error: "Failed to fetch Inbox" }, { status: 500 });
   }

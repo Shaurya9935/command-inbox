@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState, useCallback, useRef } from "react";
+import { useRouter } from "next/navigation";
 
 export interface GmailThread {
   id?: string;
@@ -47,6 +48,7 @@ function extractThreads(data: unknown): GmailThread[] {
 const AUTO_SYNC_INTERVAL_MS = 15 * 60 * 1000; // 15 minutes
 
 export function useGmailThreads() {
+  const router = useRouter();
   const [threads, setThreads] = useState<GmailThread[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [isSyncing, setIsSyncing] = useState<boolean>(false);
@@ -100,7 +102,24 @@ export function useGmailThreads() {
     try {
       const res = await fetch(`/api/gmail/threads?sync=1${force ? "&force=1" : ""}`);
       if (!res.ok) {
-        const errorData = (await res.json().catch(() => null)) as { error?: string } | null;
+        if (res.status === 401) {
+          router.push("/login?expired=1");
+          return;
+        }
+        const errorData = (await res.json().catch(() => null)) as {
+          error?: string;
+          notConnected?: boolean;
+        } | null;
+        if (
+          res.status === 404 &&
+          (errorData?.notConnected || errorData?.error?.includes("not connected"))
+        ) {
+          if (mountedRef.current) {
+            setThreads([]);
+            setIsSyncing(false);
+          }
+          return;
+        }
         throw new Error(errorData?.error || `Sync failed (${res.status})`);
       }
       const data: unknown = await res.json();
@@ -123,7 +142,7 @@ export function useGmailThreads() {
     } finally {
       if (mountedRef.current) setIsSyncing(false);
     }
-  }, []);
+  }, [router]);
 
   // ── Mount: load from DB immediately, then trigger API sync to fetch & store new mails
   useEffect(() => {

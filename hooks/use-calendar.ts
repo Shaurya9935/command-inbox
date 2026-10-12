@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState, useCallback, useRef, useMemo } from "react";
+import { useRouter } from "next/navigation";
 import { CalEvent, EventType } from "@/components/calendar/types";
 import { CalendarEvent } from "@/components/dashboard/types";
 
@@ -168,6 +169,7 @@ export function mapGoogleEventToTodayEvent(
 const AUTO_SYNC_INTERVAL_MS = 15 * 60 * 1000; // 15 minutes
 
 export function useCalendarEvents() {
+  const router = useRouter();
   const [rawEvents, setRawEvents] = useState<GoogleCalendarApiEvent[]>([]);
   const [events, setEvents] = useState<CalEvent[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
@@ -221,7 +223,23 @@ export function useCalendarEvents() {
     try {
       const res = await fetch("/api/calendar/events?sync=1");
       if (!res.ok) {
-        const errorData = (await res.json().catch(() => null)) as { error?: string } | null;
+        if (res.status === 401) {
+          router.push("/login?expired=1");
+          return;
+        }
+        const errorData = (await res.json().catch(() => null)) as {
+          error?: string;
+          notConnected?: boolean;
+        } | null;
+        if (
+          res.status === 404 &&
+          (errorData?.notConnected || errorData?.error?.includes("not connected"))
+        ) {
+          if (mountedRef.current) {
+            setIsSyncing(false);
+          }
+          return;
+        }
         throw new Error(errorData?.error || `Sync failed (${res.status})`);
       }
       const data: unknown = await res.json();
@@ -242,7 +260,7 @@ export function useCalendarEvents() {
     } finally {
       if (mountedRef.current) setIsSyncing(false);
     }
-  }, []);
+  }, [router]);
 
   // ── Mount: load from DB, try live sync, then auto-sync every 15 min ───────
   useEffect(() => {

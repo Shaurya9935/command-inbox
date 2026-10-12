@@ -37,8 +37,13 @@ export function proxy(request: NextRequest) {
 
   if (isPublic(pathname)) return NextResponse.next();
 
-  // better-auth sets cookies like better-auth.session_token; also check generic session cookie
-  const hasSession = request.cookies.getAll().some((c) => c.name.includes("session") || c.name.includes("better-auth"));
+  // better-auth sets cookies like better-auth.session_token or __Secure-better-auth.session_token
+  const hasSession = request.cookies.getAll().some(
+    (c) =>
+      c.name.includes("session_token") ||
+      c.name.includes("session-token") ||
+      (c.name.includes("session") && !c.name.includes("csrf"))
+  );
 
   if (isProtectedApi(pathname) && !hasSession) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
