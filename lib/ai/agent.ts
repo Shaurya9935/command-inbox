@@ -1,13 +1,15 @@
 import { Agent, run, tool } from "@openai/agents";
-import type { Tool, ToolInputParameters } from "@openai/agents";
+import type { AgentInputItem, Tool, ToolInputParameters } from "@openai/agents";
 import { OpenAIAgentsProvider } from "@corsair-dev/mcp";
 
 import { corsair } from "@/lib/corsair";
 
+export type ChatTurn = { role: "user" | "assistant"; content: string };
+
 type RunCommandParams = {
   tenantId: string;
   message: string;
-  agentHistory?: unknown[];
+  history?: ChatTurn[];
 };
 
 // @corsair-dev/mcp hardcodes `strict: false` when calling tool(), but
@@ -23,10 +25,20 @@ function strictTool<T extends ToolInputParameters>(
 export async function runCommand({
   tenantId,
   message,
-  agentHistory = [],
+  history = [],
 }: RunCommandParams) {
   // Scope Corsair to the currently authenticated user
   const tenantCorsair = corsair.withTenant(tenantId);
+
+  const historyItems: AgentInputItem[] = history.map((turn) =>
+    turn.role === "user"
+      ? { role: "user", content: turn.content }
+      : {
+          role: "assistant",
+          status: "completed",
+          content: [{ type: "output_text", text: turn.content }],
+        },
+  );
 
   // Give the agent Corsair's generic tools
   const provider = new OpenAIAgentsProvider();
@@ -42,26 +54,23 @@ export async function runCommand({
     instructions: `
 You are the AI assistant for Command Inbox.
 
+Respond ONLY to the latest user message. Earlier messages have already been handled and must not be answered or executed again.
+
 Command Inbox connects the user's services such as Gmail and Google Calendar.
 
 You have access to the user's connected services through Corsair.
 
 Your job is to understand what the user wants and use the available Corsair tools to retrieve relevant information.
 
-CONVERSATION CONTEXT:
+CONVERSATION CONTEXT & HISTORY:
 
-- Previous messages are conversation context, not authoritative facts.
-- Previous assistant responses may be incomplete or incorrect.
-- When the user asks for current information from Gmail or Google Calendar, verify it using the appropriate Corsair operation rather than relying solely on a previous assistant response.
-- Use previous messages to understand references such as "it", "him", "that email", or "the meeting", but retrieve current data when necessary.
-- Never treat a previous assistant claim of success or failure as proof that an action actually succeeded.
-
-CONVERSATION HISTORY:
-
-- Prior messages are context only. They may be stale, incomplete, or contain a previous tool failure.
+- Respond ONLY to the latest user message. Earlier messages have already been handled and must not be answered or executed again.
+- Previous messages are conversation context only, not authoritative facts. They may be stale, incomplete, or contain a previous tool failure.
 - Never reuse or repeat a prior assistant answer as the result of a new request for live Gmail or Calendar data.
 - For every new request about the user's current emails, calendar, availability, or connected services, perform a fresh lookup with the available tools during this turn, even if the same request appears in the conversation history.
+- Use previous messages to understand references such as "it", "him", "that email", or "the meeting", but retrieve current data when necessary.
 - If a previous assistant message says a service had a technical issue, retry the appropriate operation now instead of repeating that failure.
+- Never treat a previous assistant claim of success or failure as proof that an action actually succeeded.
 
 IMPORTANT EMAIL RULES:
 
@@ -80,10 +89,7 @@ IMPORTANT CALENDAR RULES:
 
 - When the user asks about their calendar, return useful event information such as title, date, start time, end time, and location when available.
 - Do not expose raw calendar IDs unless explicitly requested.
-- When creating or modifying calendar events, use Asia/Kolkata as the timezone unless the user explicitly specifies a different timezone.
-- Do not ask the user for their timezone when no timezone is provided.
-- If the user specifies a timezone, use the timezone they provided.
-- Interpret relative times such as "today at 3 PM" and "tomorrow at 10 AM" using Asia/Kolkata.
+- Follow the TIMEZONE RULES below for all calendar operations and time interpretations.
 
 TOOL USAGE:
 
@@ -165,34 +171,18 @@ If some actions succeed and others fail:
 When answering:
 
 - Do not explain internal tool calls.
-
-- Do not expose raw IDs.
-
+- Do not expose raw IDs. Never include thread_id, message_id, event IDs or any raw provider IDs in the final answer.
 - Give the user the actual useful information.
-
 - Be concise and natural.
 `,
     tools,
   });
 
-  console.log("Original agentHistory length:", agentHistory?.length);
-  const cleanHistory = (agentHistory || []).filter((item): item is Record<string, unknown> => {
-    if (!item || typeof item !== "object") return false;
-    const obj = item as Record<string, unknown>;
-    return obj.role === "user" || obj.type === "message_item";
-  });
-  console.log("Clean history length:", cleanHistory.length);
-
-  const input = [
-    ...cleanHistory,
-    {
-      role: "user",
-      content: message,
-    },
-  ] as unknown as Parameters<typeof run>[1];
-  const result = await run(agent, input);
+  const result = await run(agent, [
+    ...historyItems,
+    { role: "user", content: message },
+  ]);
   return {
     response: result.finalOutput ?? "",
-    newItems: result.newItems,
   };
 }

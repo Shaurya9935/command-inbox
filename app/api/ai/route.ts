@@ -1,16 +1,11 @@
 import { NextResponse } from "next/server";
 import { headers } from "next/headers";
 import { randomUUID } from "crypto";
-import { and, eq, asc } from "drizzle-orm";
-
+import { and, eq, asc, desc } from "drizzle-orm";
+import { runCommand, type ChatTurn } from "@/lib/ai/agent";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
-import {
-  conversations,
-  chatMessages,
-} from "@/lib/schema";
-
-import { runCommand } from "@/lib/ai/agent";
+import { conversations, chatMessages } from "@/lib/schema";
 
 export async function GET(request: Request) {
   try {
@@ -22,9 +17,14 @@ export async function GET(request: Request) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const conversationId = new URL(request.url).searchParams.get("conversationId");
+    const conversationId = new URL(request.url).searchParams.get(
+      "conversationId",
+    );
     if (!conversationId) {
-      return NextResponse.json({ error: "Conversation ID is required" }, { status: 400 });
+      return NextResponse.json(
+        { error: "Conversation ID is required" },
+        { status: 400 },
+      );
     }
 
     const [conversation] = await db
@@ -39,7 +39,10 @@ export async function GET(request: Request) {
       .limit(1);
 
     if (!conversation) {
-      return NextResponse.json({ error: "Conversation not found" }, { status: 404 });
+      return NextResponse.json(
+        { error: "Conversation not found" },
+        { status: 404 },
+      );
     }
 
     const messages = await db
@@ -70,10 +73,7 @@ export async function POST(request: Request) {
     });
 
     if (!session?.user?.id) {
-      return NextResponse.json(
-        { error: "Unauthorized" },
-        { status: 401 },
-      );
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
     const body = await request.json();
@@ -104,7 +104,6 @@ export async function POST(request: Request) {
     const [conversation] = await db
       .select({
         id: conversations.id,
-        agentHistory: conversations.agentHistory,
         title: conversations.title,
       })
       .from(conversations)
@@ -122,41 +121,36 @@ export async function POST(request: Request) {
         { status: 404 },
       );
     }
-    
+
     // Set title on first message if not set
     let updatedTitle = conversation.title;
     if (!updatedTitle) {
       updatedTitle = message.slice(0, 40);
     }
 
-    // Save current user message
+    // Load the last 20 turns BEFORE saving the new message
+    const recent = await db
+      .select({ role: chatMessages.role, content: chatMessages.content })
+      .from(chatMessages)
+      .where(eq(chatMessages.conversationId, conversationId))
+      .orderBy(desc(chatMessages.createdAt))
+      .limit(20);
+
+    const history = recent.reverse() as ChatTurn[];
+
+    const { response } = await runCommand({
+      tenantId: session.user.id,
+      message,
+      history,
+    });
+
+    // Save both messages only after success (separate inserts, so createdAt differs)
     await db.insert(chatMessages).values({
       id: randomUUID(),
       conversationId,
       role: "user",
       content: message,
     });
-
-    const currentAgentHistory = (conversation.agentHistory as unknown[]) || [];
-
-    // Give previous conversation to the agent
-    const { response, newItems } = await runCommand({
-      tenantId: session.user.id,
-      message,
-      agentHistory: currentAgentHistory,
-    });
-
-    // Update agent history by appending user message and new items
-    const nextAgentHistory = [
-      ...currentAgentHistory,
-      {
-        role: "user",
-        content: message,
-      },
-      ...newItems,
-    ];
-
-    // Save assistant response
     await db.insert(chatMessages).values({
       id: randomUUID(),
       conversationId,
@@ -164,14 +158,9 @@ export async function POST(request: Request) {
       content: response,
     });
 
-    // Update conversation timestamp and history
     await db
       .update(conversations)
-      .set({
-        title: updatedTitle,
-        agentHistory: nextAgentHistory,
-        updatedAt: new Date(),
-      })
+      .set({ title: updatedTitle, updatedAt: new Date() })
       .where(eq(conversations.id, conversationId));
 
     return NextResponse.json({
