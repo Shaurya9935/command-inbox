@@ -13,7 +13,6 @@ export interface DefaultWorkspaceProps {
   onSelectEmail: (email: Email) => void;
   onSelectCalendar: () => void;
   onSelectInbox?: () => void;
-  onSendCommand?: (command: string) => void;
   user?: UserProfile;
   focusItems?: FocusItem[];
   emails?: Email[];
@@ -125,7 +124,6 @@ export function DefaultWorkspace({
   onSelectEmail,
   onSelectCalendar,
   onSelectInbox,
-  onSendCommand,
   user = CURRENT_USER,
   focusItems,
   emails = [],
@@ -249,7 +247,6 @@ export function DefaultWorkspace({
     setMessages((prev) => [...prev, userMsg]);
     setCommandInput("");
     setIsTyping(true);
-    onSendCommand?.(userText);
 
     try {
       const res = await fetch("/api/ai", {

@@ -1,8 +1,18 @@
-import { Agent, run, tool } from "@openai/agents";
+import { Agent, run, tool, MaxTurnsExceededError } from "@openai/agents";
 import type { AgentInputItem, Tool, ToolInputParameters } from "@openai/agents";
 import { OpenAIAgentsProvider } from "@corsair-dev/mcp";
+import { z } from "zod";
 
 import { corsair } from "@/lib/corsair";
+import {
+  getInboxThreadsFromDb,
+  parseMessagePart,
+  type GmailMessage,
+  type GmailHeader,
+} from "@/features/gmail/server";
+import { db } from "@/lib/db";
+import { corsairEntities, corsairAccounts, corsairIntegrations } from "@/db/corsair";
+import { and, eq, desc } from "drizzle-orm";
 
 export type ChatTurn = { role: "user" | "assistant"; content: string };
 
@@ -22,15 +32,327 @@ function strictTool<T extends ToolInputParameters>(
   return tool({ ...options, strict: true } as Parameters<typeof tool<T>>[0]);
 }
 
+// ── Result shapes ─────────────────────────────────────────────────────────────
+
+interface EmailResult {
+  from: string;
+  subject: string;
+  date: string;
+  snippet: string;
+  unread: boolean;
+}
+
+interface CalendarEventResult {
+  title: string;
+  start: string;
+  end: string;
+  location: string | null;
+  meetLink: string | null;
+}
+
+// Trim a snippet to max N chars without cutting mid-word
+function trimSnippet(s: string, max = 150): string {
+  if (!s) return "";
+  if (s.length <= max) return s;
+  return s.slice(0, max).trimEnd() + "…";
+}
+
+// ── Tool builders ─────────────────────────────────────────────────────────────
+// tenantCorsair is created once in runCommand and passed in here.
+
+type TenantCorsair = ReturnType<typeof corsair.withTenant>;
+
+function buildReadTools(tenantId: string, tenantCorsair: TenantCorsair): Tool<unknown>[] {
+
+  // ── get_recent_emails ──────────────────────────────────────────────────────
+  const getRecentEmails = strictTool({
+    name: "get_recent_emails",
+    description:
+      "Return the most recent emails from the user's Gmail inbox. Use this for any request about recent or latest emails.",
+    parameters: z.object({
+      limit: z
+        .number()
+        .int()
+        .min(1)
+        .max(10)
+        .describe("How many emails to return (1–10)"),
+    }),
+    execute: async ({ limit }): Promise<string> => {
+      try {
+        const threads = await getInboxThreadsFromDb(tenantId);
+        if (!threads.length) {
+          return JSON.stringify({ emails: [], note: "no emails in local cache" });
+        }
+        const emails: EmailResult[] = threads.slice(0, limit).map((t) => ({
+          from: t.from || "Unknown Sender",
+          subject: t.subject || "No Subject",
+          date: t.createdAt || new Date().toISOString(),
+          snippet: trimSnippet(t.snippet || t.body || ""),
+          unread: t.unread,
+        }));
+        return JSON.stringify({ emails });
+      } catch (err) {
+        return JSON.stringify({ error: String(err) });
+      }
+    },
+  });
+
+  // ── search_emails ──────────────────────────────────────────────────────────
+  const searchEmails = strictTool({
+    name: "search_emails",
+    description:
+      "Search Gmail using Gmail search syntax. Use for 'is:unread', 'from:alice', 'subject:invoice', 'newer_than:2d', etc. Returns matching emails.",
+    parameters: z.object({
+      query: z
+        .string()
+        .describe("Gmail search query e.g. 'is:unread', 'from:alice', 'subject:report newer_than:7d'"),
+      limit: z
+        .number()
+        .int()
+        .min(1)
+        .max(10)
+        .describe("Max results (1–10)"),
+    }),
+    execute: async ({ query, limit }): Promise<string> => {
+      try {
+        let rawThreads: { id?: string; snippet?: string; historyId?: string }[] = [];
+        try {
+          const res = await tenantCorsair.gmail.api.threads.list({
+            q: query,
+            maxResults: limit,
+          });
+          rawThreads = res?.threads ?? [];
+        } catch (err) {
+          return JSON.stringify({ error: `Gmail search failed: ${String(err)}` });
+        }
+
+        if (!rawThreads.length) {
+          return JSON.stringify({ emails: [], note: "no matching emails" });
+        }
+
+        const emails: EmailResult[] = [];
+        for (const t of rawThreads) {
+          if (!t.id) continue;
+          try {
+            const full = await tenantCorsair.gmail.api.threads.get({ id: t.id, format: "full" });
+            const messages: GmailMessage[] = full?.messages ?? [];
+
+            const getHeader = (name: string): string | undefined => {
+              for (const msg of [...messages].reverse()) {
+                const h = (msg.payload?.headers ?? []).find(
+                  (h: GmailHeader) => h.name?.toLowerCase() === name.toLowerCase()
+                );
+                if (h?.value) return h.value;
+              }
+              return undefined;
+            };
+
+            const from = getHeader("from") || "Unknown Sender";
+            const subject = getHeader("subject") || t.snippet?.slice(0, 60) || "No Subject";
+            const dateRaw = getHeader("date");
+            const lastMsg = messages[messages.length - 1];
+            const date = lastMsg?.internalDate
+              ? new Date(Number(lastMsg.internalDate)).toISOString()
+              : dateRaw
+              ? new Date(dateRaw).toISOString()
+              : new Date().toISOString();
+
+            let rawSnippet = full?.snippet || t.snippet || "";
+            if (!rawSnippet) {
+              for (const msg of [...messages].reverse()) {
+                const { text } = parseMessagePart(msg.payload);
+                if (text) { rawSnippet = text; break; }
+              }
+            }
+
+            const unread = messages.some((m: GmailMessage) => m.labelIds?.includes("UNREAD"));
+            emails.push({ from, subject, date, snippet: trimSnippet(rawSnippet), unread });
+          } catch {
+            // skip threads we can't enrich
+          }
+        }
+
+        if (!emails.length) {
+          return JSON.stringify({ emails: [], note: "no matching emails" });
+        }
+        emails.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+        return JSON.stringify({ emails });
+      } catch (err) {
+        return JSON.stringify({ error: String(err) });
+      }
+    },
+  });
+
+  // ── get_calendar_events ────────────────────────────────────────────────────
+  const getCalendarEvents = strictTool({
+    name: "get_calendar_events",
+    description:
+      "Return Google Calendar events in a date/time range. Dates must be ISO 8601 in Asia/Kolkata (+05:30). Use for any request about meetings, schedule, or events today/this week.",
+    parameters: z.object({
+      startISO: z
+        .string()
+        .describe("Range start as ISO 8601 e.g. '2025-10-14T00:00:00+05:30'"),
+      endISO: z
+        .string()
+        .describe("Range end as ISO 8601 e.g. '2025-10-14T23:59:59+05:30'"),
+    }),
+    execute: async ({ startISO, endISO }): Promise<string> => {
+      try {
+        interface CalEventData {
+          summary?: string;
+          start?: { dateTime?: string; date?: string; timeZone?: string };
+          end?: { dateTime?: string; date?: string; timeZone?: string };
+          location?: string;
+          hangoutLink?: string;
+          status?: string;
+        }
+
+        // Try DB cache first
+        const accts = await db
+          .select({ id: corsairAccounts.id })
+          .from(corsairAccounts)
+          .innerJoin(corsairIntegrations, eq(corsairAccounts.integrationId, corsairIntegrations.id))
+          .where(
+            and(
+              eq(corsairAccounts.tenantId, tenantId),
+              eq(corsairIntegrations.name, "googlecalendar")
+            )
+          )
+          .limit(1);
+        const calendarAccountId = accts[0]?.id ?? null;
+
+        let events: CalendarEventResult[] = [];
+
+        if (calendarAccountId) {
+          const rows = await db
+            .select()
+            .from(corsairEntities)
+            .where(
+              and(
+                eq(corsairEntities.accountId, calendarAccountId),
+                eq(corsairEntities.entityType, "events")
+              )
+            )
+            .orderBy(desc(corsairEntities.updatedAt));
+
+          const startMs = new Date(startISO).getTime();
+          const endMs = new Date(endISO).getTime();
+
+          for (const row of rows) {
+            const d = (row.data ?? {}) as CalEventData;
+            if (d.status === "cancelled") continue;
+            const evStart = d.start?.dateTime || d.start?.date;
+            const evEnd = d.end?.dateTime || d.end?.date;
+            if (!evStart) continue;
+            const evStartMs = new Date(evStart).getTime();
+            if (isNaN(evStartMs) || evStartMs < startMs || evStartMs > endMs) continue;
+            events.push({
+              title: d.summary || "No Title",
+              start: evStart,
+              end: evEnd || evStart,
+              location: d.location ?? null,
+              meetLink: d.hangoutLink ?? null,
+            });
+          }
+        }
+
+        // Fallback to API if DB cache was empty
+        if (!events.length) {
+          try {
+            const res = await tenantCorsair.googlecalendar.api.events.getMany({
+              calendarId: "primary",
+              maxResults: 50,
+              singleEvents: true,
+              orderBy: "startTime",
+              timeMin: startISO,
+              timeMax: endISO,
+            });
+            const raw = res?.items ?? [];
+            events = (raw as Array<{
+              status?: string;
+              summary?: string;
+              start?: { dateTime?: string; date?: string };
+              end?: { dateTime?: string; date?: string };
+              location?: string;
+              hangoutLink?: string;
+            }>)
+              .filter((ev) => ev.status !== "cancelled")
+              .map((ev) => ({
+                title: ev.summary || "No Title",
+                start: ev.start?.dateTime || ev.start?.date || startISO,
+                end: ev.end?.dateTime || ev.end?.date || endISO,
+                location: ev.location ?? null,
+                meetLink: ev.hangoutLink ?? null,
+              }));
+          } catch (err) {
+            return JSON.stringify({ error: `Calendar API failed: ${String(err)}` });
+          }
+        }
+
+        if (!events.length) {
+          return JSON.stringify({ events: [], note: "no events in this range" });
+        }
+        events.sort((a, b) => new Date(a.start).getTime() - new Date(b.start).getTime());
+        return JSON.stringify({ events });
+      } catch (err) {
+        return JSON.stringify({ error: String(err) });
+      }
+    },
+  });
+
+  return [getRecentEmails, searchEmails, getCalendarEvents];
+}
+
+// ── Instruction string (~500 tokens) ──────────────────────────────────────────
+
+function buildInstructions(): string {
+  const nowIST = new Date().toLocaleString("en-IN", { timeZone: "Asia/Kolkata" });
+  return `You are the AI assistant for Command Inbox. Respond ONLY to the latest user message.
+
+READS — use the custom tools:
+- Emails: use get_recent_emails (inbox list) or search_emails (Gmail search syntax: is:unread, from:X, subject:Y, newer_than:Nd).
+- Calendar: use get_calendar_events with startISO/endISO in Asia/Kolkata (+05:30).
+- Never use list_operations / run_script / gmail.db.* for reads.
+- If a read tool returns an error, retry once. Only after a second failure say the lookup failed — never claim "no emails" on an error.
+- Do not include URLs, links, or raw IDs in replies.
+
+WRITES — use Corsair tools:
+- For sending email, creating/editing/deleting events, labels, drafts: use list_operations → get_schema → run_script.
+- Never guess a Corsair operation path. Only use paths confirmed by list_operations/get_schema.
+- Execute every action the user requested. Report success/failure for each separately.
+
+HISTORY:
+- Earlier messages are context only. Never repeat a prior answer for a fresh data request.
+- Retry operations that previously failed instead of echoing the old failure.
+
+TIMEZONE: Asia/Kolkata (IST, +05:30). Interpret "today", "tomorrow", relative times in IST unless the user says otherwise.
+
+OUTPUT:
+- Be concise and natural. No raw IDs, no internal tool explanations.
+- On multi-action requests: attempt all actions, then summarise what succeeded/failed.
+
+Current time (IST): ${nowIST}`;
+}
+
+// ── Main entry point ──────────────────────────────────────────────────────────
+
+const MAX_TURNS = 5;
+const MAX_HISTORY = 8;
+const ASSISTANT_SNIPPET_LIMIT = 800;
+
 export async function runCommand({
   tenantId,
   message,
   history = [],
-}: RunCommandParams) {
-  // Scope Corsair to the currently authenticated user
-  const tenantCorsair = corsair.withTenant(tenantId);
+}: RunCommandParams): Promise<{ response: string }> {
+  // Trim history to last 8 turns; cap long assistant messages
+  const trimmedHistory = history.slice(-MAX_HISTORY).map((turn) =>
+    turn.role === "assistant" && turn.content.length > ASSISTANT_SNIPPET_LIMIT
+      ? { ...turn, content: turn.content.slice(0, ASSISTANT_SNIPPET_LIMIT) + "…" }
+      : turn
+  );
 
-  const historyItems: AgentInputItem[] = history.map((turn) =>
+  const historyItems: AgentInputItem[] = trimmedHistory.map((turn) =>
     turn.role === "user"
       ? { role: "user", content: turn.content }
       : {
@@ -40,149 +362,56 @@ export async function runCommand({
         },
   );
 
-  // Give the agent Corsair's generic tools
-  const provider = new OpenAIAgentsProvider();
+  // Single tenant-scoped Corsair client shared by read tools and write tools
+  const tenantCorsair = corsair.withTenant(tenantId);
 
-  const tools = provider.build({
+  const customTools = buildReadTools(tenantId, tenantCorsair);
+
+  const provider = new OpenAIAgentsProvider();
+  const corsairTools = provider.build({
     corsair: tenantCorsair,
     tool: strictTool as typeof tool,
   });
 
   const agent = new Agent({
     name: "command-inbox",
-    model: "gpt-4o-mini", // fallback or keep as is
-    instructions: `
-You are the AI assistant for Command Inbox.
-
-Respond ONLY to the latest user message. Earlier messages have already been handled and must not be answered or executed again.
-
-Command Inbox connects the user's services such as Gmail and Google Calendar.
-
-You have access to the user's connected services through Corsair.
-
-Your job is to understand what the user wants and use the available Corsair tools to retrieve relevant information.
-
-CONVERSATION CONTEXT & HISTORY:
-
-- Respond ONLY to the latest user message. Earlier messages have already been handled and must not be answered or executed again.
-- Previous messages are conversation context only, not authoritative facts. They may be stale, incomplete, or contain a previous tool failure.
-- Never reuse or repeat a prior assistant answer as the result of a new request for live Gmail or Calendar data.
-- For every new request about the user's current emails, calendar, availability, or connected services, perform a fresh lookup with the available tools during this turn, even if the same request appears in the conversation history.
-- Use previous messages to understand references such as "it", "him", "that email", or "the meeting", but retrieve current data when necessary.
-- If a previous assistant message says a service had a technical issue, retry the appropriate operation now instead of repeating that failure.
-- Never treat a previous assistant claim of success or failure as proof that an action actually succeeded.
-
-IMPORTANT EMAIL RULES:
-
-- When the user asks about Gmail, use Corsair's Gmail operations only.
-- Do not assume Corsair follows the Gmail REST API structure.
-- Never use gmail.api.users.messages.* unless Corsair explicitly reports that exact operation.
-- For recent emails, first discover the available Gmail thread/message operations using list_operations.
-- Use the exact operation paths and parameters returned by Corsair.
-- Prefer thread-based operations when they provide the information needed.
-- Do not fetch hundreds of emails.
-- For "recent emails", "latest emails", or similar requests, retrieve at most 10 relevant results.
-- Return useful information such as sender, subject, date/time, and a concise snippet or summary.
-- Never expose raw Gmail IDs unless explicitly requested.
-
-IMPORTANT CALENDAR RULES:
-
-- When the user asks about their calendar, return useful event information such as title, date, start time, end time, and location when available.
-- Do not expose raw calendar IDs unless explicitly requested.
-- Follow the TIMEZONE RULES below for all calendar operations and time interpretations.
-
-TOOL USAGE:
-
-IMPORTANT:
-- Never invent or assume a Corsair operation path from the provider's native API documentation.
-- Corsair operation paths are NOT necessarily the same as the provider's REST API paths.
-- Never use paths such as gmail.api.users.messages.* unless that exact path was returned by list_operations.
-- Before using run_script for a service operation, you MUST discover the correct Corsair operation with list_operations.
-- Then use get_schema for the exact operation before executing it.
-- Only execute operation paths that were returned by list_operations or confirmed by get_schema.
-
-For every request involving Gmail or Google Calendar:
-
-1. Call list_operations with the appropriate plugin filter.
-2. Identify the exact Corsair operation path.
-3. Call get_schema for that exact path.
-4. Use the schema to construct the run_script.
-5. Execute the operation.
-6. If the operation fails because of an invalid path or parameters, do NOT guess a new path. Call list_operations or get_schema again and correct it.
-
-IMPORTANT ACTION RULES:
-
-- You may perform actions explicitly requested by the user.
-- When the user asks you to perform an action, execute it using the appropriate Corsair operation. Do not merely explain how the user can do it.
-- A single user request may contain multiple actions. You MUST attempt to complete every requested action before producing your final response.
-- Treat each requested action as a separate required step in the user's request.
-- Do not stop after completing the first successful action when additional actions were requested.
-- When one action produces information needed for another action, use the result of the first action for the next action.
-- You may perform actions across multiple connected services in the same request. For example, a request may require both Google Calendar and Gmail operations.
-- Before performing each action, make sure you have enough information to execute it correctly. If required information is missing, ask the user for it.
-- If one action succeeds and another action fails, do not abandon the entire request. Report which actions succeeded and which failed.
-- Never claim that an action succeeded unless the corresponding Corsair operation actually succeeded.
-- After completing all requested actions, give the user a concise summary of what was completed.
-- Never expose raw Gmail, Calendar, or provider IDs unless the user explicitly asks for them.
-
-TIMEZONE RULES:
-
-- The user's default timezone is Asia/Kolkata (IST).
-- When creating or modifying calendar events, use Asia/Kolkata as the timezone unless the user explicitly specifies a different timezone.
-- Do not ask the user for their timezone when no timezone is provided.
-- If the user specifies a timezone, use the timezone they provided.
-- Interpret relative times such as "today at 3 PM" and "tomorrow at 10 AM" using Asia/Kolkata.
-
-TOOL ERROR RECOVERY:
-
-- A tool error does not necessarily mean the connected service is unavailable.
-- If run_script fails because an operation path, parameter, or response shape is incorrect, do not tell the user there is a technical issue immediately.
-- First inspect the available Corsair operations and schema again.
-- Correct the operation and retry when the error indicates an incorrect operation or parameter.
-- Only report a technical failure to the user after a reasonable retry using the correct Corsair operation has failed.
-
-MULTI-ACTION EXECUTION:
-
-When a request contains multiple actions, first identify all required actions internally before executing them.
-
-For example:
-
-User:
-"Create a calendar event with Babul Singh at 1 PM and send him an email about the meeting."
-
-Required actions:
-1. Create the calendar event.
-2. Send the email.
-
-You must execute BOTH actions.
-
-If the second action requires information produced by the first action, use that information when executing the second action.
-
-Do not return a final answer until all requested actions have been attempted.
-
-If all actions succeed:
-- Confirm all actions briefly.
-
-If some actions succeed and others fail:
-- Clearly state which actions succeeded.
-- Clearly state which actions failed.
-- Do not claim the failed action was completed.
-
-When answering:
-
-- Do not explain internal tool calls.
-- Do not expose raw IDs. Never include thread_id, message_id, event IDs or any raw provider IDs in the final answer.
-- Give the user the actual useful information.
-- Be concise and natural.
-`,
-    tools,
+    model: "gpt-4o",
+    modelSettings: { temperature: 0 },
+    instructions: buildInstructions(),
+    tools: [...customTools, ...corsairTools],
   });
 
-  const result = await run(agent, [
-    ...historyItems,
-    { role: "user", content: message },
-  ]);
-  return {
-    response: result.finalOutput ?? "",
-  };
+  const t0 = Date.now();
+  let result;
+
+  try {
+    result = await run(agent, [...historyItems, { role: "user", content: message }], {
+      maxTurns: MAX_TURNS,
+    });
+  } catch (err) {
+    if (err instanceof MaxTurnsExceededError) {
+      console.warn("[ai] max turns exceeded");
+      return { response: "I couldn't complete that in time — please try rephrasing or breaking it into smaller steps." };
+    }
+    throw err;
+  }
+
+  const elapsedMs = Date.now() - t0;
+  const llmCalls = result.rawResponses.length;
+  const totalIn = result.rawResponses.reduce((s, r) => s + (r.usage?.inputTokens ?? 0), 0);
+  const totalOut = result.rawResponses.reduce((s, r) => s + (r.usage?.outputTokens ?? 0), 0);
+  console.log(
+    `[ai] elapsed=${elapsedMs}ms llmCalls=${llmCalls} tokensIn=${totalIn} tokensOut=${totalOut}`
+  );
+
+  for (const item of result.newItems) {
+    if (item.type === "tool_call_item") {
+      console.log("[ai] TOOL CALL:", JSON.stringify(item.rawItem).slice(0, 400));
+    }
+    if (item.type === "tool_call_output_item") {
+      console.log("[ai] TOOL OUT:", JSON.stringify(item.output).slice(0, 400));
+    }
+  }
+
+  return { response: result.finalOutput ?? "" };
 }

@@ -2,7 +2,7 @@
 
 import React, { useState, useMemo } from "react";
 import { useRouter } from "next/navigation";
-import { View, Email, CalendarEvent, UserProfile, ServiceConnection, FocusItem } from "./types";
+import { View, Email, UserProfile, ServiceConnection, FocusItem } from "./types";
 import { Sidebar } from "./sidebar";
 import { TopBar } from "./top-bar";
 import { DefaultWorkspace } from "./default-workspace";
@@ -21,7 +21,6 @@ import { useCurrentTime } from "@/hooks/use-current-time";
 export interface DashboardViewProps {
   initialUser?: UserProfile;
   initialEmails?: Email[];
-  initialEvents?: CalendarEvent[];
   connections?: ServiceConnection[];
 }
 
@@ -186,15 +185,6 @@ export function DashboardView({
     }
   };
 
-  const handleSendCommand = (command: string) => {
-    const lower = command.toLowerCase();
-    if (lower.includes("calendar") || lower.includes("schedule") || lower.includes("meet")) {
-      openCalendar();
-    } else if (lower.includes("email") || lower.includes("unread") || lower.includes("reply")) {
-      router.push("/dashboard/inbox");
-    }
-  };
-
   const dynamicFocusItems: FocusItem[] = useMemo(() => {
     const unreadCount = emails.filter((e) => e.unread).length;
     const meetingCount = todayEvents.length;
@@ -299,7 +289,6 @@ export function DashboardView({
               onSelectEmail={openEmail}
               onSelectCalendar={openCalendar}
               onSelectInbox={() => router.push("/dashboard/inbox")}
-              onSendCommand={handleSendCommand}
               user={initialUser}
               focusItems={dynamicFocusItems}
               emails={emails}

@@ -128,13 +128,13 @@ export async function POST(request: Request) {
       updatedTitle = message.slice(0, 40);
     }
 
-    // Load the last 20 turns BEFORE saving the new message
+    // Load the last 8 turns BEFORE saving the new message
     const recent = await db
       .select({ role: chatMessages.role, content: chatMessages.content })
       .from(chatMessages)
       .where(eq(chatMessages.conversationId, conversationId))
       .orderBy(desc(chatMessages.createdAt))
-      .limit(20);
+      .limit(8);
 
     const history = recent.reverse() as ChatTurn[];
 
