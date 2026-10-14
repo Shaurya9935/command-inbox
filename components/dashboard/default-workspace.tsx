@@ -21,6 +21,8 @@ export interface DefaultWorkspaceProps {
   onActiveConversationChange?: (id: string | null) => void;
 }
 
+import type { PendingActionPreview } from "@/lib/ai/agent";
+
 interface ChatMessage {
   id: string;
   role: "user" | "assistant";
@@ -30,6 +32,8 @@ interface ChatMessage {
     label: string;
     onClick: () => void;
   };
+  pendingActions?: PendingActionPreview[];
+  confirmationStatus?: "pending" | "confirmed" | "cancelled";
 }
 
 function renderFormattedMessage(text: string, isUser: boolean) {
@@ -233,10 +237,55 @@ export function DefaultWorkspace({
     };
   }, [activeConversationId, onActiveConversationChange]);
 
+  const [approvingTokens, setApprovingTokens] = useState<Record<string, boolean>>({});
+
+  const handleDecision = async (
+    messageId: string,
+    tokens: string[],
+    decision: "approve" | "deny"
+  ) => {
+    const tokenKeys = tokens.reduce((acc, t) => ({ ...acc, [t]: true }), {});
+    setApprovingTokens((prev) => ({ ...prev, ...tokenKeys }));
+
+    try {
+      for (const token of tokens) {
+        const res = await fetch("/api/ai/approve", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ token, decision }),
+        });
+        if (!res.ok) {
+          const errData = await res.json().catch(() => null);
+          console.error(`Failed to ${decision} token ${token}:`, errData);
+        }
+      }
+
+      setMessages((prev) =>
+        prev.map((m) =>
+          m.id === messageId
+            ? {
+                ...m,
+                confirmationStatus: decision === "approve" ? "confirmed" : "cancelled",
+              }
+            : m
+        )
+      );
+    } catch (err) {
+      console.error(`Error processing approval decision:`, err);
+    } finally {
+      setApprovingTokens((prev) => {
+        const next = { ...prev };
+        for (const t of tokens) delete next[t];
+        return next;
+      });
+    }
+  };
+
   const handleSendMessage = async (text: string) => {
     if (!text.trim() || isTyping) return;
 
     const userText = text.trim();
+
     const userMsg: ChatMessage = {
       id: `msg-${Date.now()}`,
       role: "user",
@@ -254,7 +303,10 @@ export function DefaultWorkspace({
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ message: userText, conversationId: activeConversationId }),
+        body: JSON.stringify({
+          message: userText,
+          conversationId: activeConversationId,
+        }),
       });
 
       const data = await res.json();
@@ -283,17 +335,17 @@ export function DefaultWorkspace({
             : JSON.stringify(data.response, null, 2);
 
         // Intelligently infer quick action buttons based on content or user request
-        const lowerText = userText.toLowerCase();
         const lowerReply = (reply || "").toLowerCase();
+        const lower = userText.toLowerCase();
 
         if (
           lowerReply.includes("calendar") ||
           lowerReply.includes("meeting") ||
           lowerReply.includes("schedule") ||
           lowerReply.includes("event") ||
-          lowerText.includes("calendar") ||
-          lowerText.includes("meeting") ||
-          lowerText.includes("schedule")
+          lower.includes("calendar") ||
+          lower.includes("meeting") ||
+          lower.includes("schedule")
         ) {
           if (onSelectCalendar) {
             action = {
@@ -306,9 +358,9 @@ export function DefaultWorkspace({
           lowerReply.includes("unread") ||
           lowerReply.includes("inbox") ||
           lowerReply.includes("thread") ||
-          lowerText.includes("email") ||
-          lowerText.includes("unread") ||
-          lowerText.includes("inbox")
+          lower.includes("email") ||
+          lower.includes("unread") ||
+          lower.includes("inbox")
         ) {
           if (onSelectInbox) {
             action = {
@@ -330,6 +382,14 @@ export function DefaultWorkspace({
         text: reply || "I couldn't generate a response. Please try again.",
         timestamp: new Date().toLocaleTimeString([], { hour: "numeric", minute: "2-digit" }),
         action,
+        pendingActions:
+          Array.isArray(data.pendingActions) && data.pendingActions.length > 0
+            ? data.pendingActions
+            : undefined,
+        confirmationStatus:
+          Array.isArray(data.pendingActions) && data.pendingActions.length > 0
+            ? "pending"
+            : undefined,
       };
 
       setMessages((prev) => [...prev, assistantMsg]);
@@ -588,6 +648,259 @@ export function DefaultWorkspace({
                   }}
                 >
                   {renderFormattedMessage(msg.text, msg.role === "user")}
+
+                  {/* ── Pending Confirmation Card ── */}
+                  {msg.pendingActions && msg.pendingActions.length > 0 && (
+                    <div
+                      style={{
+                        marginTop: 14,
+                        padding: "14px 16px",
+                        borderRadius: 10,
+                        background: "#FAF8F5",
+                        border: "1px solid #E4DFD5",
+                        display: "flex",
+                        flexDirection: "column",
+                        gap: 12,
+                      }}
+                    >
+                      {msg.pendingActions.map((action, idx) => (
+                        <div
+                          key={idx}
+                          style={{
+                            display: "flex",
+                            flexDirection: "column",
+                            gap: 6,
+                            paddingBottom: idx < msg.pendingActions!.length - 1 ? 12 : 0,
+                            borderBottom:
+                              idx < msg.pendingActions!.length - 1 ? "1px dashed #E0DBD1" : "none",
+                          }}
+                        >
+                          <div
+                            style={{
+                              display: "flex",
+                              alignItems: "center",
+                              gap: 6,
+                              fontSize: 11,
+                              fontWeight: 700,
+                              letterSpacing: "0.05em",
+                              textTransform: "uppercase",
+                              fontFamily: "var(--font-mono, 'JetBrains Mono', monospace)",
+                              color: action.type === "send_email" ? "#5549C0" : "#2E6846",
+                            }}
+                          >
+                            <span>
+                              {action.type === "send_email"
+                                ? "✉ Email Preview"
+                                : "📅 Calendar Event Preview"}
+                            </span>
+                          </div>
+
+                          {action.type === "send_email" && (
+                            <div style={{ display: "flex", flexDirection: "column", gap: 4, fontSize: 13 }}>
+                              <div>
+                                <span style={{ color: "#8C8781", fontWeight: 500 }}>To: </span>
+                                <span
+                                  style={{
+                                    fontFamily: "var(--font-mono, monospace)",
+                                    color: "#1A1917",
+                                    fontWeight: 600,
+                                  }}
+                                >
+                                  {action.to}
+                                </span>
+                              </div>
+                              {action.subject && (
+                                <div>
+                                  <span style={{ color: "#8C8781", fontWeight: 500 }}>Subject: </span>
+                                  <span style={{ color: "#1A1917" }}>{action.subject}</span>
+                                </div>
+                              )}
+                              {action.body && (
+                                <div
+                                  style={{
+                                    marginTop: 4,
+                                    padding: "8px 12px",
+                                    background: "#FFFFFF",
+                                    border: "1px solid #EAE6DF",
+                                    borderLeft: "3px solid #5549C0",
+                                    borderRadius: 6,
+                                    color: "#33312E",
+                                    whiteSpace: "pre-wrap",
+                                    fontSize: 12.5,
+                                    lineHeight: 1.5,
+                                  }}
+                                >
+                                  {action.body}
+                                </div>
+                              )}
+                            </div>
+                          )}
+
+                          {action.type === "create_calendar_event" && (
+                            <div style={{ display: "flex", flexDirection: "column", gap: 4, fontSize: 13 }}>
+                              <div>
+                                <span style={{ color: "#8C8781", fontWeight: 500 }}>Title: </span>
+                                <span style={{ color: "#1A1917", fontWeight: 600 }}>{action.title}</span>
+                              </div>
+                              <div>
+                                <span style={{ color: "#8C8781", fontWeight: 500 }}>Time: </span>
+                                <span style={{ color: "#1A1917" }}>
+                                  {new Date(action.startISO || "").toLocaleString("en-IN", {
+                                    timeZone: "Asia/Kolkata",
+                                    dateStyle: "medium",
+                                    timeStyle: "short",
+                                  })}
+                                  {action.endISO && (
+                                    <>
+                                      {" – "}
+                                      {new Date(action.endISO).toLocaleTimeString("en-IN", {
+                                        timeZone: "Asia/Kolkata",
+                                        timeStyle: "short",
+                                      })}
+                                    </>
+                                  )}{" "}
+                                  (IST)
+                                </span>
+                              </div>
+                              {action.attendeeEmails && action.attendeeEmails.length > 0 && (
+                                <div>
+                                  <span style={{ color: "#8C8781", fontWeight: 500 }}>Attendees: </span>
+                                  <span
+                                    style={{
+                                      fontFamily: "var(--font-mono, monospace)",
+                                      color: "#1A1917",
+                                      fontSize: 12,
+                                    }}
+                                  >
+                                    {action.attendeeEmails.join(", ")}
+                                  </span>
+                                </div>
+                              )}
+                              {action.location && (
+                                <div>
+                                  <span style={{ color: "#8C8781", fontWeight: 500 }}>Location: </span>
+                                  <span style={{ color: "#1A1917" }}>{action.location}</span>
+                                </div>
+                              )}
+                            </div>
+                          )}
+                        </div>
+                      ))}
+
+                      {/* Confirmation Action Buttons */}
+                      <div
+                        style={{
+                          marginTop: 6,
+                          paddingTop: 10,
+                          borderTop: "1px solid #E8E4DC",
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "space-between",
+                        }}
+                      >
+                        {(() => {
+                          const tokens = (msg.pendingActions || []).map((p) => p.token).filter(Boolean);
+                          const isOperating = tokens.some((t) => approvingTokens[t]);
+
+                          if (msg.confirmationStatus === "pending") {
+                            return (
+                              <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                                <button
+                                  type="button"
+                                  disabled={isOperating || isTyping}
+                                  onClick={() => handleDecision(msg.id, tokens, "approve")}
+                                  style={{
+                                    display: "inline-flex",
+                                    alignItems: "center",
+                                    gap: 6,
+                                    background: "#5549C0",
+                                    color: "#FFFFFF",
+                                    border: "none",
+                                    borderRadius: 8,
+                                    padding: "7px 16px",
+                                    fontSize: 12.5,
+                                    fontWeight: 600,
+                                    cursor: isOperating || isTyping ? "not-allowed" : "pointer",
+                                    transition: "opacity 0.15s",
+                                    opacity: isOperating || isTyping ? 0.6 : 1,
+                                  }}
+                                  onMouseEnter={(e) => {
+                                    if (!isOperating && !isTyping) e.currentTarget.style.opacity = "0.9";
+                                  }}
+                                  onMouseLeave={(e) => {
+                                    if (!isOperating && !isTyping) e.currentTarget.style.opacity = "1";
+                                  }}
+                                >
+                                  {isOperating ? "Processing…" : "✓ Approve"}
+                                </button>
+                                <button
+                                  type="button"
+                                  disabled={isOperating || isTyping}
+                                  onClick={() => handleDecision(msg.id, tokens, "deny")}
+                                  style={{
+                                    display: "inline-flex",
+                                    alignItems: "center",
+                                    background: "#FFFFFF",
+                                    color: "#6E6A64",
+                                    border: "1px solid #D6D1C7",
+                                    borderRadius: 8,
+                                    padding: "7px 14px",
+                                    fontSize: 12.5,
+                                    fontWeight: 500,
+                                    cursor: isOperating || isTyping ? "not-allowed" : "pointer",
+                                    transition: "background 0.15s",
+                                    opacity: isOperating || isTyping ? 0.6 : 1,
+                                  }}
+                                  onMouseEnter={(e) => {
+                                    if (!isOperating && !isTyping) e.currentTarget.style.background = "#F4F0EA";
+                                  }}
+                                  onMouseLeave={(e) => {
+                                    if (!isOperating && !isTyping) e.currentTarget.style.background = "#FFFFFF";
+                                  }}
+                                >
+                                  Reject
+                                </button>
+                              </div>
+                            );
+                          }
+
+                          if (msg.confirmationStatus === "confirmed") {
+                            return (
+                              <div
+                                style={{
+                                  fontSize: 12,
+                                  fontFamily: "var(--font-mono, monospace)",
+                                  color: "#2E6846",
+                                  background: "#EAF5EE",
+                                  padding: "4px 10px",
+                                  borderRadius: 6,
+                                  fontWeight: 500,
+                                }}
+                              >
+                                ✓ Approved & Executed
+                              </div>
+                            );
+                          }
+
+                          return (
+                            <div
+                              style={{
+                                fontSize: 12,
+                                fontFamily: "var(--font-mono, monospace)",
+                                color: "#8B3A3A",
+                                background: "#F5EBEB",
+                                padding: "4px 10px",
+                                borderRadius: 6,
+                                fontWeight: 500,
+                              }}
+                            >
+                              ✕ Rejected
+                            </div>
+                          );
+                        })()}
+                      </div>
+                    </div>
+                  )}
 
                   {msg.action && (
                     <div style={{ marginTop: 14, paddingTop: 12, borderTop: "1px solid #F0ECE4" }}>

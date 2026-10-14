@@ -4,6 +4,9 @@ settings:
   autoInstallPeers: true
   excludeLinksFromLockfile: false
 
+patchedDependencies:
+  '@corsair-dev/googlecalendar': acd5141328a6cfc2c101e6accf196a1463f43f38032bf8e5a3ad916a0bcbf78a
+
 importers:
 
   .:
@@ -19,7 +22,7 @@ importers:
         version: 0.1.5(corsair@0.1.122(react@19.2.8))(zod@4.6.7)
       '@corsair-dev/googlecalendar':
         specifier: ^0.1.6
-        version: 0.1.6(corsair@0.1.122(react@19.2.8))(zod@4.6.7)
+        version: 0.1.6(patch_hash=acd5141328a6cfc2c101e6accf196a1463f43f38032bf8e5a3ad916a0bcbf78a)(corsair@0.1.122(react@19.2.8))(zod@4.6.7)
       '@corsair-dev/mcp':
         specifier: ^0.1.27
         version: 0.1.27(@openai/agents@0.17.0(undici@6.28.0)(ws@8.21.3)(zod@4.6.7))(openai@7.9.0(undici@6.28.0)(ws@8.21.3)(zod@4.6.7))(react@19.2.8)
@@ -3892,7 +3895,7 @@ snapshots:
       corsair: 0.1.122(react@19.2.8)
       zod: 4.6.7
 
-  '@corsair-dev/googlecalendar@0.1.6(corsair@0.1.122(react@19.2.8))(zod@4.6.7)':
+  '@corsair-dev/googlecalendar@0.1.6(patch_hash=acd5141328a6cfc2c101e6accf196a1463f43f38032bf8e5a3ad916a0bcbf78a)(corsair@0.1.122(react@19.2.8))(zod@4.6.7)':
     dependencies:
       corsair: 0.1.122(react@19.2.8)
       zod: 4.6.7

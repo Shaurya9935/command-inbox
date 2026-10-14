@@ -1,4 +1,10 @@
 import { getCorsairTenant } from "@/lib/corsair-client";
+import { db } from "@/lib/db";
+import { corsairAccounts, corsairEntities, corsairIntegrations } from "@/db/corsair";
+import { and, desc, eq } from "drizzle-orm";
+import crypto from "crypto";
+import type { TenantCorsair } from "@/lib/corsair";
+import type { CalendarEventResult } from "./types";
 
 export interface EnrichedCalendarEvent {
   id: string;
@@ -305,3 +311,170 @@ export async function createCalendarEvent(
     createdAt: createdIso,
   };
 }
+
+// ── Service Functions for AI Tools ──────────────────────────────────────────
+
+interface CalEventData {
+  summary?: string;
+  start?: { dateTime?: string; date?: string; timeZone?: string };
+  end?: { dateTime?: string; date?: string; timeZone?: string };
+  location?: string;
+  hangoutLink?: string;
+  status?: string;
+}
+
+export async function getEventsInRange({
+  tenantId,
+  tenantCorsair,
+  startISO,
+  endISO,
+}: {
+  tenantId: string;
+  tenantCorsair: TenantCorsair;
+  startISO: string;
+  endISO: string;
+}): Promise<CalendarEventResult[]> {
+  // Try DB cache first
+  const accts = await db
+    .select({ id: corsairAccounts.id })
+    .from(corsairAccounts)
+    .innerJoin(corsairIntegrations, eq(corsairAccounts.integrationId, corsairIntegrations.id))
+    .where(
+      and(
+        eq(corsairAccounts.tenantId, tenantId),
+        eq(corsairIntegrations.name, "googlecalendar")
+      )
+    )
+    .limit(1);
+  const calendarAccountId = accts[0]?.id ?? null;
+
+  let events: CalendarEventResult[] = [];
+
+  if (calendarAccountId) {
+    const rows = await db
+      .select()
+      .from(corsairEntities)
+      .where(
+        and(
+          eq(corsairEntities.accountId, calendarAccountId),
+          eq(corsairEntities.entityType, "events")
+        )
+      )
+      .orderBy(desc(corsairEntities.updatedAt));
+
+    const startMs = new Date(startISO).getTime();
+    const endMs = new Date(endISO).getTime();
+
+    for (const row of rows) {
+      const d = (row.data ?? {}) as CalEventData;
+      if (d.status === "cancelled") continue;
+      const evStart = d.start?.dateTime || d.start?.date;
+      const evEnd = d.end?.dateTime || d.end?.date;
+      if (!evStart) continue;
+      const evStartMs = new Date(evStart).getTime();
+      if (isNaN(evStartMs) || evStartMs < startMs || evStartMs > endMs) continue;
+      events.push({
+        title: d.summary || "No Title",
+        start: evStart,
+        end: evEnd || evStart,
+        location: d.location ?? null,
+        meetLink: d.hangoutLink ?? null,
+      });
+    }
+  }
+
+  // Fallback to API if DB cache was empty
+  if (!events.length) {
+    const res = await tenantCorsair.googlecalendar.api.events.getMany({
+      calendarId: "primary",
+      maxResults: 50,
+      singleEvents: true,
+      orderBy: "startTime",
+      timeMin: startISO,
+      timeMax: endISO,
+    });
+    const raw = res?.items ?? [];
+    events = (raw as Array<{
+      status?: string;
+      summary?: string;
+      start?: { dateTime?: string; date?: string };
+      end?: { dateTime?: string; date?: string };
+      location?: string;
+      hangoutLink?: string;
+    }>)
+      .filter((ev) => ev.status !== "cancelled")
+      .map((ev) => ({
+        title: ev.summary || "No Title",
+        start: ev.start?.dateTime || ev.start?.date || startISO,
+        end: ev.end?.dateTime || ev.end?.date || endISO,
+        location: ev.location ?? null,
+        meetLink: ev.hangoutLink ?? null,
+      }));
+  }
+
+  events.sort((a, b) => new Date(a.start).getTime() - new Date(b.start).getTime());
+  return events;
+}
+
+export async function createCalendarEventWithMeet({
+  tenantCorsair,
+  title,
+  startISO,
+  endISO,
+  description,
+  location,
+  attendeeEmails,
+  addMeetLink,
+}: {
+  tenantCorsair: TenantCorsair;
+  title: string;
+  startISO: string;
+  endISO: string;
+  description?: string | null;
+  location?: string | null;
+  attendeeEmails?: string[] | null;
+  addMeetLink?: boolean | null;
+}): Promise<{ created: boolean; title: string; start: string; end: string }> {
+  const formattedAttendees =
+    attendeeEmails && attendeeEmails.length > 0
+      ? attendeeEmails.map((email) => ({ email }))
+      : undefined;
+
+  const eventPayload: Record<string, unknown> = {
+    summary: title,
+    description: description || undefined,
+    location: location || undefined,
+    start: {
+      dateTime: startISO,
+      timeZone: "Asia/Kolkata",
+    },
+    end: {
+      dateTime: endISO,
+      timeZone: "Asia/Kolkata",
+    },
+    attendees: formattedAttendees,
+  };
+
+  if (addMeetLink) {
+    eventPayload.conferenceData = {
+      createRequest: {
+        requestId: crypto.randomUUID(),
+        conferenceSolutionKey: { type: "hangoutsMeet" },
+      },
+    };
+  }
+
+  const res = await tenantCorsair.googlecalendar.api.events.create({
+    calendarId: "primary",
+    conferenceDataVersion: addMeetLink ? 1 : undefined,
+    event: eventPayload as Parameters<typeof tenantCorsair.googlecalendar.api.events.create>[0]["event"],
+  });
+
+  return {
+    created: true,
+    title: res?.summary || title,
+    start: res?.start?.dateTime || res?.start?.date || startISO,
+    end: res?.end?.dateTime || res?.end?.date || endISO,
+  };
+}
+

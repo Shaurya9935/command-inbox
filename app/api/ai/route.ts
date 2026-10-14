@@ -138,8 +138,9 @@ export async function POST(request: Request) {
 
     const history = recent.reverse() as ChatTurn[];
 
-    const { response } = await runCommand({
+    const { response, pendingActions } = await runCommand({
       tenantId: session.user.id,
+      conversationId,
       message,
       history,
     });
@@ -166,6 +167,7 @@ export async function POST(request: Request) {
     return NextResponse.json({
       conversationId,
       response,
+      pendingActions,
     });
   } catch (error) {
     console.error("AI route error:", error);

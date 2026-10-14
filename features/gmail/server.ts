@@ -5,6 +5,8 @@ import { and, desc, eq } from "drizzle-orm";
 import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
 import crypto from "crypto";
+import type { TenantCorsair } from "@/lib/corsair";
+import type { EmailResult } from "./types";
 
 export interface ThreadMessageItem {
   id: string;
@@ -783,16 +785,19 @@ export async function syncInboxThreadsFromApi(
 }
 
 export interface SendGmailMessageInput {
-  threadId?: string;
+  threadId?: string | null;
   to?: string;
   subject?: string;
   body: string;
-  inReplyTo?: string;
-  references?: string;
+  inReplyTo?: string | null;
+  references?: string | null;
+  inReplyToMessageId?: string | null;
+  tenantCorsair?: TenantCorsair;
 }
 
 export interface SentGmailMessageResult {
   success: boolean;
+  sent?: boolean;
   id: string;
   threadId?: string;
 }
@@ -833,31 +838,70 @@ export function buildRfc2822Raw({
 export async function sendGmailMessage(
   input: SendGmailMessageInput
 ): Promise<SentGmailMessageResult> {
-  const corsair = await getCorsairTenant();
+  const corsair = input.tenantCorsair ?? (await getCorsairTenant());
   let to = input.to?.trim();
   let subject = input.subject?.trim();
-  let inReplyTo = input.inReplyTo?.trim();
+  let inReplyTo = input.inReplyTo?.trim() ?? input.inReplyToMessageId?.trim();
   let references = input.references?.trim();
   const threadId = input.threadId?.trim();
 
   // If threadId is provided and missing 'to' or 'subject', resolve from thread
   if (threadId && (!to || !subject || !inReplyTo)) {
     try {
-      const thread = await getThreadById(threadId);
-      if (thread) {
-        if (!to && thread.from && thread.from !== "Unknown Sender") {
-          to = thread.from;
+      if (input.tenantCorsair) {
+        const thread = await input.tenantCorsair.gmail.api.threads.get({
+          id: threadId,
+          format: "full",
+        });
+        const msgs = thread?.messages ?? [];
+        if (msgs.length > 0) {
+          const lastMsg = msgs[msgs.length - 1];
+          if (!to) {
+            const fromHdr = (lastMsg.payload?.headers ?? []).find(
+              (h: GmailHeader) => h.name?.toLowerCase() === "from"
+            );
+            if (fromHdr?.value) to = fromHdr.value;
+          }
+          if (!subject) {
+            const subjHdr = (lastMsg.payload?.headers ?? []).find(
+              (h: GmailHeader) => h.name?.toLowerCase() === "subject"
+            );
+            if (subjHdr?.value) {
+              subject = subjHdr.value.toLowerCase().startsWith("re:")
+                ? subjHdr.value
+                : `Re: ${subjHdr.value}`;
+            }
+          }
+          if (!inReplyTo) {
+            const msgIdHdr = (lastMsg.payload?.headers ?? []).find(
+              (h: GmailHeader) => h.name?.toLowerCase() === "message-id"
+            );
+            if (msgIdHdr?.value) {
+              inReplyTo = msgIdHdr.value;
+              references = inReplyTo;
+            } else if (lastMsg.id) {
+              inReplyTo = `<${lastMsg.id}@mail.gmail.com>`;
+              references = inReplyTo;
+            }
+          }
         }
-        if (!subject && thread.subject) {
-          subject = thread.subject.toLowerCase().startsWith("re:")
-            ? thread.subject
-            : `Re: ${thread.subject}`;
-        }
-        if (!inReplyTo && thread.messages && thread.messages.length > 0) {
-          const lastMsg = thread.messages[thread.messages.length - 1];
-          if (lastMsg.id) {
-            inReplyTo = `<${lastMsg.id}@mail.gmail.com>`;
-            references = inReplyTo;
+      } else {
+        const thread = await getThreadById(threadId);
+        if (thread) {
+          if (!to && thread.from && thread.from !== "Unknown Sender") {
+            to = thread.from;
+          }
+          if (!subject && thread.subject) {
+            subject = thread.subject.toLowerCase().startsWith("re:")
+              ? thread.subject
+              : `Re: ${thread.subject}`;
+          }
+          if (!inReplyTo && thread.messages && thread.messages.length > 0) {
+            const lastMsg = thread.messages[thread.messages.length - 1];
+            if (lastMsg.id) {
+              inReplyTo = `<${lastMsg.id}@mail.gmail.com>`;
+              references = inReplyTo;
+            }
           }
         }
       }
@@ -888,7 +932,108 @@ export async function sendGmailMessage(
 
   return {
     success: true,
+    sent: true,
     id: res.id || "",
     threadId: res.threadId || threadId,
   };
 }
+
+// ── Service Functions for AI Tools ──────────────────────────────────────────
+
+export function trimSnippet(s: string, max = 150): string {
+  if (!s) return "";
+  if (s.length <= max) return s;
+  return s.slice(0, max).trimEnd() + "…";
+}
+
+export async function getRecentEmailsFromCache(
+  tenantId: string,
+  limit: number
+): Promise<EmailResult[]> {
+  const threads = await getInboxThreadsFromDb(tenantId);
+  if (!threads.length) return [];
+  return threads.slice(0, limit).map((t) => ({
+    threadId: t.id || t.entity_id,
+    from: t.from || "Unknown Sender",
+    subject: t.subject || "No Subject",
+    date: t.createdAt || new Date().toISOString(),
+    snippet: trimSnippet(t.snippet || t.body || ""),
+    unread: t.unread,
+  }));
+}
+
+export async function searchEmailThreads({
+  tenantCorsair,
+  query,
+  limit,
+}: {
+  tenantCorsair: TenantCorsair;
+  query: string;
+  limit: number;
+}): Promise<EmailResult[]> {
+  const res = await tenantCorsair.gmail.api.threads.list({
+    q: query,
+    maxResults: limit,
+  });
+  const rawThreads = res?.threads ?? [];
+  if (!rawThreads.length) return [];
+
+  const emails: EmailResult[] = [];
+  for (const t of rawThreads) {
+    if (!t.id) continue;
+    try {
+      const full = await tenantCorsair.gmail.api.threads.get({ id: t.id, format: "full" });
+      const messages: GmailMessage[] = full?.messages ?? [];
+
+      const getHeader = (name: string): string | undefined => {
+        for (const msg of [...messages].reverse()) {
+          const h = (msg.payload?.headers ?? []).find(
+            (h: GmailHeader) => h.name?.toLowerCase() === name.toLowerCase()
+          );
+          if (h?.value) return h.value;
+        }
+        return undefined;
+      };
+
+      const from = getHeader("from") || "Unknown Sender";
+      const to = getHeader("to");
+      const subject = getHeader("subject") || t.snippet?.slice(0, 60) || "No Subject";
+      const dateRaw = getHeader("date");
+      const lastMsg = messages[messages.length - 1];
+      const date = lastMsg?.internalDate
+        ? new Date(Number(lastMsg.internalDate)).toISOString()
+        : dateRaw
+        ? new Date(dateRaw).toISOString()
+        : new Date().toISOString();
+
+      let rawSnippet = full?.snippet || t.snippet || "";
+      if (!rawSnippet) {
+        for (const msg of [...messages].reverse()) {
+          const { text } = parseMessagePart(msg.payload);
+          if (text) {
+            rawSnippet = text;
+            break;
+          }
+        }
+      }
+
+      const unread = messages.some((m: GmailMessage) => m.labelIds?.includes("UNREAD"));
+      emails.push({
+        threadId: t.id,
+        from,
+        to,
+        subject,
+        date,
+        snippet: trimSnippet(rawSnippet),
+        unread,
+      });
+    } catch {
+      // skip threads we can't enrich
+    }
+  }
+
+  emails.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+  return emails;
+}
+
+

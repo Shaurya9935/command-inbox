@@ -3,3 +3,5 @@ allowBuilds:
   esbuild: false
   sharp: false
   unrs-resolver: false
+patchedDependencies:
+  '@corsair-dev/googlecalendar': patches/@corsair-dev__googlecalendar.patch
