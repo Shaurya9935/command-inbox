@@ -698,22 +698,30 @@ export default function InboxPage() {
               {filteredEmails.map((email) => {
                 const isSelected = selectedEmail?.id === email.id;
                 return (
-                  <button
+                  <div
                     key={email.id}
+                    role="button"
+                    tabIndex={0}
                     onClick={() => handleSelect(email)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" || e.key === " ") {
+                        e.preventDefault();
+                        handleSelect(email);
+                      }
+                    }}
                     style={{
                       display: "flex",
                       alignItems: "flex-start",
                       gap: 12,
                       padding: "16px 20px",
                       background: isSelected ? "#FFFFFF" : "transparent",
-                      border: "none",
                       borderBottom: "1px solid #EDEAE4",
                       borderLeft: isSelected ? "3px solid #5549C0" : "3px solid transparent",
                       cursor: "pointer",
                       textAlign: "left",
                       transition: "background 0.12s",
                       boxShadow: isSelected ? "0 2px 8px rgba(0,0,0,0.03)" : "none",
+                      userSelect: "none",
                     }}
                   >
                     <Avatar
@@ -755,6 +763,7 @@ export default function InboxPage() {
                           {email.time}
                         </span>
                         <button
+                          type="button"
                           onClick={(e) => handleToggleStar(e, email.id)}
                           title={email.starred ? "Starred" : "Not starred"}
                           style={{
@@ -797,7 +806,7 @@ export default function InboxPage() {
                         {email.preview}
                       </div>
                     </div>
-                  </button>
+                  </div>
                 );
               })}
             </div>
