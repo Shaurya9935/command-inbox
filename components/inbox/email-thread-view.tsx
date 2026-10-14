@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { Email } from "../dashboard/types";
 import { Avatar } from "../dashboard/avatar";
 import { BackIcon, ReplyIcon, PaperclipIcon } from "../dashboard/icons";
@@ -21,6 +21,7 @@ export function EmailThreadView({
   const [fetchedData, setFetchedData] = useState<{ body?: string; bodyHtml?: string } | null>(null);
   const [fetchFailed, setFetchFailed] = useState<boolean>(false);
   const [prevEmailId, setPrevEmailId] = useState(email.id);
+  const inFlightRef = useRef<string | null>(null);
 
   if (email.id !== prevEmailId) {
     setPrevEmailId(email.id);
@@ -33,31 +34,52 @@ export function EmailThreadView({
   const isLoadingBody = isRealThread && !hasBody && !fetchFailed;
 
   useEffect(() => {
-    if (!email.id || email.bodyHtml) return;
+    if (!email.id) return;
     const idStr = String(email.id);
     if (!idStr || idStr.startsWith("thread-")) return;
 
+    // Do not fetch if the body is already present on the email object,
+    // already fetched, marked as failed, or currently in-flight.
+    if (
+      email.bodyHtml ||
+      email.body ||
+      fetchedData !== null ||
+      fetchFailed ||
+      inFlightRef.current === idStr
+    ) {
+      return;
+    }
+
     let isMounted = true;
+    inFlightRef.current = idStr;
 
     fetch(`/api/gmail/threads/${idStr}`)
-      .then((res) => (res.ok ? res.json() : null))
+      .then(async (res) => {
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        return res.json();
+      })
       .then((data) => {
         if (isMounted && data) {
           setFetchedData({
-            body: data.body,
-            bodyHtml: data.bodyHtml,
+            body: data.body || "",
+            bodyHtml: data.bodyHtml || "",
           });
         }
       })
       .catch((err) => {
         console.warn("Failed to fetch full thread:", err);
         if (isMounted) setFetchFailed(true);
+      })
+      .finally(() => {
+        if (inFlightRef.current === idStr) {
+          inFlightRef.current = null;
+        }
       });
 
     return () => {
       isMounted = false;
     };
-  }, [email.id, email.bodyHtml]);
+  }, [email.id, email.bodyHtml, email.body, fetchedData, fetchFailed]);
 
   const handleSend = () => {
     if (replyText.trim()) {

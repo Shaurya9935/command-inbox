@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useMemo, useEffect } from "react";
+import React, { useState, useMemo, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { useGmailThreads, GmailThread } from "@/hooks/use-gmail";
 import { useCurrentTime } from "@/hooks/use-current-time";
@@ -206,33 +206,59 @@ export default function InboxPage() {
     return emails.find((e) => e.id === selectedId) || filteredEmails[0] || null;
   }, [emails, filteredEmails, selectedId]);
 
-  const isSelectedBodyLoading = Boolean(
-    selectedEmail?.id &&
-      !String(selectedEmail.id).startsWith("thread-") &&
-      !selectedEmail.bodyHtml &&
-      !selectedEmail.body &&
-      !fullBodies[String(selectedEmail.id)]?.bodyHtml &&
-      !failedBodyThreadIds.has(String(selectedEmail.id))
+  const selectedEmailIdStr = selectedEmail?.id ? String(selectedEmail.id) : null;
+  const isRealThread = Boolean(selectedEmailIdStr && !selectedEmailIdStr.startsWith("thread-"));
+  const cachedFullBody = selectedEmailIdStr ? fullBodies[selectedEmailIdStr] : undefined;
+  const hasSelectedBody = Boolean(
+    selectedEmail?.bodyHtml ||
+      selectedEmail?.body ||
+      cachedFullBody?.bodyHtml ||
+      cachedFullBody?.body
   );
+
+  const isSelectedBodyLoading = Boolean(
+    isRealThread &&
+      !hasSelectedBody &&
+      selectedEmailIdStr &&
+      !failedBodyThreadIds.has(selectedEmailIdStr)
+  );
+
+  const inFlightRef = useRef<Set<string>>(new Set());
 
   useEffect(() => {
     if (!selectedEmail?.id) return;
     const idStr = String(selectedEmail.id);
     if (!idStr || idStr.startsWith("thread-")) return;
 
-    if (selectedEmail.bodyHtml || fullBodies[idStr]?.bodyHtml) return;
+    // Do not fetch if the body is already present on the selected email,
+    // already fetched in fullBodies, marked as failed, or currently in-flight.
+    if (
+      selectedEmail.bodyHtml ||
+      selectedEmail.body ||
+      fullBodies[idStr] !== undefined ||
+      failedBodyThreadIds.has(idStr) ||
+      inFlightRef.current.has(idStr)
+    ) {
+      return;
+    }
 
     let isMounted = true;
+    inFlightRef.current.add(idStr);
 
     fetch(`/api/gmail/threads/${idStr}`)
-      .then((res) => (res.ok ? res.json() : null))
+      .then(async (res) => {
+        if (!res.ok) {
+          throw new Error(`Failed to fetch thread: HTTP ${res.status}`);
+        }
+        return res.json();
+      })
       .then((data) => {
         if (isMounted && data) {
           setFullBodies((prev) => ({
             ...prev,
             [idStr]: {
-              body: data.body,
-              bodyHtml: data.bodyHtml,
+              body: data.body || "",
+              bodyHtml: data.bodyHtml || "",
             },
           }));
         }
@@ -242,12 +268,21 @@ export default function InboxPage() {
         if (isMounted) {
           setFailedBodyThreadIds((prev) => new Set(prev).add(idStr));
         }
+      })
+      .finally(() => {
+        inFlightRef.current.delete(idStr);
       });
 
     return () => {
       isMounted = false;
     };
-  }, [selectedEmail?.id, selectedEmail?.bodyHtml, fullBodies]);
+  }, [
+    selectedEmail?.id,
+    selectedEmail?.bodyHtml,
+    selectedEmail?.body,
+    fullBodies,
+    failedBodyThreadIds,
+  ]);
 
   const handleSelect = (email: Email) => {
     setSelectedId(email.id);
