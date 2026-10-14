@@ -14,6 +14,7 @@ const eslintConfig = defineConfig([
     "next-env.d.ts",
     "Dashboard/**",
     "Design registration page/**",
+    "Design professional landing page/**",
   ]),
 ]);
 
