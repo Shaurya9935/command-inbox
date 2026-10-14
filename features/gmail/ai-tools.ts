@@ -4,7 +4,7 @@ import type { ToolContext } from "@/lib/ai/types";
 import { strictTool } from "@/lib/ai/strict-tool";
 import { extractAndValidateEmail } from "@/lib/validation/email";
 import {
-  getRecentEmailsFromCache,
+  getRecentEmails,
   searchEmailThreads,
   sendGmailMessage,
 } from "./server";
@@ -14,7 +14,7 @@ export function gmailTools(ctx: ToolContext): Tool<unknown>[] {
   const { tenantId, tenantCorsair } = ctx;
 
   // ── get_recent_emails ──────────────────────────────────────────────────────
-  const getRecentEmails = strictTool({
+  const getRecentEmailsTool = strictTool({
     name: "get_recent_emails",
     description:
       "Return the most recent emails from the user's Gmail inbox. Use this for any request about recent or latest emails.",
@@ -28,9 +28,20 @@ export function gmailTools(ctx: ToolContext): Tool<unknown>[] {
     }),
     execute: async ({ limit }): Promise<string> => {
       try {
-        const emails: EmailResult[] = await getRecentEmailsFromCache(tenantId, limit);
+        const { emails, stale } = await getRecentEmails(tenantId, limit);
         if (!emails.length) {
-          return JSON.stringify({ emails: [], note: "no emails in local cache" });
+          return JSON.stringify({
+            emails: [],
+            note: stale
+              ? "Could not refresh from Gmail; results may be a few minutes old"
+              : "no emails in local cache",
+          });
+        }
+        if (stale) {
+          return JSON.stringify({
+            emails,
+            note: "Could not refresh from Gmail; results may be a few minutes old",
+          });
         }
         return JSON.stringify({ emails });
       } catch (err) {
@@ -129,5 +140,5 @@ export function gmailTools(ctx: ToolContext): Tool<unknown>[] {
     },
   });
 
-  return [getRecentEmails, searchEmails, sendEmail];
+  return [getRecentEmailsTool, searchEmails, sendEmail];
 }

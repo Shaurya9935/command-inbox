@@ -5,7 +5,7 @@ import { and, desc, eq } from "drizzle-orm";
 import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
 import crypto from "crypto";
-import type { TenantCorsair } from "@/lib/corsair";
+import { corsair, type TenantCorsair } from "@/lib/corsair";
 import type { EmailResult } from "./types";
 
 export interface ThreadMessageItem {
@@ -571,26 +571,42 @@ async function batchedMap<T, R>(
  * 5. Returns all threads from the DB.
  */
 export async function syncInboxThreadsFromApi(
-  limit = 10,
-  { force = false }: { force?: boolean } = {}
+  limitOrTenantId: number | string = 10,
+  options: { force?: boolean; limit?: number } = {}
 ): Promise<EnrichedThread[]> {
-  let userId: string | undefined;
+  const isTenantId = typeof limitOrTenantId === "string";
+  const explicitTenantId = isTenantId ? limitOrTenantId : undefined;
+  const limit = options.limit ?? (typeof limitOrTenantId === "number" ? limitOrTenantId : 10);
+  const force = options.force ?? false;
+
+  let userId: string | undefined = explicitTenantId;
   let accountId: string | null = null;
   let existingDbThreads: EnrichedThread[] = [];
 
-  try {
-    const session = await auth.api.getSession({
-      headers: await headers(),
-    });
-    userId = session?.user?.id;
-    if (userId) {
-      accountId = await getGmailAccountId(userId);
+  if (explicitTenantId) {
+    try {
+      accountId = await getGmailAccountId(explicitTenantId);
       if (accountId) {
-        existingDbThreads = await getInboxThreadsFromDb(userId);
+        existingDbThreads = await getInboxThreadsFromDb(explicitTenantId);
       }
+    } catch (err) {
+      console.warn("Could not load user account for DB caching:", err);
     }
-  } catch (err) {
-    console.warn("Could not load user account for DB caching:", err);
+  } else {
+    try {
+      const session = await auth.api.getSession({
+        headers: await headers(),
+      });
+      userId = session?.user?.id;
+      if (userId) {
+        accountId = await getGmailAccountId(userId);
+        if (accountId) {
+          existingDbThreads = await getInboxThreadsFromDb(userId);
+        }
+      }
+    } catch (err) {
+      console.warn("Could not load user account for DB caching:", err);
+    }
   }
 
   if (!userId) {
@@ -602,7 +618,7 @@ export async function syncInboxThreadsFromApi(
   }
 
   // Keep normal page loads cache-only until the scheduled refresh is due.
-  // `force` is reserved for an explicit user refresh.
+  // `force` is reserved for an explicit user refresh or AI queries.
   const cacheNeedsRepair = existingDbThreads.some(
     (thread) => !hasUsableThreadMetadata(thread)
   );
@@ -614,12 +630,14 @@ export async function syncInboxThreadsFromApi(
     }
   }
 
-  const corsair = await getCorsairTenant();
+  const corsairClient = explicitTenantId
+    ? corsair.withTenant(explicitTenantId)
+    : await getCorsairTenant();
 
   // 1. Single threads.list call (1 API call)
   let rawThreads: { id?: string; snippet?: string; historyId?: string }[] = [];
   try {
-    const res = await corsair.gmail.api.threads.list({ maxResults: limit });
+    const res = await corsairClient.gmail.api.threads.list({ maxResults: limit });
     rawThreads = res?.threads ?? [];
   } catch (err) {
     console.warn("Gmail threads.list failed, falling back to cached DB threads:", err);
@@ -631,9 +649,7 @@ export async function syncInboxThreadsFromApi(
     return existingDbThreads;
   }
 
-  // 2. Fetch newly discovered threads and cached threads whose Gmail history
-  // changed. The previous implementation only tested for sender/subject, so a
-  // cache entry became permanently stale after its first successful sync.
+  // 2. Fetch newly discovered threads and cached threads whose Gmail history changed.
   const cachedMap = new Map<string, EnrichedThread>(
     existingDbThreads.map((t) => [t.id, t])
   );
@@ -649,10 +665,8 @@ export async function syncInboxThreadsFromApi(
       t.historyId && cached?.historyId !== t.historyId
     );
 
-    // A manual refresh intentionally rehydrates all displayed threads. This
-    // repairs cache entries created by earlier builds that lacked sender or
-    // Gmail internalDate metadata, while normal scheduled syncs stay sparse.
-    if (force || !hasUsableCache || hasChangedOnGmail) {
+    // Keep historyId incremental sync so it stays cheap when nothing changed.
+    if (!hasUsableCache || hasChangedOnGmail) {
       threadsToFetch.push({ id: t.id, snippet: t.snippet, historyId: t.historyId });
     } else if (cached) {
       // Corsair's threads.list persists a minimal `{ id, snippet, historyId }`
@@ -676,7 +690,7 @@ export async function syncInboxThreadsFromApi(
       threadsToFetch,
       async (t) => {
         try {
-          const full = await corsair.gmail.api.threads.get({ id: t.id, format: "full" });
+          const full = await corsairClient.gmail.api.threads.get({ id: t.id, format: "full" });
           const messages: GmailMessage[] = full?.messages || [];
           const lastMsg = messages[messages.length - 1] || {};
           const firstMsg = messages[0] || {};
@@ -960,6 +974,44 @@ export async function getRecentEmailsFromCache(
     snippet: trimSnippet(t.snippet || t.body || ""),
     unread: t.unread,
   }));
+}
+
+function withTimeout<T>(
+  promise: Promise<T>,
+  ms: number,
+  errorMessage = "Operation timed out"
+): Promise<T> {
+  let timeoutId: NodeJS.Timeout | undefined;
+  const timeoutPromise = new Promise<never>((_, reject) => {
+    timeoutId = setTimeout(() => reject(new Error(errorMessage)), ms);
+  });
+  return Promise.race([
+    promise.finally(() => {
+      if (timeoutId) clearTimeout(timeoutId);
+    }),
+    timeoutPromise,
+  ]);
+}
+
+export async function getRecentEmails(
+  tenantId: string,
+  limit: number
+): Promise<{ emails: EmailResult[]; stale: boolean }> {
+  let stale = false;
+
+  try {
+    await withTimeout(
+      syncInboxThreadsFromApi(tenantId, { force: true, limit }),
+      4000,
+      "Gmail sync timed out"
+    );
+  } catch (err) {
+    console.warn("[getRecentEmails] Sync failed or timed out, serving cached emails:", err);
+    stale = true;
+  }
+
+  const emails = await getRecentEmailsFromCache(tenantId, limit);
+  return { emails, stale };
 }
 
 export async function searchEmailThreads({
