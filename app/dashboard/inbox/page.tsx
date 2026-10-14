@@ -224,6 +224,7 @@ export default function InboxPage() {
   );
 
   const inFlightRef = useRef<Set<string>>(new Set());
+  const fetchedThreadIdsRef = useRef<Set<string>>(new Set());
 
   useEffect(() => {
     if (!selectedEmail?.id) return;
@@ -231,11 +232,13 @@ export default function InboxPage() {
     if (!idStr || idStr.startsWith("thread-")) return;
 
     // Do not fetch if the body is already present on the selected email,
-    // already fetched in fullBodies, marked as failed, or currently in-flight.
+    // already fetched in fullBodies, already requested in fetchedThreadIdsRef,
+    // marked as failed, or currently in-flight.
     if (
       selectedEmail.bodyHtml ||
       selectedEmail.body ||
       fullBodies[idStr] !== undefined ||
+      fetchedThreadIdsRef.current.has(idStr) ||
       failedBodyThreadIds.has(idStr) ||
       inFlightRef.current.has(idStr)
     ) {
@@ -244,6 +247,7 @@ export default function InboxPage() {
 
     let isMounted = true;
     inFlightRef.current.add(idStr);
+    fetchedThreadIdsRef.current.add(idStr);
 
     fetch(`/api/gmail/threads/${idStr}`)
       .then(async (res) => {

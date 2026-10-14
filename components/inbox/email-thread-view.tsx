@@ -22,6 +22,7 @@ export function EmailThreadView({
   const [fetchFailed, setFetchFailed] = useState<boolean>(false);
   const [prevEmailId, setPrevEmailId] = useState(email.id);
   const inFlightRef = useRef<string | null>(null);
+  const fetchedThreadIdsRef = useRef<Set<string>>(new Set());
 
   if (email.id !== prevEmailId) {
     setPrevEmailId(email.id);
@@ -44,6 +45,7 @@ export function EmailThreadView({
       email.bodyHtml ||
       email.body ||
       fetchedData !== null ||
+      fetchedThreadIdsRef.current.has(idStr) ||
       fetchFailed ||
       inFlightRef.current === idStr
     ) {
@@ -52,6 +54,7 @@ export function EmailThreadView({
 
     let isMounted = true;
     inFlightRef.current = idStr;
+    fetchedThreadIdsRef.current.add(idStr);
 
     fetch(`/api/gmail/threads/${idStr}`)
       .then(async (res) => {
