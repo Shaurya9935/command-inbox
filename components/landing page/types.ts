@@ -1,35 +1,26 @@
-export type IconName =
-  | "arrow"
-  | "calendar"
-  | "check"
-  | "chevron"
-  | "github"
-  | "inbox"
-  | "lock"
-  | "menu"
-  | "search"
-  | "send";
+import type { ReactNode } from "react";
+import type { MotionValue } from "framer-motion";
 
-export interface DemoItem {
-  prompt: string;
-  label: string;
-  type: "calendar" | "email" | "search";
+export type SidebarItem =
+  | "Inbox"
+  | "Calendar"
+  | "Drafts"
+  | "Search"
+  | "Commands"
+  | "Connections";
+
+export interface SignalPath {
+  id: string;
+  d: string;
+  duration: number;
+  delay: number;
+  side: "left" | "right";
+  tertiary?: boolean;
 }
 
-export interface IntegrationItem {
-  mark: string;
-  name: string;
-  live: boolean;
-}
-
-export interface TimelineItemData {
-  when: string;
-  title: string;
-  copy: string;
-}
-
-export interface HowStepData {
-  number: string;
-  title: string;
-  copy: string;
+export interface BeatProps {
+  progress: MotionValue<number>;
+  range: number[];
+  position: "hero" | "left" | "right" | "center";
+  children: ReactNode;
 }

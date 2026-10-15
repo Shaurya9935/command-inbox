@@ -1,41 +1,57 @@
 "use client";
 
-import React, { useState } from "react";
-import { Icon } from "./icons";
-import { Logo, Button } from "./primitives";
+import { useState } from "react";
+import { useScroll, useMotionValueEvent } from "framer-motion";
+import { Wordmark } from "./wordmark";
+import { GithubIcon } from "./icons";
 
 export function Navbar() {
-  const [menuOpen, setMenuOpen] = useState(false);
+  const { scrollY } = useScroll();
+  const [scrolled, setScrolled] = useState(false);
+  useMotionValueEvent(scrollY, "change", (latest) => setScrolled(latest > 60));
 
   return (
-    <header className="nav-shell">
-      <nav className="nav">
-        <Logo />
-        <button
-          className="mobile-menu"
-          type="button"
-          aria-label="Toggle navigation"
-          onClick={() => setMenuOpen(!menuOpen)}
-        >
-          <Icon name="menu" />
-        </button>
-        <div className={`nav-links ${menuOpen ? "is-open" : ""}`}>
-          <a href="#features" onClick={() => setMenuOpen(false)}>Features</a>
-          <a href="#how" onClick={() => setMenuOpen(false)}>How it works</a>
-          <a href="#security" onClick={() => setMenuOpen(false)}>Security</a>
-          <a href="#roadmap" onClick={() => setMenuOpen(false)}>Roadmap</a>
+    <header className={`nav-shell ${scrolled ? "nav-shell--scrolled" : ""}`}>
+      <nav
+        aria-label="Main navigation"
+        className="mx-auto flex h-14 max-w-[1440px] items-center justify-between px-5 md:px-8"
+      >
+        <a href="#" aria-label="Nexus home" className="rounded-lg focus-ring">
+          <Wordmark />
+        </a>
+        <div className="hidden items-center gap-8 text-sm text-muted md:flex">
+          {[
+            "Features",
+            "How it works",
+            "Integrations",
+            "Security",
+            "Roadmap",
+          ].map((item) => (
+            <a
+              key={item}
+              href={`#${item.toLowerCase().replaceAll(" ", "-")}`}
+              className="transition-colors hover:text-ink focus-ring"
+            >
+              {item}
+            </a>
+          ))}
         </div>
-        <div className="nav-actions">
+        <div className="flex items-center gap-2">
           <a
-            className="github-link"
+            href="#early-access"
+            className="button button-primary button-small"
+          >
+            Get early access
+          </a>
+          <a
             href="https://github.com"
+            aria-label="View Nexus on GitHub"
+            className="icon-button"
             target="_blank"
             rel="noopener noreferrer"
-            aria-label="View nexus on GitHub"
           >
-            <Icon name="github" />
+            <GithubIcon />
           </a>
-          <Button href="/login">Launch App</Button>
         </div>
       </nav>
     </header>

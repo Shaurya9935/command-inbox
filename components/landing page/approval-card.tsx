@@ -1,47 +1,50 @@
-import React from "react";
-import { Icon } from "./icons";
-import { Card } from "./primitives";
-
-export function ApprovalCard({ compact = false }: { compact?: boolean }) {
+export function ApprovalCard({
+  approved = false,
+  compact = false,
+}: {
+  approved?: boolean;
+  compact?: boolean;
+}) {
   return (
-    <Card className={`approval-card ${compact ? "approval-compact" : ""}`}>
-      <div className="approval-head">
-        <span className="approval-check">
-          <Icon name="check" size={14} />
+    <div className={`approval-card ${compact ? "approval-card--compact" : ""}`}>
+      <div className="mb-3 flex items-center justify-between">
+        <span className="mono-label">Review before sending</span>
+        <span className="rounded-full bg-tint px-2 py-1 text-[8px] font-semibold text-accent">
+          2 actions
         </span>
-        <div>
-          <strong>Ready for your approval</strong>
-          <p>Email and calendar event</p>
-        </div>
       </div>
-      <div className="approval-fields">
-        <div>
-          <span>TO</span>
-          <strong>Alex Morgan · alex@acme.co</strong>
-        </div>
-        {!compact && (
-          <>
-            <div>
-              <span>SUBJECT</span>
-              <strong>Re: Project check-in</strong>
-            </div>
-            <p>
-              Hi Alex, I’m free at 4 PM today. I’ve added it to our calendars.
-            </p>
-          </>
+      <dl className="grid grid-cols-[50px_1fr] gap-y-1.5 text-[10px]">
+        <dt className="text-muted">To</dt>
+        <dd>Priya Shah</dd>
+        <dt className="text-muted">Subject</dt>
+        <dd>Today at 4 PM</dd>
+      </dl>
+      <p className="my-3 rounded-lg bg-[#F8F7F4] p-3 text-[10px] leading-relaxed text-muted">
+        Hi Priya, I’m free at 4 PM today. I’ve added time to our calendars.
+      </p>
+      <div className="mb-3 flex items-center gap-2 border-t border-line pt-3 text-[9px]">
+        <span className="grid size-7 place-items-center rounded-lg bg-tint text-accent">
+          15
+        </span>
+        <span>
+          <strong className="block text-ink">Meeting with Priya Shah</strong>
+          Today, 4:00–4:30 PM
+        </span>
+      </div>
+      <div className="flex gap-2">
+        <button
+          className={`flex-1 rounded-lg py-2 text-[10px] font-semibold transition-colors ${
+            approved ? "bg-[#DAF2E4] text-[#17633A]" : "bg-accent text-white"
+          }`}
+        >
+          {approved ? "✓ Sent and scheduled" : "Approve"}
+        </button>
+        {!approved && (
+          <button className="rounded-lg border border-line px-4 py-2 text-[10px] font-medium">
+            Edit
+          </button>
         )}
-        <div className="event-chip">
-          <Icon name="calendar" size={15} />
-          <span>
-            <strong>Project check-in</strong>
-            Today, 4:00–4:30 PM
-          </span>
-        </div>
       </div>
-      <div className="approval-actions">
-        <button type="button">Approve</button>
-        <button type="button">Edit</button>
-      </div>
-    </Card>
+    </div>
   );
 }

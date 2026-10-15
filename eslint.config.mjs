@@ -15,6 +15,7 @@ const eslintConfig = defineConfig([
     "Dashboard/**",
     "Design registration page/**",
     "Design professional landing page/**",
+    "Scrollytelling landing page design/**",
   ]),
 ]);
 

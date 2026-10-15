@@ -1,35 +1,43 @@
-import React from "react";
-import { Icon } from "./icons";
 import { ApprovalCard } from "./approval-card";
-import { securityPoints } from "./mock-data";
 
-export function SecuritySection() {
+export function SecurityBand() {
+  const points = [
+    "You approve every send and every change.",
+    "Your data is stored in your own database.",
+    "Minimal permissions, read-only by default.",
+    "Secure OAuth. We never see your password.",
+  ];
   return (
-    <section className="security-section" id="security">
-      <div className="section-wrap security-grid">
-        <div className="security-copy">
-          <span className="section-label">TRUST IS THE FOUNDATION</span>
-          <h2>Your work stays yours.</h2>
-          <p>
-            nexus is designed around explicit permission. Nothing is sent,
-            changed, or scheduled until you say so.
-          </p>
-          <div className="security-points">
-            {securityPoints.map((point) => (
-              <div key={point}>
-                <span>
-                  <Icon name="check" size={14} />
+    <section
+      id="security"
+      className="mx-3 my-28 overflow-hidden rounded-[28px] bg-dark text-white md:mx-5"
+    >
+      <div className="mx-auto grid max-w-[1200px] gap-16 px-6 py-20 md:grid-cols-[1.2fr_.8fr] md:px-12 md:py-28">
+        <div>
+          <p className="mono-kicker text-white/45">SECURITY BY DESIGN</p>
+          <h2 className="mt-5 max-w-xl text-4xl font-semibold tracking-[-0.045em] md:text-5xl">
+            Your work stays yours. Your approval stays essential.
+          </h2>
+          <div className="mt-12 grid sm:grid-cols-2">
+            {points.map((point, i) => (
+              <div
+                key={point}
+                className={`border-white/10 py-5 text-[15px] leading-relaxed text-white/65 ${
+                  i > 1 ? "border-t" : ""
+                } ${i % 2 ? "sm:border-l sm:pl-6" : "sm:pr-6"}`}
+              >
+                <span className="mb-3 block font-mono text-[10px] text-[#958CE5]">
+                  0{i + 1}
                 </span>
                 {point}
               </div>
             ))}
           </div>
         </div>
-        <div className="security-card-wrap">
-          <div className="secure-note">
-            <Icon name="lock" size={15} /> Approval required
+        <div className="flex items-center justify-center">
+          <div className="w-full max-w-sm rounded-[20px] bg-white p-2 text-ink shadow-2xl shadow-black/30">
+            <ApprovalCard compact />
           </div>
-          <ApprovalCard />
         </div>
       </div>
     </section>

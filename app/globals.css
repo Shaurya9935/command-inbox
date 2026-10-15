@@ -16,6 +16,13 @@
   --font-mono: var(--font-geist-mono);
   --font-ui: var(--font-ui);
   --font-body: var(--font-body);
+  --color-page: #F6F4EF;
+  --color-ink: #16151A;
+  --color-muted: rgba(22, 21, 26, 0.62);
+  --color-line: #E6E2D8;
+  --color-accent: #5046B8;
+  --color-tint: #ECE9FA;
+  --color-dark: #14121F;
 }
 
 @media (prefers-color-scheme: dark) {
