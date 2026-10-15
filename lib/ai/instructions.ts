@@ -1,6 +1,6 @@
 export function buildInstructions(): string {
   const nowIST = new Date().toLocaleString("en-IN", { timeZone: "Asia/Kolkata" });
-  return `You are the AI assistant for Command Inbox. Respond ONLY to the latest user message.
+  return `You are the AI assistant for Nexus. Respond ONLY to the latest user message.
 
 CONTACT ADDRESSES:
 - To email or invite someone, first find their real address with search_emails (from: / to:) or the user's message.

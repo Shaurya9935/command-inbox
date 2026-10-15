@@ -33,6 +33,8 @@ export interface EnrichedThread {
   body?: string;
   bodyHtml?: string;
   messages?: ThreadMessageItem[];
+  starred?: boolean;
+  labelIds?: string[];
 }
 
 const GMAIL_SYNC_STATE_ENTITY_TYPE = "gmail_sync_state";
@@ -91,6 +93,8 @@ interface CachedThreadData {
   body?: string;
   bodyHtml?: string;
   messages?: ThreadMessageItem[];
+  starred?: boolean;
+  labelIds?: string[];
   [key: string]: unknown;
 }
 
@@ -216,6 +220,13 @@ export async function getInboxThreadsFromDb(userId: string): Promise<EnrichedThr
         d.created_at ||
         (row.createdAt ? row.createdAt.toISOString() : new Date().toISOString());
 
+      const isStarred =
+        d.starred !== undefined
+          ? Boolean(d.starred)
+          : Array.isArray(d.labelIds)
+          ? d.labelIds.includes("STARRED")
+          : false;
+
       threads.push({
         id: threadId,
         entity_id: threadId,
@@ -231,6 +242,8 @@ export async function getInboxThreadsFromDb(userId: string): Promise<EnrichedThr
         body: d.body || d.snippet || "",
         bodyHtml: d.bodyHtml || "",
         messages: d.messages || [],
+        starred: isStarred,
+        labelIds: Array.isArray(d.labelIds) ? d.labelIds : (isStarred ? ["STARRED"] : []),
       });
     }
 
@@ -243,6 +256,80 @@ export async function getInboxThreadsFromDb(userId: string): Promise<EnrichedThr
     return threads;
   } catch (err) {
     console.warn("Error reading threads from DB:", err);
+    return [];
+  }
+}
+
+/**
+ * Read cached threads from DB that have the STARRED label or starred flag, newest first.
+ */
+export async function getStarredThreadsFromDb(userId: string): Promise<EnrichedThread[]> {
+  try {
+    const accountId = await getGmailAccountId(userId);
+    if (!accountId) return [];
+
+    const rows = await db
+      .select()
+      .from(corsairEntities)
+      .where(
+        and(
+          eq(corsairEntities.accountId, accountId),
+          eq(corsairEntities.entityType, "threads")
+        )
+      )
+      .orderBy(desc(corsairEntities.updatedAt));
+
+    const threads: EnrichedThread[] = [];
+    const seenThreadIds = new Set<string>();
+    for (const row of rows) {
+      const d = (row.data || {}) as CachedThreadData;
+      const threadId = row.entityId || d.id || "";
+      if (!threadId || seenThreadIds.has(threadId)) continue;
+
+      const isStarred =
+        d.starred !== undefined
+          ? Boolean(d.starred)
+          : Array.isArray(d.labelIds)
+          ? d.labelIds.includes("STARRED")
+          : false;
+
+      if (!isStarred) continue;
+      seenThreadIds.add(threadId);
+
+      const ts =
+        d.createdAt ||
+        d.created_at ||
+        (row.createdAt ? row.createdAt.toISOString() : new Date().toISOString());
+
+      threads.push({
+        id: threadId,
+        entity_id: threadId,
+        snippet: d.snippet || "",
+        subject: d.subject || "",
+        from: d.from || "",
+        createdAt: typeof ts === "string" ? ts : new Date(ts).toISOString(),
+        created_at: typeof ts === "string" ? ts : new Date(ts).toISOString(),
+        updated_at: typeof ts === "string" ? ts : new Date(ts).toISOString(),
+        unread: d.unread !== undefined ? Boolean(d.unread) : true,
+        historyId: d.historyId,
+        messagesCount: d.messagesCount || (Array.isArray(d.messages) ? d.messages.length : 1),
+        body: d.body || d.snippet || "",
+        bodyHtml: d.bodyHtml || "",
+        messages: d.messages || [],
+        starred: true,
+        labelIds: Array.isArray(d.labelIds) ? d.labelIds : ["STARRED"],
+      });
+    }
+
+    // Sort by latest createdAt first safely
+    threads.sort((a, b) => {
+      const timeA = new Date(a.createdAt).getTime();
+      const timeB = new Date(b.createdAt).getTime();
+      return (isNaN(timeB) ? 0 : timeB) - (isNaN(timeA) ? 0 : timeA);
+    });
+    return threads;
+  } catch (err) {
+    console.warn("Error reading starred threads from DB:", err);
     return [];
   }
 }
@@ -281,6 +368,8 @@ export async function saveEnrichedThreadsToDb(accountId: string, threads: Enrich
         body: thread.body,
         bodyHtml: thread.bodyHtml,
         messages: thread.messages,
+        starred: thread.starred,
+        labelIds: thread.labelIds,
       };
 
       if (existing.length > 0) {
@@ -561,6 +650,105 @@ async function batchedMap<T, R>(
 }
 
 /**
+ * Reusable helper to fetch full thread details from Gmail API and enrich it into EnrichedThread.
+ */
+export async function enrichThreadFromGmail(
+  corsairClient: TenantCorsair,
+  t: { id: string; snippet?: string; historyId?: string },
+  forceStarred?: boolean
+): Promise<EnrichedThread | null> {
+  try {
+    const full = await corsairClient.gmail.api.threads.get({ id: t.id, format: "full" });
+    const messages: GmailMessage[] = full?.messages || [];
+    const lastMsg = messages[messages.length - 1] || {};
+    const firstMsg = messages[0] || {};
+    const latestIncomingMessage = getLatestIncomingMessage(messages);
+
+    const getHeader = (name: string): string | undefined => {
+      let h = (lastMsg?.payload?.headers || []).find(
+        (h: GmailHeader) => h.name?.toLowerCase() === name.toLowerCase()
+      );
+      if (h) return h.value;
+      h = (firstMsg?.payload?.headers || []).find(
+        (h: GmailHeader) => h.name?.toLowerCase() === name.toLowerCase()
+      );
+      if (h) return h.value;
+      for (const msg of messages) {
+        h = (msg.payload?.headers || []).find(
+          (h: GmailHeader) => h.name?.toLowerCase() === name.toLowerCase()
+        );
+        if (h) return h.value;
+      }
+      return undefined;
+    };
+
+    const subject = getHeader("subject") || t.snippet?.slice(0, 60) || "No Subject";
+    const fromRaw =
+      getMessageHeader(latestIncomingMessage, "from") ||
+      getHeader("from") ||
+      "Unknown Sender";
+    const dateRaw = getHeader("date");
+    const createdAt = getMessageTime(latestIncomingMessage, dateRaw);
+    const isUnread = messages.some((m: GmailMessage) => m.labelIds?.includes("UNREAD"));
+
+    const allLabelIds = Array.from(
+      new Set(messages.flatMap((m: GmailMessage) => m.labelIds || []))
+    );
+    const isStarred = Boolean(forceStarred || allLabelIds.includes("STARRED"));
+
+    // Extract full email bodies
+    let bodyHtml = "";
+    let bodyText = "";
+    for (let i = messages.length - 1; i >= 0; i--) {
+      const { html, text } = parseMessagePart(messages[i]?.payload);
+      if (html && !bodyHtml) bodyHtml = html;
+      if (text && !bodyText) bodyText = text;
+      if (bodyHtml && bodyText) break;
+    }
+
+    const parsedMessages: ThreadMessageItem[] = messages.map((msg: GmailMessage) => {
+      const getMsgH = (name: string): string | undefined => {
+        return (msg.payload?.headers || []).find(
+          (h: GmailHeader) => h.name?.toLowerCase() === name.toLowerCase()
+        )?.value;
+      };
+      const { text, html } = parseMessagePart(msg.payload);
+      return {
+        id: msg.id || "",
+        from: getMsgH("from") || "Unknown Sender",
+        to: getMsgH("to"),
+        date: getMsgH("date"),
+        snippet: msg.snippet || "",
+        bodyText: text || msg.snippet || "",
+        bodyHtml: html || "",
+      };
+    });
+
+    return {
+      id: t.id,
+      entity_id: t.id,
+      snippet: t.snippet || (lastMsg.snippet as string | undefined) || "",
+      subject,
+      from: fromRaw,
+      createdAt,
+      created_at: createdAt,
+      updated_at: createdAt,
+      unread: isUnread,
+      historyId: t.historyId,
+      messagesCount: messages.length,
+      body: bodyText || t.snippet || "",
+      bodyHtml: bodyHtml || "",
+      messages: parsedMessages,
+      starred: isStarred,
+      labelIds: allLabelIds,
+    };
+  } catch (err) {
+    console.warn(`Failed to enrich thread ${t.id}:`, err);
+    return null;
+  }
+}
+
+/**
  * Smart sync:
  * 1. Makes 1 threads.list call to the Gmail API.
  * 2. Checks local DB: skips threads.get only when the cached Gmail historyId
@@ -669,9 +857,6 @@ export async function syncInboxThreadsFromApi(
     if (!hasUsableCache || hasChangedOnGmail) {
       threadsToFetch.push({ id: t.id, snippet: t.snippet, historyId: t.historyId });
     } else if (cached) {
-      // Corsair's threads.list persists a minimal `{ id, snippet, historyId }`
-      // entity as a side effect. Restore our richer cache entry so an unchanged
-      // thread does not lose its sender, internal date, or body after a sync.
       cachedThreadsToRestore.push({
         ...cached,
         snippet: t.snippet || cached.snippet,
@@ -688,90 +873,7 @@ export async function syncInboxThreadsFromApi(
   if (threadsToFetch.length > 0) {
     const newlyEnriched = await batchedMap(
       threadsToFetch,
-      async (t) => {
-        try {
-          const full = await corsairClient.gmail.api.threads.get({ id: t.id, format: "full" });
-          const messages: GmailMessage[] = full?.messages || [];
-          const lastMsg = messages[messages.length - 1] || {};
-          const firstMsg = messages[0] || {};
-          const latestIncomingMessage = getLatestIncomingMessage(messages);
-
-          const getHeader = (name: string): string | undefined => {
-            let h = (lastMsg?.payload?.headers || []).find(
-              (h: GmailHeader) => h.name?.toLowerCase() === name.toLowerCase()
-            );
-            if (h) return h.value;
-            h = (firstMsg?.payload?.headers || []).find(
-              (h: GmailHeader) => h.name?.toLowerCase() === name.toLowerCase()
-            );
-            if (h) return h.value;
-            for (const msg of messages) {
-              h = (msg.payload?.headers || []).find(
-                (h: GmailHeader) => h.name?.toLowerCase() === name.toLowerCase()
-              );
-              if (h) return h.value;
-            }
-            return undefined;
-          };
-
-          const subject = getHeader("subject") || t.snippet?.slice(0, 60) || "No Subject";
-          const fromRaw =
-            getMessageHeader(latestIncomingMessage, "from") ||
-            getHeader("from") ||
-            "Unknown Sender";
-          const dateRaw = getHeader("date");
-          const createdAt = getMessageTime(latestIncomingMessage, dateRaw);
-          const isUnread = messages.some((m: GmailMessage) => m.labelIds?.includes("UNREAD"));
-
-          // Extract full email bodies
-          let bodyHtml = "";
-          let bodyText = "";
-          for (let i = messages.length - 1; i >= 0; i--) {
-            const { html, text } = parseMessagePart(messages[i]?.payload);
-            if (html && !bodyHtml) bodyHtml = html;
-            if (text && !bodyText) bodyText = text;
-            if (bodyHtml && bodyText) break;
-          }
-
-          const parsedMessages: ThreadMessageItem[] = messages.map((msg: GmailMessage) => {
-            const getMsgH = (name: string): string | undefined => {
-              return (msg.payload?.headers || []).find(
-                (h: GmailHeader) => h.name?.toLowerCase() === name.toLowerCase()
-              )?.value;
-            };
-            const { text, html } = parseMessagePart(msg.payload);
-            return {
-              id: msg.id || "",
-              from: getMsgH("from") || "Unknown Sender",
-              to: getMsgH("to"),
-              date: getMsgH("date"),
-              snippet: msg.snippet || "",
-              bodyText: text || msg.snippet || "",
-              bodyHtml: html || "",
-            };
-          });
-
-          return {
-            id: t.id,
-            entity_id: t.id,
-            snippet: t.snippet || (lastMsg.snippet as string | undefined) || "",
-            subject,
-            from: fromRaw,
-            createdAt,
-            created_at: createdAt,
-            updated_at: createdAt,
-            unread: isUnread,
-            historyId: t.historyId,
-            messagesCount: messages.length,
-            body: bodyText || t.snippet || "",
-            bodyHtml: bodyHtml || "",
-            messages: parsedMessages,
-          } as EnrichedThread;
-        } catch (err) {
-          console.warn(`Failed to enrich thread ${t.id}:`, err);
-          return null;
-        }
-      },
+      (t) => enrichThreadFromGmail(corsairClient, t),
       2,   // batch size 2
       250  // 250ms pause between batches
     );
@@ -796,6 +898,261 @@ export async function syncInboxThreadsFromApi(
   }
 
   return existingDbThreads;
+}
+
+export interface StarredThreadsResult {
+  threads: EnrichedThread[];
+  nextPageToken?: string;
+  stale?: boolean;
+}
+
+/**
+ * Get starred email threads for a tenant.
+ * 1. Reads cached starred threads from DB.
+ * 2. Refreshes live from Gmail API (`labelIds: ["STARRED"]`), enriches, and upserts to cache.
+ * 3. If Gmail refresh fails, returns cached starred threads with `stale: true` without throwing.
+ */
+export async function getStarredThreads(
+  tenantId: string,
+  options: { limit?: number; pageToken?: string; cachedOnly?: boolean } = {}
+): Promise<StarredThreadsResult> {
+  const limit = Math.min(Math.max(options.limit ?? 25, 1), 50);
+  const pageToken = options.pageToken;
+
+  // 1. Return cached threads that have the STARRED label from the DB cache, newest first
+  const cachedStarred = await getStarredThreadsFromDb(tenantId);
+
+  if (options.cachedOnly) {
+    return {
+      threads: cachedStarred,
+      nextPageToken: undefined,
+      stale: false,
+    };
+  }
+
+  const accountId = await getGmailAccountId(tenantId);
+  if (!accountId) {
+    return {
+      threads: cachedStarred,
+      nextPageToken: undefined,
+      stale: false,
+    };
+  }
+
+  // 2. Also refresh from Gmail so older starred threads not in the cache appear
+  try {
+    const corsairClient = corsair.withTenant(tenantId);
+    const res = await corsairClient.gmail.api.threads.list({
+      labelIds: ["STARRED"],
+      maxResults: limit,
+      ...(pageToken ? { pageToken } : {}),
+    });
+
+    const rawThreads = res?.threads || [];
+    const nextPageToken = res?.nextPageToken;
+
+    if (!rawThreads.length) {
+      return {
+        threads: pageToken ? [] : cachedStarred,
+        nextPageToken: undefined,
+        stale: false,
+      };
+    }
+
+    const cachedMap = new Map<string, EnrichedThread>(
+      cachedStarred.map((t) => [t.id, t])
+    );
+
+    const threadsToFetch: { id: string; snippet?: string; historyId?: string }[] = [];
+    const unchangedThreads: EnrichedThread[] = [];
+
+    for (const t of rawThreads) {
+      if (!t.id) continue;
+      const cached = cachedMap.get(t.id);
+      const hasUsable = hasUsableThreadMetadata(cached);
+      const hasChanged = Boolean(t.historyId && cached?.historyId !== t.historyId);
+
+      if (!hasUsable || hasChanged) {
+        threadsToFetch.push({ id: t.id, snippet: t.snippet, historyId: t.historyId });
+      } else if (cached) {
+        unchangedThreads.push({
+          ...cached,
+          snippet: t.snippet || cached.snippet,
+          historyId: t.historyId || cached.historyId,
+          starred: true,
+        });
+      }
+    }
+
+    let newlyEnriched: EnrichedThread[] = [];
+    if (threadsToFetch.length > 0) {
+      const enrichedResults = await batchedMap(
+        threadsToFetch,
+        (t) => enrichThreadFromGmail(corsairClient, t, true),
+        2,
+        250
+      );
+      newlyEnriched = enrichedResults.filter((t): t is EnrichedThread => t !== null);
+      if (newlyEnriched.length > 0) {
+        await saveEnrichedThreadsToDb(accountId, newlyEnriched);
+      }
+    }
+
+    // If pageToken was requested (pagination), return the threads for this page
+    if (pageToken) {
+      const pageThreads = [...newlyEnriched, ...unchangedThreads];
+      pageThreads.sort((a, b) => {
+        const timeA = new Date(a.createdAt).getTime();
+        const timeB = new Date(b.createdAt).getTime();
+        return (isNaN(timeB) ? 0 : timeB) - (isNaN(timeA) ? 0 : timeA);
+      });
+      return {
+        threads: pageThreads,
+        nextPageToken,
+        stale: false,
+      };
+    }
+
+    // For first page: re-query all cached starred from DB to ensure complete ordered list
+    const updatedStarred = await getStarredThreadsFromDb(tenantId);
+    return {
+      threads: updatedStarred.length > 0 ? updatedStarred : [...newlyEnriched, ...unchangedThreads],
+      nextPageToken,
+      stale: false,
+    };
+  } catch (err) {
+    console.warn("Gmail getStarredThreads refresh failed, returning cached:", err);
+    return {
+      threads: cachedStarred,
+      nextPageToken: undefined,
+      stale: true,
+    };
+  }
+}
+
+/**
+ * Remove STARRED label from a thread in Gmail and update the DB cache.
+ */
+export async function unstarThread(
+  tenantId: string,
+  threadId: string
+): Promise<{ success: boolean }> {
+  const accountId = await getGmailAccountId(tenantId);
+  const corsairClient = corsair.withTenant(tenantId);
+
+  // 1. Remove STARRED label in Gmail via Corsair
+  await corsairClient.gmail.api.threads.modify({
+    id: threadId,
+    removeLabelIds: ["STARRED"],
+  });
+
+  // 2. Update local DB cache so next read does not show this thread as starred
+  if (accountId) {
+    try {
+      const rows = await db
+        .select()
+        .from(corsairEntities)
+        .where(
+          and(
+            eq(corsairEntities.accountId, accountId),
+            eq(corsairEntities.entityType, "threads"),
+            eq(corsairEntities.entityId, threadId)
+          )
+        )
+        .limit(1);
+
+      if (rows[0]) {
+        const existingData = (rows[0].data || {}) as CachedThreadData;
+        const currentLabels = Array.isArray(existingData.labelIds) ? existingData.labelIds : [];
+        const updatedLabelIds = currentLabels.filter((l) => l !== "STARRED");
+        const updatedData = {
+          ...existingData,
+          starred: false,
+          labelIds: updatedLabelIds,
+        };
+
+        await db
+          .update(corsairEntities)
+          .set({
+            data: updatedData,
+            updatedAt: new Date(),
+          })
+          .where(eq(corsairEntities.id, rows[0].id));
+      }
+    } catch (err) {
+      console.warn("Failed to update cache after unstarring:", err);
+    }
+  }
+
+  return { success: true };
+}
+
+/**
+ * Add STARRED label to a thread in Gmail and update the DB cache.
+ */
+export async function starThread(
+  tenantId: string,
+  threadId: string
+): Promise<{ success: boolean }> {
+  const accountId = await getGmailAccountId(tenantId);
+  const corsairClient = corsair.withTenant(tenantId);
+
+  await corsairClient.gmail.api.threads.modify({
+    id: threadId,
+    addLabelIds: ["STARRED"],
+  });
+
+  if (accountId) {
+    try {
+      const rows = await db
+        .select()
+        .from(corsairEntities)
+        .where(
+          and(
+            eq(corsairEntities.accountId, accountId),
+            eq(corsairEntities.entityType, "threads"),
+            eq(corsairEntities.entityId, threadId)
+          )
+        )
+        .limit(1);
+
+      if (rows[0]) {
+        const existingData = (rows[0].data || {}) as CachedThreadData;
+        const currentLabels = Array.isArray(existingData.labelIds) ? existingData.labelIds : [];
+        const updatedLabelIds = currentLabels.includes("STARRED")
+          ? currentLabels
+          : [...currentLabels, "STARRED"];
+        const updatedData = {
+          ...existingData,
+          starred: true,
+          labelIds: updatedLabelIds,
+        };
+
+        await db
+          .update(corsairEntities)
+          .set({
+            data: updatedData,
+            updatedAt: new Date(),
+          })
+          .where(eq(corsairEntities.id, rows[0].id));
+      }
+    } catch (err) {
+      console.warn("Failed to update cache after starring:", err);
+    }
+  }
+
+  return { success: true };
+}
+
+/**
+ * Toggle the STARRED status of a thread.
+ */
+export async function toggleStarThread(
+  tenantId: string,
+  threadId: string,
+  starred: boolean
+): Promise<{ success: boolean }> {
+  return starred ? starThread(tenantId, threadId) : unstarThread(tenantId, threadId);
 }
 
 export interface SendGmailMessageInput {

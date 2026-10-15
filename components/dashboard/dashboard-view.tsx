@@ -179,9 +179,10 @@ export function DashboardView({
       setView("default");
       setSelectedEmail(null);
       setActiveConversationId(nav.replace("chat-", ""));
-    } else if (nav === "starred" || nav === "drafts" || nav === "sent") {
-      setView("default");
-      setSelectedEmail(null);
+    } else if (nav === "starred") {
+      router.push("/dashboard/inbox?folder=starred");
+    } else if (nav === "drafts" || nav === "sent") {
+      router.push(`/dashboard/inbox?folder=${nav}`);
     }
   };
 

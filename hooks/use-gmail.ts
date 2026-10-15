@@ -189,3 +189,199 @@ export function useGmailThreads() {
     sync: () => syncFromApi(true),
   };
 }
+
+export interface UseStarredThreadsResult {
+  threads: GmailThread[];
+  isLoading: boolean;
+  isRefreshing: boolean;
+  error: string | null;
+  hasMore: boolean;
+  loadMore: () => Promise<void>;
+  refresh: () => Promise<void>;
+  unstar: (threadId: string | number) => Promise<boolean>;
+  isStale: boolean;
+  stale: boolean;
+}
+
+export function useStarredThreads(): UseStarredThreadsResult {
+  const router = useRouter();
+  const [threads, setThreads] = useState<GmailThread[]>([]);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [isRefreshing, setIsRefreshing] = useState<boolean>(false);
+  const [error, setError] = useState<string | null>(null);
+  const [nextPageToken, setNextPageToken] = useState<string | null>(null);
+  const [isStale, setIsStale] = useState<boolean>(false);
+  const mountedRef = useRef(true);
+  const initialLoadDone = useRef(false);
+
+  const fetchStarred = useCallback(
+    async (isBackground = false, pageToken?: string, cachedOnly = false): Promise<void> => {
+      if (!isBackground && !pageToken && !cachedOnly) {
+        setIsLoading(true);
+      } else if (isBackground) {
+        setIsRefreshing(true);
+      }
+      setError(null);
+
+      try {
+        const queryParams = new URLSearchParams({ limit: "25" });
+        if (pageToken) queryParams.set("pageToken", pageToken);
+        if (cachedOnly) queryParams.set("cached", "1");
+
+        const res = await fetch(`/api/gmail/starred?${queryParams.toString()}`);
+
+        if (!res.ok) {
+          if (res.status === 401) {
+            router.push("/login?expired=1");
+            return;
+          }
+          const errorData = (await res.json().catch(() => null)) as {
+            error?: string;
+            notConnected?: boolean;
+          } | null;
+          if (res.status === 404 && (errorData?.notConnected || errorData?.error?.includes("not connected"))) {
+            if (mountedRef.current) {
+              setThreads([]);
+              setIsLoading(false);
+              setIsRefreshing(false);
+            }
+            return;
+          }
+          throw new Error(errorData?.error || `Failed to fetch starred threads (${res.status})`);
+        }
+
+        const data = (await res.json()) as {
+          threads?: GmailThread[];
+          nextPageToken?: string;
+          stale?: boolean;
+        };
+
+        const extracted = extractThreads(data);
+
+        if (mountedRef.current) {
+          if (pageToken) {
+            setThreads((prev) => {
+              const seen = new Set(prev.map((t) => t.entity_id || t.id || t.data?.id));
+              const deduped = extracted.filter(
+                (t) => !seen.has(t.entity_id || t.id || t.data?.id)
+              );
+              return [...prev, ...deduped];
+            });
+          } else {
+            setThreads(extracted);
+          }
+          setNextPageToken(data.nextPageToken || null);
+          setIsStale(Boolean(data.stale));
+
+          // If cached data was loaded and has items, turn off skeleton loading right away
+          if (cachedOnly && extracted.length > 0) {
+            setIsLoading(false);
+          }
+        }
+      } catch (err: unknown) {
+        if (mountedRef.current) {
+          const message = err instanceof Error ? err.message : "Failed to load starred threads";
+          console.error("useStarredThreads fetch error:", err);
+          setError(message);
+        }
+      } finally {
+        if (mountedRef.current) {
+          if (!cachedOnly) {
+            setIsLoading(false);
+            setIsRefreshing(false);
+          }
+        }
+      }
+    },
+    [router]
+  );
+
+  useEffect(() => {
+    mountedRef.current = true;
+
+    async function init() {
+      // 1. Immediately load cached DB data for instant render
+      await fetchStarred(false, undefined, true);
+
+      // 2. Quietly refresh in background from Gmail API
+      if (mountedRef.current) {
+        try {
+          await fetchStarred(true);
+        } catch {
+          // DB data already shown
+        }
+      }
+    }
+
+    if (!initialLoadDone.current) {
+      initialLoadDone.current = true;
+      init();
+    }
+
+    return () => {
+      mountedRef.current = false;
+    };
+  }, [fetchStarred]);
+
+  const refresh = useCallback(async () => {
+    await fetchStarred(true);
+  }, [fetchStarred]);
+
+  const loadMore = useCallback(async () => {
+    if (!nextPageToken || isLoading || isRefreshing) return;
+    await fetchStarred(false, nextPageToken);
+  }, [fetchStarred, nextPageToken, isLoading, isRefreshing]);
+
+  const unstar = useCallback(
+    async (threadId: string | number): Promise<boolean> => {
+      const idStr = String(threadId);
+      let originalThreads: GmailThread[] = [];
+
+      // Optimistic removal: remove immediately
+      setThreads((prev) => {
+        originalThreads = prev;
+        return prev.filter((t) => {
+          const tid = t.entity_id || t.id || t.data?.id;
+          return tid !== undefined && String(tid) !== idStr;
+        });
+      });
+
+      try {
+        const res = await fetch(`/api/gmail/threads/${encodeURIComponent(idStr)}/star`, {
+          method: "DELETE",
+          headers: { "Content-Type": "application/json" },
+        });
+
+        if (!res.ok) {
+          const data = (await res.json().catch(() => ({}))) as { error?: string };
+          throw new Error(data.error || `Failed to unstar (${res.status})`);
+        }
+
+        return true;
+      } catch (err: unknown) {
+        console.error("Failed to unstar thread, rolling back:", err);
+        // Restore threads on failure
+        if (mountedRef.current) {
+          setThreads(originalThreads);
+          const message = err instanceof Error ? err.message : "Failed to unstar email";
+          setError(message);
+        }
+        return false;
+      }
+    },
+    []
+  );
+
+  return {
+    threads,
+    isLoading,
+    isRefreshing,
+    error,
+    hasMore: Boolean(nextPageToken),
+    loadMore,
+    refresh,
+    unstar,
+    isStale,
+    stale: isStale,
+  };
+}

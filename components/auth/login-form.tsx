@@ -13,6 +13,7 @@ export function LoginForm() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
+  const [googleLoading, setGoogleLoading] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [touched, setTouched] = useState<Record<string, boolean>>({});
   const [formError, setFormError] = useState<string | null>(null);
@@ -32,6 +33,7 @@ export function LoginForm() {
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
+    if (googleLoading) return;
     setTouched({ email: true, password: true });
     setFormError(null);
 
@@ -56,7 +58,24 @@ export function LoginForm() {
   }
 
   async function handleGoogle() {
-    await authClient.signIn.social({ provider: "google", callbackURL: "/dashboard" });
+    if (loading || googleLoading) return;
+    setFormError(null);
+    setGoogleLoading(true);
+    try {
+      const { error } = await authClient.signIn.social({
+        provider: "google",
+        callbackURL: "/dashboard",
+      });
+      if (error) {
+        setFormError(error.message || "Failed to continue with Google.");
+        setGoogleLoading(false);
+      }
+    } catch (err) {
+      setFormError(
+        err instanceof Error ? err.message : "Failed to continue with Google."
+      );
+      setGoogleLoading(false);
+    }
   }
 
   function err(f: string) {
@@ -120,20 +139,20 @@ export function LoginForm() {
         {/* Primary CTA */}
         <button
           type="submit"
-          disabled={loading}
+          disabled={loading || googleLoading}
           className={[
             "w-full h-9 mt-0.5 rounded-[7px] text-[13.5px] font-semibold transition-all duration-150",
             "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#245C4A] focus-visible:ring-offset-2",
-            loading
+            loading || googleLoading
               ? "cursor-not-allowed text-white"
               : "active:scale-[0.99] text-white cursor-pointer",
           ].join(" ")}
           style={{ background: loading ? "#3D7A63" : "#245C4A" }}
           onMouseEnter={(e) => {
-            if (!loading) e.currentTarget.style.background = "#1B493A";
+            if (!loading && !googleLoading) e.currentTarget.style.background = "#1B493A";
           }}
           onMouseLeave={(e) => {
-            if (!loading) e.currentTarget.style.background = "#245C4A";
+            if (!loading && !googleLoading) e.currentTarget.style.background = "#245C4A";
           }}
           aria-label={loading ? "Logging in…" : "Log in"}
         >
@@ -182,10 +201,48 @@ export function LoginForm() {
         <button
           type="button"
           onClick={handleGoogle}
-          className="w-full h-9 flex items-center justify-center gap-2 rounded-[7px] text-[13.5px] font-medium text-[#242424] bg-white border border-[#E5E1D8] hover:bg-[#F8F6F0] hover:border-[#C8C3BA] transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#245C4A] focus-visible:ring-offset-2 active:scale-[0.99] cursor-pointer"
+          disabled={loading || googleLoading}
+          className={[
+            "w-full h-9 flex items-center justify-center gap-2 rounded-[7px] text-[13.5px] font-medium transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#245C4A] focus-visible:ring-offset-2",
+            loading || googleLoading
+              ? "opacity-60 cursor-not-allowed bg-white border border-[#E5E1D8] text-[#77736D]"
+              : "text-[#242424] bg-white border border-[#E5E1D8] hover:bg-[#F8F6F0] hover:border-[#C8C3BA] active:scale-[0.99] cursor-pointer",
+          ].join(" ")}
+          aria-label={googleLoading ? "Connecting to Google…" : "Continue with Google"}
         >
-          <GoogleIcon />
-          Continue with Google
+          {googleLoading ? (
+            <span className="flex items-center justify-center gap-2 text-[#77736D]">
+              <svg
+                className="animate-spin"
+                width="14"
+                height="14"
+                viewBox="0 0 14 14"
+                fill="none"
+                aria-hidden="true"
+              >
+                <circle
+                  cx="7"
+                  cy="7"
+                  r="5.5"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeOpacity="0.25"
+                />
+                <path
+                  d="M7 1.5a5.5 5.5 0 015.5 5.5"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                />
+              </svg>
+              Connecting to Google…
+            </span>
+          ) : (
+            <>
+              <GoogleIcon />
+              Continue with Google
+            </>
+          )}
         </button>
       </form>
 

@@ -15,4 +15,5 @@ export type {
   ParsedBody,
   EnrichedThread,
   ThreadMessageItem,
+  StarredThreadsResult,
 } from "./server";

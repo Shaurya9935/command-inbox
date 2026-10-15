@@ -1,7 +1,7 @@
 "use client";
 
-import React, { useState, useMemo, useEffect, useRef } from "react";
-import { useRouter } from "next/navigation";
+import React, { useState, useMemo, useEffect, useRef, Suspense } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useGmailThreads, GmailThread } from "@/hooks/use-gmail";
 import { useCurrentTime } from "@/hooks/use-current-time";
 import { Email } from "@/components/dashboard/types";
@@ -9,6 +9,7 @@ import { Avatar } from "@/components/dashboard/avatar";
 import { Dot } from "@/components/dashboard/dot";
 import { Sidebar } from "@/components/dashboard/sidebar";
 import { EmailBodyContent } from "@/components/inbox/email-body";
+import { StarredView } from "@/components/inbox/starred-view";
 import {
   InboxIcon,
   StarIcon,
@@ -127,9 +128,13 @@ function mapThreadToEmail(thread: GmailThread, index: number): Email {
   };
 }
 
-export default function InboxPage() {
+function InboxInner() {
   const router = useRouter();
-  const [activeFolder, setActiveFolder] = useState("inbox");
+  const searchParams = useSearchParams();
+  const folderParam = searchParams.get("folder");
+  const [folderState, setFolderState] = useState<string | null>(null);
+  const activeFolder = folderParam || folderState || "inbox";
+  const setActiveFolder = (folder: string) => setFolderState(folder);
   const [starredIds, setStarredIds] = useState<Set<string | number>>(new Set());
   const [sidebarCollapsed, setSidebarCollapsed] = useState(true);
   const [secondaryOpen, setSecondaryOpen] = useState(true);
@@ -366,6 +371,11 @@ export default function InboxPage() {
             nav.startsWith("label-")
           ) {
             setActiveFolder(nav);
+            if (nav === "inbox") {
+              router.push("/dashboard/inbox");
+            } else {
+              router.push(`/dashboard/inbox?folder=${encodeURIComponent(nav)}`);
+            }
           } else if (nav === "calendar" || nav === "today" || nav === "upcoming") {
             router.push("/dashboard/calendar");
           } else {
@@ -377,8 +387,14 @@ export default function InboxPage() {
         inboxBadge={unreadCount}
       />
 
-      {/* ── Main Inbox Content Area ── */}
-      <div
+      {activeFolder === "starred" ? (
+        <StarredView
+          sidebarCollapsed={sidebarCollapsed}
+          onToggleSidebar={() => setSidebarCollapsed((prev) => !prev)}
+        />
+      ) : (
+        /* ── Main Inbox Content Area ── */
+        <div
         style={{
           flex: 1,
           display: "flex",
@@ -1111,6 +1127,15 @@ export default function InboxPage() {
         </div>
       </div>
     </div>
-  </div>
+  )}
+</div>
 );
+}
+
+export default function InboxPage() {
+  return (
+    <Suspense fallback={null}>
+      <InboxInner />
+    </Suspense>
+  );
 }
