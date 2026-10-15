@@ -245,7 +245,7 @@ export function Hero() {
           gets things done, with your approval.
         </motion.p>
         <motion.div className="hero-actions" variants={entrance}>
-          <a href="#early-access" className="button button-primary">
+          <a href="#early-access" className="button button-primary text-white">
             Get early access
           </a>
           <a

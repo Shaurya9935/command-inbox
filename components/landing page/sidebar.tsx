@@ -44,11 +44,11 @@ export function Sidebar({ activeItem = "Inbox" }: { activeItem?: SidebarItem }) 
         <span className="text-[15px] font-semibold leading-none">Nexus</span>
       </div>
       <button className="relative mt-5 flex h-10 w-full shrink-0 items-center justify-center whitespace-nowrap rounded-[10px] bg-accent px-3 text-[14px] font-medium text-white">
-        <span className="flex items-center gap-2">
-          <span className="text-[16px] leading-none">+</span>
-          <span>New command</span>
+        <span className="flex items-center gap-2 text-white">
+          <span className="text-[16px] leading-none text-white">+</span>
+          <span className="text-white">New command</span>
         </span>
-        <kbd className="absolute right-3 font-mono text-[11px] font-normal text-white/60">
+        <kbd className="absolute right-3 font-mono text-[11px] font-normal text-white">
           ⌘K
         </kbd>
       </button>

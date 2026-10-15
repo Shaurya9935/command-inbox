@@ -39,7 +39,7 @@ export function Navbar() {
         <div className="flex items-center gap-2">
           <a
             href="#early-access"
-            className="button button-primary button-small"
+            className="button button-primary button-small text-white text-[11px]"
           >
             Get early access
           </a>

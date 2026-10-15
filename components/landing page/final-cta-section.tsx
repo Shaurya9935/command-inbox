@@ -42,7 +42,7 @@ export function FinalCTA() {
             placeholder="Work email"
             className="h-12 flex-1 rounded-xl border border-line bg-white px-4 text-sm outline-none transition-shadow placeholder:text-muted/60 focus:border-accent focus:ring-4 focus:ring-accent/10"
           />
-          <button type="submit" className="button button-primary h-12 justify-center">
+          <button type="submit" className="button button-primary h-12 justify-center text-white">
             {submitted ? "You're on the list!" : "Get early access"}
           </button>
         </form>

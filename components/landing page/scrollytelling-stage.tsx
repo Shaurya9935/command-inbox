@@ -138,7 +138,7 @@ export function StagePinned() {
           <p className="mono-kicker">YOUR DAY, CONNECTED</p>
           <h2>Stop switching apps.</h2>
           <div className="mt-5 flex justify-center gap-4">
-            <a href="#early-access" className="button button-primary">
+            <a href="#early-access" className="button button-primary text-white">
               Get early access
             </a>
             <a
