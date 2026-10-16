@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
+import Image from "next/image";
 import { AuthLayout } from "@/components/auth/auth-layout";
 
 type Service = "gmail" | "calendar";
@@ -121,22 +122,14 @@ export function ConnectClient() {
                   border: "1px solid #FCE8E6",
                 }}
               >
-                <svg width={20} height={20} viewBox="0 0 24 24" fill="none">
-                  <path
-                    d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"
-                    stroke="#EA4335"
-                    strokeWidth="1.8"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
-                  <path
-                    d="M22 6l-10 7L2 6"
-                    stroke="#EA4335"
-                    strokeWidth="1.8"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
-                </svg>
+                <Image
+                  src="/icons/gmail.png"
+                  alt="Gmail"
+                  width={24}
+                  height={24}
+                  style={{ objectFit: "contain" }}
+                  priority
+                />
               </div>
 
               <div style={{ minWidth: 0 }}>
@@ -208,26 +201,14 @@ export function ConnectClient() {
                   border: "1px solid #E1EDFC",
                 }}
               >
-                <svg width={20} height={20} viewBox="0 0 24 24" fill="none">
-                  <rect
-                    x="3"
-                    y="4"
-                    width="18"
-                    height="17"
-                    rx="2"
-                    stroke="#1A73E8"
-                    strokeWidth="1.8"
-                  />
-                  <path
-                    d="M3 9h18M8 2v4M16 2v4"
-                    stroke="#1A73E8"
-                    strokeWidth="1.8"
-                    strokeLinecap="round"
-                  />
-                  <rect x="7" y="12" width="3" height="3" rx="0.5" fill="#1A73E8" />
-                  <rect x="11.5" y="12" width="3" height="3" rx="0.5" fill="#1A73E8" />
-                  <rect x="11.5" y="16" width="3" height="3" rx="0.5" fill="#1A73E8" />
-                </svg>
+                <Image
+                  src="/icons/google-calendar.png"
+                  alt="Google Calendar"
+                  width={24}
+                  height={24}
+                  style={{ objectFit: "contain" }}
+                  priority
+                />
               </div>
 
               <div style={{ minWidth: 0 }}>

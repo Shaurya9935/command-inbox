@@ -2,6 +2,7 @@
 
 import React, { useState } from "react";
 import { IntegrationApp } from "./connect-types";
+import { GmailBrandIcon, GoogleCalendarBrandIcon } from "./brand-icons";
 
 export interface ConnectModalProps {
   app: IntegrationApp;
@@ -77,15 +78,27 @@ export function ConnectModal({
                 borderRadius: 10,
                 background: app.bgAccent,
                 border: `1px solid ${app.accentColor}25`,
-                color: app.accentColor,
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
-                fontSize: 18,
-                fontWeight: 700,
+                flexShrink: 0,
               }}
             >
-              {app.name[0]}
+              {app.id === "gmail" ? (
+                <GmailBrandIcon size={26} />
+              ) : app.id === "calendar" ? (
+                <GoogleCalendarBrandIcon size={26} />
+              ) : (
+                <span
+                  style={{
+                    color: app.accentColor,
+                    fontSize: 18,
+                    fontWeight: 700,
+                  }}
+                >
+                  {app.name[0]}
+                </span>
+              )}
             </div>
             <div>
               <h3 style={{ margin: 0, fontSize: 17, fontWeight: 600, color: "#1A1917" }}>

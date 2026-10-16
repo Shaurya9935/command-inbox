@@ -1,65 +1,36 @@
 import React from "react";
+import Image from "next/image";
 
 export interface BrandIconProps {
   size?: number;
   className?: string;
 }
 
-export function GmailBrandIcon({ size = 32 }: BrandIconProps) {
+export function GmailBrandIcon({ size = 32, className }: BrandIconProps) {
   return (
-    <svg width={size} height={size} viewBox="0 0 48 48" fill="none">
-      <path
-        d="M45 16.2v21.3c0 2.5-2 4.5-4.5 4.5H36V22.5L24 13.5 12 22.5V42H7.5C5 42 3 40 3 37.5V16.2c0-1.8 1-3.4 2.6-4.1l16-8.9c1.5-.8 3.3-.8 4.8 0l16 8.9c1.6.7 2.6 2.3 2.6 4.1z"
-        fill="#EA4335"
-      />
-      <path
-        d="M36 42h4.5c2.5 0 4.5-2 4.5-4.5V16.2c0-1.8-1-3.4-2.6-4.1l-6.4-3.6V42z"
-        fill="#FBBC05"
-      />
-      <path
-        d="M12 42V8.5L5.6 12.1C4 12.8 3 14.4 3 16.2v21.3C3 40 5 42 7.5 42H12z"
-        fill="#4285F4"
-      />
-      <path
-        d="M36 8.5L24 17.5 12 8.5 24 0l12 8.5z"
-        fill="#34A853"
-      />
-      <path
-        d="M36 22.5L24 31.5 12 22.5V42h24V22.5z"
-        fill="#F2F2F2"
-      />
-      <path
-        d="M12 22.5l12 9 12-9V42H12V22.5z"
-        fill="#E0E0E0"
-      />
-      <path
-        d="M24 17.5L36 8.5V22.5L24 31.5 12 22.5V8.5L24 17.5z"
-        fill="#EA4335"
-      />
-    </svg>
+    <Image
+      src="/icons/gmail.png"
+      alt="Gmail"
+      width={size}
+      height={size}
+      className={className}
+      style={{ objectFit: "contain", display: "inline-block" }}
+      priority
+    />
   );
 }
 
-export function GoogleCalendarBrandIcon({ size = 32 }: BrandIconProps) {
+export function GoogleCalendarBrandIcon({ size = 32, className }: BrandIconProps) {
   return (
-    <svg width={size} height={size} viewBox="0 0 48 48" fill="none">
-      <rect width="48" height="48" rx="10" fill="#4285F4" />
-      <rect x="8" y="14" width="32" height="26" rx="4" fill="#FFFFFF" />
-      <rect x="8" y="14" width="32" height="7" rx="3" fill="#1A73E8" />
-      <circle cx="15" cy="11" r="2.5" fill="#FFFFFF" />
-      <circle cx="33" cy="11" r="2.5" fill="#FFFFFF" />
-      <text
-        x="24"
-        y="33"
-        textAnchor="middle"
-        fontFamily="sans-serif"
-        fontSize="14"
-        fontWeight="bold"
-        fill="#1A73E8"
-      >
-        31
-      </text>
-    </svg>
+    <Image
+      src="/icons/google-calendar.png"
+      alt="Google Calendar"
+      width={size}
+      height={size}
+      className={className}
+      style={{ objectFit: "contain", display: "inline-block" }}
+      priority
+    />
   );
 }
 

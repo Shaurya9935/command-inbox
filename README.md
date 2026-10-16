@@ -387,7 +387,7 @@ Turn Command Inbox from an observation portal into a full command center:
   - [x] Create new calendar events with date/time pickers, location, description, and attendee invites.
   - [x] Automatic Google Meet video conferencing link generation for new events.
   - [x] Reschedule / edit existing events (time modifications with timezone awareness).
-  - [ ] Delete / cancel events with confirmation dialogs.
+  - [x] Delete / cancel events with confirmation dialogs.
 - [ ] **Action Confirmation Guards**:
   - [x] AI Assistant confirmation cards before sending emails or modifying meetings.
   - [ ] "Undo" snackbar for destructive actions (archive, delete).
