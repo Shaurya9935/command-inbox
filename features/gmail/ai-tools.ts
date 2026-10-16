@@ -87,7 +87,7 @@ export function gmailTools(ctx: ToolContext): Tool<unknown>[] {
   const sendEmail = strictTool({
     name: "send_email",
     description:
-      "Send an email message via Gmail. Validates recipient address, formats RFC MIME, and initiates sending. If approval is required, notifies you that the action is waiting for approval.",
+      "ONLY for sending a new email or a reply. NEVER use this for drafts, forwarding, labels or any other mail action. Validates recipient address, formats RFC MIME, and initiates sending. If approval is required, notifies you that the action is waiting for approval.",
     parameters: z.object({
       to: z
         .string()

@@ -382,8 +382,10 @@ export async function getEventsInRange({
       if (!evStart) continue;
       const evStartMs = new Date(evStart).getTime();
       if (isNaN(evStartMs) || evStartMs < startMs || evStartMs > endMs) continue;
+      const eventId = row.entityId || (d as { id?: string; eventId?: string }).eventId || (d as { id?: string }).id || "";
       events.push({
-        id: row.entityId || (d as { id?: string }).id || "",
+        eventId,
+        id: eventId,
         title: d.summary || "No Title",
         start: evStart,
         end: evEnd || evStart,
@@ -414,14 +416,18 @@ export async function getEventsInRange({
       hangoutLink?: string;
     }>)
       .filter((ev) => ev.status !== "cancelled")
-      .map((ev) => ({
-        id: ev.id || "",
-        title: ev.summary || "No Title",
-        start: ev.start?.dateTime || ev.start?.date || startISO,
-        end: ev.end?.dateTime || ev.end?.date || endISO,
-        location: ev.location ?? null,
-        meetLink: ev.hangoutLink ?? null,
-      }));
+      .map((ev) => {
+        const eventId = ev.id || "";
+        return {
+          eventId,
+          id: eventId,
+          title: ev.summary || "No Title",
+          start: ev.start?.dateTime || ev.start?.date || startISO,
+          end: ev.end?.dateTime || ev.end?.date || endISO,
+          location: ev.location ?? null,
+          meetLink: ev.hangoutLink ?? null,
+        };
+      });
   }
 
   events.sort((a, b) => new Date(a.start).getTime() - new Date(b.start).getTime());

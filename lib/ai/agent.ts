@@ -28,7 +28,7 @@ export { getPendingPermissions };
 export { extractAndValidateEmail } from "@/lib/validation/email";
 export { buildMimeMessage } from "@/features/gmail/mime";
 
-const MAX_TURNS = 5;
+const MAX_TURNS = 10;
 
 export async function runCommand({
   tenantId,
