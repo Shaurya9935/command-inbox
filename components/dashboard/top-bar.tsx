@@ -68,7 +68,7 @@ export function TopBar({
     if (view === "calendar") {
       return "Today's schedule";
     }
-    return "Command Inbox";
+    return "Nexus";
   };
 
   return (

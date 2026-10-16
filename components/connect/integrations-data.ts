@@ -78,7 +78,7 @@ export const DEFAULT_INTEGRATIONS: IntegrationApp[] = [
     name: "Slack",
     tagline: "Team Messaging & Channel Alerts",
     description:
-      "Receive channel pings, turn important thread discussions into tasks, and reply directly from Command Inbox.",
+      "Receive channel pings, turn important thread discussions into tasks, and reply directly from Nexus.",
     category: "communication",
     categoryLabel: "Team Collaboration",
     connected: false,

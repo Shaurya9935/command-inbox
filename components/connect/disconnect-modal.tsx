@@ -92,7 +92,7 @@ export function DisconnectModal({
 
         <p style={{ margin: "0 0 20px", fontSize: 13, lineHeight: 1.5, color: "#57534E" }}>
           Disconnecting <strong>{app.name}</strong> will revoke access and stop automatic synchronization
-          with your Command Inbox. You can re-authorize this connection at any time.
+          with your Nexus. You can re-authorize this connection at any time.
         </p>
 
         <div style={{ display: "flex", alignItems: "center", justifyContent: "flex-end", gap: 10 }}>

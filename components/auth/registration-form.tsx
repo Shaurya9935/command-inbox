@@ -124,7 +124,7 @@ export function RegistrationForm() {
       <div className="flex items-center gap-2 mb-8">
         <CommandInboxIcon size={26} />
         <span className="text-[16px] font-semibold tracking-[-0.3px] text-[#242424]">
-          Command Inbox
+          Nexus
         </span>
       </div>
 

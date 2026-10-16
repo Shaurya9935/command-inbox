@@ -1,12 +1,12 @@
-# Command Inbox
+# Nexus
 
 > **One command center for your digital life.**
 
-Command Inbox is an AI-powered productivity workspace designed to bring services like **Gmail** and **Google Calendar** into one place. Instead of jumping between different apps to find information or complete simple tasks, the goal is to give users a single interface where they can **see, search, and act on their connected services through natural language**.
+Nexus is an AI-powered productivity workspace designed to bring services like **Gmail** and **Google Calendar** into one place. Instead of jumping between different apps to find information or complete simple tasks, the goal is to give users a single interface where they can **see, search, and act on their connected services through natural language**.
 
 ---
 
-## 🚀 What is Command Inbox?
+## 🚀 What is Nexus?
 
 Modern productivity is fragmented.
 
@@ -14,11 +14,11 @@ Your emails live in Gmail.
 Your meetings live in Google Calendar.  
 Important information is scattered across conversations, notifications, and different applications.
 
-**Command Inbox** is being built to solve that fragmentation.
+**Nexus** is being built to solve that fragmentation.
 
 The core idea is simple:
 
-> **Tell Command Inbox what you need, and let it figure out where the information lives and what needs to be done.**
+> **Tell Nexus what you need, and let it figure out where the information lives and what needs to be done.**
 
 For example:
 
@@ -32,7 +32,7 @@ For example:
 "What is my schedule for this afternoon?"
 ```
 
-The long-term vision is to turn Command Inbox into a **personal command layer over the user's digital workspace**.
+The long-term vision is to turn Nexus into a **personal command layer over the user's digital workspace**.
 
 ---
 
@@ -40,9 +40,9 @@ The long-term vision is to turn Command Inbox into a **personal command layer ov
 
 ## 📥 Unified Inbox
 
-Command Inbox currently connects to the user's email service and brings emails into its own interface.
+Nexus currently connects to the user's email service and brings emails into its own interface.
 
-Users can view their emails without having to leave the Command Inbox workspace.
+Users can view their emails without having to leave the Nexus workspace.
 
 The inbox/dashboard is intended to become the central place for information coming from multiple connected services.
 
@@ -52,14 +52,14 @@ The inbox/dashboard is intended to become the central place for information comi
 
 Gmail integration is currently implemented through **Corsair**.
 
-The current setup allows a user to authenticate and connect their Gmail account, after which email data can be retrieved and displayed inside Command Inbox.
+The current setup allows a user to authenticate and connect their Gmail account, after which email data can be retrieved and displayed inside Nexus.
 
 ### Current flow
 
 ```text
 User
   ↓
-Command Inbox
+Nexus
   ↓
 Corsair
   ↓
@@ -69,7 +69,7 @@ Connected Gmail Account
   ↓
 Email Data
   ↓
-Command Inbox Inbox / Dashboard
+Nexus Inbox / Dashboard
 ```
 
 The OAuth setup currently uses **manual OAuth authentication**, which resolved the previous connection/authentication issues encountered during development.
@@ -78,7 +78,7 @@ The OAuth setup currently uses **manual OAuth authentication**, which resolved t
 
 ## 📅 Google Calendar Integration
 
-Google Calendar is fully integrated into the connected-services architecture, bringing scheduling directly into Command Inbox alongside email data.
+Google Calendar is fully integrated into the connected-services architecture, bringing scheduling directly into Nexus alongside email data.
 
 The integration currently supports:
 - **Multi-View Workspace**: Comprehensive views for **Day**, **Week** (with hourly grid & live time indicator), **Month**, and **Agenda** formats.
@@ -90,7 +90,7 @@ The integration currently supports:
 
 ## 🔗 Connect Apps & Mailboxes Hub
 
-Command Inbox features a dedicated integration hub (`/dashboard/connect`) designed to manage all linked productivity accounts:
+Nexus features a dedicated integration hub (`/dashboard/connect`) designed to manage all linked productivity accounts:
 - **OAuth Connections**: Direct connection management for **Gmail** and **Google Calendar** via Corsair.
 - **Extensible Directory**: UI integrations and simulated connectors for **Microsoft Outlook**, **Slack**, **Notion**, **Zoom**, **Linear**, and **GitHub**.
 - **Lifecycle Management**: Real-time connection status polling, interactive connection setup modals, and clean disconnect/re-auth workflows.
@@ -99,7 +99,7 @@ Command Inbox features a dedicated integration hub (`/dashboard/connect`) design
 
 # 🤖 AI Assistant
 
-Command Inbox includes an AI assistant designed to act as the user's natural-language interface to their connected services.
+Nexus includes an AI assistant designed to act as the user's natural-language interface to their connected services.
 
 Instead of forcing the user to navigate through multiple screens, the assistant should understand intent and use the appropriate connected service to retrieve the required information.
 
@@ -148,9 +148,9 @@ The assistant is being designed around **actions and information retrieval**, ra
 
 # 🔌 Corsair Integration
 
-Command Inbox uses **Corsair** as the connection layer between the application and external services.
+Nexus uses **Corsair** as the connection layer between the application and external services.
 
-This provides a cleaner architecture where Command Inbox does not need to implement every third-party integration completely from scratch.
+This provides a cleaner architecture where Nexus does not need to implement every third-party integration completely from scratch.
 
 Current integrations being worked with include:
 
@@ -164,7 +164,7 @@ Conceptually:
 
 ```text
                   ┌───────────────┐
-                  │ Command Inbox │
+                  │ Nexus │
                   └───────┬───────┘
                           │
                        Corsair
@@ -178,7 +178,7 @@ Conceptually:
 
 # 🔐 Authentication
 
-Command Inbox uses **Better Auth** for application authentication.
+Nexus uses **Better Auth** for application authentication.
 
 This keeps user authentication separate from third-party service authentication.
 
@@ -191,13 +191,13 @@ User
  ↓
 Better Auth
  ↓
-Command Inbox Account
+Nexus Account
 ```
 
 ### Connected Service Authentication
 
 ```text
-Command Inbox
+Nexus
  ↓
 Corsair
  ↓
@@ -270,7 +270,7 @@ The project is currently being developed using modern web technologies.
 
 # 📌 Current Project Status
 
-Command Inbox has transitioned from an early prototype into a **functioning multi-service productivity workstation** with live OAuth integrations, real-time data sync, database caching, an AI command layer, and modern multi-view interfaces.
+Nexus has transitioned from an early prototype into a **functioning multi-service productivity workstation** with live OAuth integrations, real-time data sync, database caching, an AI command layer, and modern multi-view interfaces.
 
 ---
 
@@ -372,10 +372,10 @@ The following bugs and required fixes have been identified across the codebase a
 
 # 🗺️ Future Scope & Development Roadmap
 
-Building on the foundation, the following phased milestones represent the future scope of Command Inbox:
+Building on the foundation, the following phased milestones represent the future scope of Nexus:
 
 ## Phase 2 — Safe Write Actions & Bi-Directional Operations
-Turn Command Inbox from an observation portal into a full command center:
+Turn Nexus from an observation portal into a full command center:
 
 - [ ] **Email Mutations**:
   - [x] Reply directly to email threads with rich text or plain text.
@@ -419,7 +419,7 @@ Connecting relationships between disparate data sources:
 ---
 
 ## Phase 5 — Proactive Automations & Daily Briefings
-Transform Command Inbox into an active personal productivity assistant:
+Transform Nexus into an active personal productivity assistant:
 
 - [ ] **Morning Daily Briefing**:
   - [ ] Scheduled summary generated every morning: today's meetings, urgent emails needing replies, and weather/schedule conflicts.
@@ -437,7 +437,7 @@ Expanding beyond Gmail and Google Calendar to unite the modern digital workspace
 
 - [ ] **Slack Integration**:
   - [ ] Real-time DMs and mention notifications via Corsair.
-  - [ ] Ability to send quick replies to Slack threads from Command Inbox.
+  - [ ] Ability to send quick replies to Slack threads from Nexus.
 - [ ] **GitHub Integration**:
   - [ ] Pull request review requests and issue notifications.
   - [ ] Natural language commands: *"Show PRs awaiting my review"*.
@@ -467,7 +467,7 @@ Ensuring enterprise-grade resilience, privacy, and compliance:
 
 ## 🎯 Long-Term Vision
 
-The ultimate vision for Command Inbox is:
+The ultimate vision for Nexus is:
 
 > **A single AI command center that understands your digital workspace and helps you act across it.**
 
@@ -484,7 +484,7 @@ Slack → search conversation
 the experience becomes:
 
 ```text
-              COMMAND INBOX
+              Nexus
 
         "What's important today?"
                     ↓
@@ -510,7 +510,7 @@ They should only need to think about **what they want to accomplish**.
 
 ## 🔒 Security & Privacy Goals
 
-As Command Inbox becomes more deeply integrated with users' services, security will become increasingly important.
+As Nexus becomes more deeply integrated with users' services, security will become increasingly important.
 
 Future work should include:
 
@@ -532,7 +532,7 @@ The application should always follow the principle of:
 
 ## 🧪 Development Philosophy
 
-Command Inbox is being built incrementally:
+Nexus is being built incrementally:
 
 ```text
 Build
@@ -556,7 +556,7 @@ The priority is to establish a strong foundation, ensure high reliability and ze
 
 # 🤝 Contributing
 
-Command Inbox is currently primarily a personal development project.
+Nexus is currently primarily a personal development project.
 
 As the project matures, contribution guidelines, issue templates, and development documentation can be added here.
 
@@ -570,7 +570,7 @@ License information will be added as the project approaches a public release.
 
 ## 🌱 From Prototype to Personal Command Center
 
-Command Inbox started as an idea to bring productivity services together.
+Nexus started as an idea to bring productivity services together.
 
 It is gradually becoming something more ambitious:
 

@@ -59,7 +59,7 @@ export function ProductPreview() {
             <div className="flex-1 flex justify-center">
               <div className="flex items-center gap-1.5 text-[11px] font-medium text-[#77736D]">
                 <CommandInboxIcon size={13} />
-                Command Inbox
+                Nexus
               </div>
             </div>
           </div>

@@ -70,7 +70,7 @@ export function ConnectClient() {
             margin: "0 0 24px",
           }}
         >
-          Link your Google services to sync threads, manage your calendar, and power Command Inbox with AI.
+          Link your Google services to sync threads, manage your calendar, and power Nexus with AI.
         </p>
 
         {error && (

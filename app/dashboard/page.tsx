@@ -4,7 +4,7 @@ import { headers } from "next/headers";
 import { auth } from "@/lib/auth";
 
 export const metadata: Metadata = {
-  title: "Command Inbox - Dashboard",
+  title: "Nexus - Dashboard",
   description: "Your personal AI command center for email and calendar",
 };
 

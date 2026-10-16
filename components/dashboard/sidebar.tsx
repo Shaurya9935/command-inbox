@@ -1421,7 +1421,7 @@ export function Sidebar({
                   whiteSpace: "nowrap",
                 }}
               >
-                Command Inbox
+                Nexus
               </span>
             )}
           </div>

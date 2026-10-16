@@ -389,7 +389,7 @@ export function ConnectWorkspace({
                 }}
               >
                 Manage your connected mailboxes, calendar schedules, team messaging, and productivity tools.
-                All communications and notifications sync directly into your Command Inbox.
+                All communications and notifications sync directly into your Nexus.
               </p>
             </div>
 
