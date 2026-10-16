@@ -10,6 +10,7 @@ const PROTECTED_API_PREFIXES = [
   "/api/calendar",
   "/api/conversations",
   "/api/ai",
+  "/api/account",
 ];
 const AUTH_ROUTES = ["/login", "/register"];
 const PUBLIC_EXACT = ["/", "/api/auth", "/api/corsair", "/api/webhooks"];
@@ -73,5 +74,6 @@ export const config = {
     "/api/calendar/:path*",
     "/api/conversations/:path*",
     "/api/ai/:path*",
+    "/api/account/:path*",
   ],
 };

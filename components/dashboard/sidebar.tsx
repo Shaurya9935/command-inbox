@@ -25,7 +25,7 @@ import {
   SpamIcon,
   ConnectIcon,
 } from "./icons";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 import { authClient } from "@/lib/auth-client";
 import { Avatar } from "./avatar";
 import { UserProfile } from "./types";
@@ -306,11 +306,15 @@ function SidebarFooter({
   handleToggle,
   displayUser,
   handleLogout,
+  onOpenAccount,
+  isAccountActive,
 }: {
   collapsed: boolean;
   handleToggle: () => void;
   displayUser: { name: string; email: string; initials: string; color: string };
   handleLogout: () => void;
+  onOpenAccount?: () => void;
+  isAccountActive?: boolean;
 }) {
   return (
     <div style={{ borderTop: "1px solid #E4DED4", paddingTop: 8 }}>
@@ -322,20 +326,36 @@ function SidebarFooter({
         collapsed={collapsed}
         onClick={handleToggle}
       />
-      <NavBtn icon={SettingsIcon} label="Settings" collapsed={collapsed} onClick={() => {}} />
+      <NavBtn
+        icon={SettingsIcon}
+        label="Settings"
+        active={Boolean(isAccountActive)}
+        collapsed={collapsed}
+        onClick={onOpenAccount || (() => {})}
+      />
       <NavBtn icon={HelpIcon} label="Help" collapsed={collapsed} onClick={() => {}} />
 
       {/* User row */}
       <div
+        onClick={onOpenAccount}
         title={collapsed ? `${displayUser.name} (${displayUser.email})` : undefined}
         style={{
           display: "flex",
           alignItems: "center",
           justifyContent: collapsed ? "center" : "flex-start",
           gap: 9,
-          padding: collapsed ? "8px 0" : "10px 10px 2px",
+          padding: collapsed ? "8px 0" : "8px 8px",
           marginTop: 4,
           borderRadius: 8,
+          cursor: "pointer",
+          background: isAccountActive ? "#EAE5DB" : "transparent",
+          transition: "background 0.12s",
+        }}
+        onMouseEnter={(e) => {
+          if (!isAccountActive) e.currentTarget.style.background = "#EFECE6";
+        }}
+        onMouseLeave={(e) => {
+          if (!isAccountActive) e.currentTarget.style.background = "transparent";
         }}
       >
         <Avatar initials={displayUser.initials} color={displayUser.color} size={26} />
@@ -1149,6 +1169,11 @@ export function Sidebar({
   onToggleSecondary: propOnToggleSecondary,
 }: SidebarProps) {
   const router = useRouter();
+  const pathname = usePathname();
+  const isAccountActive = pathname === "/dashboard/account" || activeNav === "account";
+  const handleOpenAccount = () => {
+    router.push("/dashboard/account");
+  };
   const [internalActiveWorkspace, setInternalActiveWorkspace] = useState<WorkspaceId | null>(null);
   const [internalSecondaryOpen, setInternalSecondaryOpen] = useState(true);
 
@@ -1381,6 +1406,8 @@ export function Sidebar({
           handleToggle={handleTogglePrimary}
           displayUser={displayUser}
           handleLogout={handleLogout}
+          onOpenAccount={handleOpenAccount}
+          isAccountActive={isAccountActive}
         />
       </aside>
 
