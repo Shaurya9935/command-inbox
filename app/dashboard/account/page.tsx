@@ -175,8 +175,6 @@ export default function AccountPage() {
             router.push("/dashboard/inbox");
           } else if (nav === "today" || nav === "upcoming") {
             router.push("/dashboard/calendar");
-          } else if (nav === "connect") {
-            router.push("/dashboard/connect");
           } else if (nav === "account") {
             // Already here
           } else {

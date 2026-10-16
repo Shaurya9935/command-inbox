@@ -152,7 +152,9 @@ export function ConnectWorkspace({
         showToast(`Successfully connected ${connectedParam.toUpperCase()}!`, "success");
       }, 0);
       // Clean query parameter without full reload
-      router.replace("/dashboard/connect");
+      if (typeof window !== "undefined") {
+        router.replace(window.location.pathname);
+      }
     }
 
     return () => {
