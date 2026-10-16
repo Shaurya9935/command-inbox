@@ -5,7 +5,7 @@ import { executePermission } from "corsair";
 
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
-import { corsairPermissions } from "@/db/corsair";
+import { corsairPermissions, corsairEntities } from "@/db/corsair";
 import { corsair } from "@/lib/corsair";
 
 export async function POST(request: Request) {
@@ -74,6 +74,26 @@ export async function POST(request: Request) {
 
       // Execute permission with Corsair
       const executionResult = await executePermission(corsair, token);
+
+      // Invalidate cache if event was deleted
+      if (row.plugin === "googlecalendar" && row.endpoint === "events.delete") {
+        try {
+          const parsedArgs = JSON.parse(row.args || "{}");
+          const eventId = parsedArgs.id;
+          if (eventId) {
+            await db
+              .delete(corsairEntities)
+              .where(
+                and(
+                  eq(corsairEntities.entityType, "events"),
+                  eq(corsairEntities.entityId, eventId)
+                )
+              );
+          }
+        } catch (cacheErr) {
+          console.warn("Failed to clean up deleted event from cache on approval:", cacheErr);
+        }
+      }
 
       return NextResponse.json({
         success: true,

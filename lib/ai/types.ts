@@ -22,13 +22,14 @@ export interface PendingAction {
 export interface PendingActionPreview {
   id: string;
   token: string;
-  type: "send_email" | "create_calendar_event" | "generic";
+  type: "send_email" | "create_calendar_event" | "delete_calendar_event" | "generic";
   plugin: string;
   endpoint: string;
   to?: string;
   subject?: string;
   body?: string;
   threadId?: string | null;
+  eventId?: string;
   title?: string;
   startISO?: string;
   endISO?: string;

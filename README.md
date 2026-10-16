@@ -325,7 +325,7 @@ The following bugs and required fixes have been identified across the codebase a
   - **Problem**: The route constructs `statuses: { gmail: statuses.gmail === "connected", ..., ...statuses }`. Spreading raw `...statuses` at the end overwrites the boolean flags with strings like `"connected"` or `"disconnected"`. On the client ([`connect-workspace.tsx`](file:///Users/shauryagupta/Dev/Projects/command-inbox/components/connect/connect-workspace.tsx#L92)), `Boolean(statuses.gmail)` checks `Boolean("disconnected")`, which evaluates to `true` (non-empty string). Disconnected integrations are falsely shown as connected.
   - **Fix**: Return clean booleans without spreading raw status strings.
 
-- [ ] **Replace Boilerplate Home Page (`app/page.tsx`) with Landing or Smart Redirect**
+- [x] **Replace Boilerplate Home Page (`app/page.tsx`) with Landing or Smart Redirect**
   - **Location**: [`app/page.tsx`](file:///Users/shauryagupta/Dev/Projects/command-inbox/app/page.tsx)
   - **Problem**: Visiting `/` currently loads the default Next.js starter template ("To get started, edit page.tsx... Deploy Now").
   - **Fix**: Inspect user session using Better Auth: redirect authenticated users to `/dashboard` and unauthenticated visitors to `/login` (or render a dedicated marketing landing page).
@@ -378,18 +378,18 @@ Building on the foundation, the following phased milestones represent the future
 Turn Command Inbox from an observation portal into a full command center:
 
 - [ ] **Email Mutations**:
-  - [ ] Reply directly to email threads with rich text or plain text.
-  - [ ] Compose and send new emails to arbitrary recipients with validation.
-  - [ ] Star / unstar email threads via Gmail API sync.
+  - [x] Reply directly to email threads with rich text or plain text.
+  - [x] Compose and send new emails to arbitrary recipients with validation.
+  - [x] Star / unstar email threads via Gmail API sync.
   - [ ] Archive email threads from the inbox.
   - [ ] Mark threads as read / unread with immediate DB cache updates.
 - [ ] **Calendar Mutations**:
-  - [ ] Create new calendar events with date/time pickers, location, description, and attendee invites.
-  - [ ] Automatic Google Meet video conferencing link generation for new events.
-  - [ ] Reschedule / edit existing events (time modifications with timezone awareness).
+  - [x] Create new calendar events with date/time pickers, location, description, and attendee invites.
+  - [x] Automatic Google Meet video conferencing link generation for new events.
+  - [x] Reschedule / edit existing events (time modifications with timezone awareness).
   - [ ] Delete / cancel events with confirmation dialogs.
 - [ ] **Action Confirmation Guards**:
-  - [ ] AI Assistant confirmation cards before sending emails or modifying meetings.
+  - [x] AI Assistant confirmation cards before sending emails or modifying meetings.
   - [ ] "Undo" snackbar for destructive actions (archive, delete).
 
 ---

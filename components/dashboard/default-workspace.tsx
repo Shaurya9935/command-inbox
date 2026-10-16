@@ -784,6 +784,41 @@ export function DefaultWorkspace({
                               )}
                             </div>
                           )}
+
+                          {action.type === "delete_calendar_event" && (
+                            <div style={{ display: "flex", flexDirection: "column", gap: 4, fontSize: 13 }}>
+                              <div>
+                                <span style={{ color: "#DC2626", fontWeight: 600 }}>Action: </span>
+                                <span style={{ color: "#DC2626", fontWeight: 500 }}>Delete Calendar Event</span>
+                              </div>
+                              <div>
+                                <span style={{ color: "#8C8781", fontWeight: 500 }}>Event: </span>
+                                <span style={{ color: "#1A1917", fontWeight: 600 }}>{action.title || "Calendar Event"}</span>
+                              </div>
+                              {action.startISO && (
+                                <div>
+                                  <span style={{ color: "#8C8781", fontWeight: 500 }}>Time: </span>
+                                  <span style={{ color: "#1A1917" }}>
+                                    {new Date(action.startISO || "").toLocaleString("en-IN", {
+                                      timeZone: "Asia/Kolkata",
+                                      dateStyle: "medium",
+                                      timeStyle: "short",
+                                    })}
+                                    {action.endISO && (
+                                      <>
+                                        {" – "}
+                                        {new Date(action.endISO).toLocaleTimeString("en-IN", {
+                                          timeZone: "Asia/Kolkata",
+                                          timeStyle: "short",
+                                        })}
+                                      </>
+                                    )}{" "}
+                                    (IST)
+                                  </span>
+                                </div>
+                              )}
+                            </div>
+                          )}
                         </div>
                       ))}
 

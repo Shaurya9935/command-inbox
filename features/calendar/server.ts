@@ -323,6 +323,26 @@ interface CalEventData {
   status?: string;
 }
 
+export async function getCalendarAccountId(tenantId: string): Promise<string | null> {
+  try {
+    const accts = await db
+      .select({ id: corsairAccounts.id })
+      .from(corsairAccounts)
+      .innerJoin(corsairIntegrations, eq(corsairAccounts.integrationId, corsairIntegrations.id))
+      .where(
+        and(
+          eq(corsairAccounts.tenantId, tenantId),
+          eq(corsairIntegrations.name, "googlecalendar")
+        )
+      )
+      .limit(1);
+    return accts[0]?.id ?? null;
+  } catch (err) {
+    console.warn("Failed to get calendar account ID:", err);
+    return null;
+  }
+}
+
 export async function getEventsInRange({
   tenantId,
   tenantCorsair,
@@ -335,18 +355,7 @@ export async function getEventsInRange({
   endISO: string;
 }): Promise<CalendarEventResult[]> {
   // Try DB cache first
-  const accts = await db
-    .select({ id: corsairAccounts.id })
-    .from(corsairAccounts)
-    .innerJoin(corsairIntegrations, eq(corsairAccounts.integrationId, corsairIntegrations.id))
-    .where(
-      and(
-        eq(corsairAccounts.tenantId, tenantId),
-        eq(corsairIntegrations.name, "googlecalendar")
-      )
-    )
-    .limit(1);
-  const calendarAccountId = accts[0]?.id ?? null;
+  const calendarAccountId = await getCalendarAccountId(tenantId);
 
   let events: CalendarEventResult[] = [];
 
@@ -374,6 +383,7 @@ export async function getEventsInRange({
       const evStartMs = new Date(evStart).getTime();
       if (isNaN(evStartMs) || evStartMs < startMs || evStartMs > endMs) continue;
       events.push({
+        id: row.entityId || (d as { id?: string }).id || "",
         title: d.summary || "No Title",
         start: evStart,
         end: evEnd || evStart,
@@ -395,6 +405,7 @@ export async function getEventsInRange({
     });
     const raw = res?.items ?? [];
     events = (raw as Array<{
+      id?: string;
       status?: string;
       summary?: string;
       start?: { dateTime?: string; date?: string };
@@ -404,6 +415,7 @@ export async function getEventsInRange({
     }>)
       .filter((ev) => ev.status !== "cancelled")
       .map((ev) => ({
+        id: ev.id || "",
         title: ev.summary || "No Title",
         start: ev.start?.dateTime || ev.start?.date || startISO,
         end: ev.end?.dateTime || ev.end?.date || endISO,
@@ -476,5 +488,43 @@ export async function createCalendarEventWithMeet({
     start: res?.start?.dateTime || res?.start?.date || startISO,
     end: res?.end?.dateTime || res?.end?.date || endISO,
   };
+}
+
+export async function deleteCalendarEvent({
+  tenantCorsair,
+  eventId,
+  tenantId,
+}: {
+  tenantCorsair: TenantCorsair;
+  eventId: string;
+  tenantId?: string;
+}): Promise<{ deleted: boolean; id: string }> {
+  // 1. Delete on Google Calendar via Corsair SDK
+  await tenantCorsair.googlecalendar.api.events.delete({
+    calendarId: "primary",
+    id: eventId,
+  });
+
+  // 2. Remove / invalidate from local DB cache
+  if (tenantId) {
+    try {
+      const accountId = await getCalendarAccountId(tenantId);
+      if (accountId) {
+        await db
+          .delete(corsairEntities)
+          .where(
+            and(
+              eq(corsairEntities.accountId, accountId),
+              eq(corsairEntities.entityType, "events"),
+              eq(corsairEntities.entityId, eventId)
+            )
+          );
+      }
+    } catch (err) {
+      console.warn(`Failed to remove deleted event ${eventId} from cache:`, err);
+    }
+  }
+
+  return { deleted: true, id: eventId };
 }
 

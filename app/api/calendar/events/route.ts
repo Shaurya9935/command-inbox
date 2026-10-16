@@ -2,7 +2,11 @@ import {
   getCalendarEvents,
   syncCalendarEventsFromApi,
   createCalendarEvent,
+  deleteCalendarEvent,
 } from "@/features/calendar/server";
+import { auth } from "@/lib/auth";
+import { corsair } from "@/lib/corsair";
+import { headers } from "next/headers";
 import { NextRequest, NextResponse } from "next/server";
 
 /**
@@ -107,6 +111,53 @@ export async function POST(req: NextRequest) {
     console.error("[calendar/events:POST]", error);
     return NextResponse.json(
       { error: message || "Failed to create calendar event" },
+      { status: 500 }
+    );
+  }
+}
+
+/**
+ * DELETE /api/calendar/events
+ *   – Deletes a calendar event by eventId or id.
+ */
+export async function DELETE(req: NextRequest) {
+  try {
+    const session = await auth.api.getSession({
+      headers: await headers(),
+    });
+
+    if (!session?.user?.id) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    const { searchParams } = req.nextUrl;
+    let eventId = searchParams.get("eventId") || searchParams.get("id");
+
+    if (!eventId) {
+      const body = await req.json().catch(() => ({}));
+      eventId = body?.eventId || body?.id;
+    }
+
+    if (!eventId || typeof eventId !== "string" || !eventId.trim()) {
+      return NextResponse.json({ error: "eventId is required" }, { status: 400 });
+    }
+
+    const tenantCorsair = corsair.withTenant(session.user.id);
+    const result = await deleteCalendarEvent({
+      tenantCorsair,
+      eventId: eventId.trim(),
+      tenantId: session.user.id,
+    });
+
+    return NextResponse.json(result);
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    if (message === "Unauthorized") {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+    console.error("[calendar/events:DELETE]", error);
+    return NextResponse.json(
+      { error: message || "Failed to delete calendar event" },
       { status: 500 }
     );
   }
