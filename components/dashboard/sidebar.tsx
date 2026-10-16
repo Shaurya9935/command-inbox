@@ -1,6 +1,7 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
+import { useTour } from "@/components/onboarding";
 import {
   LogoIcon,
   InboxIcon,
@@ -78,6 +79,7 @@ function NavBtn({
   collapsed = false,
   muted = false,
   onClick,
+  dataTour,
 }: {
   icon: IconComponent;
   label: string;
@@ -86,11 +88,13 @@ function NavBtn({
   collapsed?: boolean;
   muted?: boolean;
   onClick: () => void;
+  dataTour?: string;
 }) {
   const [hov, setHov] = useState(false);
 
   return (
     <button
+      data-tour={dataTour}
       onClick={onClick}
       onMouseEnter={() => setHov(true)}
       onMouseLeave={() => setHov(false)}
@@ -218,17 +222,20 @@ function WorkspaceRow({
   active = false,
   onClick,
   collapsed = false,
+  dataTour,
 }: {
   icon: IconComponent;
   label: string;
   active?: boolean;
   onClick: () => void;
   collapsed?: boolean;
+  dataTour?: string;
 }) {
   const [hov, setHov] = useState(false);
 
   return (
     <button
+      data-tour={dataTour}
       onClick={onClick}
       onMouseEnter={() => setHov(true)}
       onMouseLeave={() => setHov(false)}
@@ -315,6 +322,22 @@ function SidebarFooter({
   onOpenAccount?: () => void;
   isAccountActive?: boolean;
 }) {
+  const { startTour } = useTour();
+  const [helpOpen, setHelpOpen] = useState(false);
+  const helpRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    function handleClickOutside(e: MouseEvent) {
+      if (helpRef.current && !helpRef.current.contains(e.target as Node)) {
+        setHelpOpen(false);
+      }
+    }
+    if (helpOpen) {
+      document.addEventListener("mousedown", handleClickOutside);
+    }
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [helpOpen]);
+
   return (
     <div style={{ borderTop: "1px solid #E4DED4", paddingTop: 8 }}>
       {/* Collapse/Expand toggle */}
@@ -326,16 +349,71 @@ function SidebarFooter({
         onClick={handleToggle}
       />
       <NavBtn
+        dataTour="account"
         icon={SettingsIcon}
         label="Settings"
         active={Boolean(isAccountActive)}
         collapsed={collapsed}
         onClick={onOpenAccount || (() => {})}
       />
-      <NavBtn icon={HelpIcon} label="Help" collapsed={collapsed} onClick={() => {}} />
+      
+      {/* Help with Replay Tour Popover */}
+      <div style={{ position: "relative" }} ref={helpRef}>
+        <NavBtn
+          icon={HelpIcon}
+          label="Help"
+          collapsed={collapsed}
+          onClick={() => setHelpOpen((prev) => !prev)}
+        />
+        {helpOpen && (
+          <div
+            style={{
+              position: "absolute",
+              bottom: "100%",
+              left: 0,
+              marginBottom: 6,
+              background: "#FFFFFF",
+              border: "1px solid #E8E4DC",
+              borderRadius: 10,
+              padding: "6px",
+              boxShadow: "0 10px 28px rgba(0,0,0,0.12)",
+              zIndex: 100,
+              minWidth: 175,
+            }}
+          >
+            <button
+              onClick={() => {
+                setHelpOpen(false);
+                startTour();
+              }}
+              style={{
+                width: "100%",
+                padding: "8px 10px",
+                border: "none",
+                background: "transparent",
+                color: "#1A1917",
+                fontSize: 12.5,
+                fontWeight: 500,
+                textAlign: "left",
+                borderRadius: 6,
+                cursor: "pointer",
+                display: "flex",
+                alignItems: "center",
+                gap: 8,
+              }}
+              onMouseEnter={(e) => (e.currentTarget.style.background = "#F5F2EC")}
+              onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
+            >
+              <span style={{ fontSize: 14 }}>🧭</span>
+              <span>Replay product tour</span>
+            </button>
+          </div>
+        )}
+      </div>
 
       {/* User row */}
       <div
+        data-tour="account"
         onClick={onOpenAccount}
         title={collapsed ? `${displayUser.name} (${displayUser.email})` : undefined}
         style={{
@@ -1049,6 +1127,7 @@ function PrimaryNav({
       <div style={{ marginBottom: collapsed ? 14 : 20 }}>
         <SectionLabel label="Workspaces" collapsed={collapsed} />
         <WorkspaceRow
+          dataTour="gmail"
           icon={GmailIcon}
           label="Gmail"
           active={activeWorkspace === "gmail"}
@@ -1056,6 +1135,7 @@ function PrimaryNav({
           collapsed={collapsed}
         />
         <WorkspaceRow
+          dataTour="calendar"
           icon={CalendarIcon}
           label="Calendar"
           active={activeWorkspace === "calendar"}

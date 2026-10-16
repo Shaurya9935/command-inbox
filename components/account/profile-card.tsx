@@ -3,6 +3,7 @@
 import React, { useState } from "react";
 import { authClient } from "@/lib/auth-client";
 import { Avatar } from "@/components/dashboard/avatar";
+import { useTour } from "@/components/onboarding";
 
 export interface ProfileCardProps {
   user: {
@@ -15,6 +16,7 @@ export interface ProfileCardProps {
 }
 
 export function ProfileCard({ user, onUserUpdated }: ProfileCardProps) {
+  const { startTour } = useTour();
   // Name state
   const [name, setName] = useState(user.name || "");
   const [isSavingName, setIsSavingName] = useState(false);
@@ -106,27 +108,60 @@ export function ProfileCard({ user, onUserUpdated }: ProfileCardProps) {
       }}
     >
       {/* Header */}
-      <div style={{ marginBottom: 20 }}>
-        <h2
+      <div
+        style={{
+          display: "flex",
+          alignItems: "flex-start",
+          justifyContent: "space-between",
+          marginBottom: 20,
+        }}
+      >
+        <div>
+          <h2
+            style={{
+              margin: 0,
+              fontSize: 18,
+              fontWeight: 600,
+              color: "#1A1917",
+              letterSpacing: "-0.01em",
+            }}
+          >
+            Profile Information
+          </h2>
+          <p
+            style={{
+              margin: "4px 0 0",
+              fontSize: 13,
+              color: "#6B6762",
+            }}
+          >
+            Manage your personal details and verified email address
+          </p>
+        </div>
+
+        <button
+          type="button"
+          onClick={() => startTour()}
           style={{
-            margin: 0,
-            fontSize: 18,
+            display: "inline-flex",
+            alignItems: "center",
+            gap: 6,
+            padding: "6px 12px",
+            borderRadius: 8,
+            background: "#F5F2EC",
+            border: "1px solid #E8E4DC",
+            color: "#5046B8",
+            fontSize: 12.5,
             fontWeight: 600,
-            color: "#1A1917",
-            letterSpacing: "-0.01em",
+            cursor: "pointer",
+            transition: "background 0.12s",
           }}
+          onMouseEnter={(e) => (e.currentTarget.style.background = "#EDE8DF")}
+          onMouseLeave={(e) => (e.currentTarget.style.background = "#F5F2EC")}
         >
-          Profile Information
-        </h2>
-        <p
-          style={{
-            margin: "4px 0 0",
-            fontSize: 13,
-            color: "#6B6762",
-          }}
-        >
-          Manage your personal details and verified email address
-        </p>
+          <span style={{ fontSize: 13 }}>🧭</span>
+          <span>Replay tour</span>
+        </button>
       </div>
 
       {/* Avatar & Summary Bar */}

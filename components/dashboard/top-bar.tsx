@@ -103,6 +103,7 @@ export function TopBar({
       {/* Connection Status Popover */}
       <div style={{ position: "relative" }} ref={statusMenuRef}>
         <button
+          data-tour="connect-apps"
           onClick={onToggleStatus}
           style={{
             display: "flex",

@@ -562,7 +562,7 @@ export function DefaultWorkspace({
             />
 
             {/* Prompt Suggestions */}
-            <div style={{ marginTop: 24, marginBottom: 36 }}>
+            <div data-tour="assistant" style={{ marginTop: 24, marginBottom: 36 }}>
               <div
                 style={{
                   fontSize: 11.5,

@@ -53,6 +53,7 @@ export function CommandSurface({
 
   return (
     <div
+      data-tour="command-bar"
       className={className}
       style={{
         borderRadius: 14,

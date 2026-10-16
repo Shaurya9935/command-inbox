@@ -1,6 +1,7 @@
 import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
+import { TourProvider } from "@/components/onboarding";
 
 export default async function DashboardLayout({
   children,
@@ -15,5 +16,5 @@ export default async function DashboardLayout({
     redirect("/login");
   }
 
-  return <>{children}</>;
+  return <TourProvider>{children}</TourProvider>;
 }

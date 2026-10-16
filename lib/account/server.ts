@@ -10,6 +10,7 @@ import {
 } from "@/db/corsair";
 import { conversations, chatMessages } from "@/db/conversation";
 import { user, session, account } from "@/db/auth";
+import { userOnboarding } from "@/db/onboarding";
 
 export interface RevocationResult {
   revoked: boolean;
@@ -23,6 +24,7 @@ export interface DeletedCounts {
   corsairPermissions: number;
   conversations: number;
   chatMessages: number;
+  onboarding?: number;
   sessions?: number;
   accounts?: number;
   users?: number;
@@ -208,6 +210,13 @@ export async function deleteUserData(
         .returning({ id: conversations.id });
       deletedCounts.conversations = convRes.length;
     }
+
+    // D. Onboarding
+    const onbRes = await tx
+      .delete(userOnboarding)
+      .where(eq(userOnboarding.userId, userId))
+      .returning({ id: userOnboarding.id });
+    deletedCounts.onboarding = onbRes.length;
   });
 
   console.log(
@@ -299,7 +308,14 @@ export async function deleteFullAccount(
       deletedCounts.conversations = convRes.length;
     }
 
-    // D. Auth Sessions
+    // D. Onboarding
+    const onbRes = await tx
+      .delete(userOnboarding)
+      .where(eq(userOnboarding.userId, userId))
+      .returning({ id: userOnboarding.id });
+    deletedCounts.onboarding = onbRes.length;
+
+    // E. Auth Sessions
     const sessRes = await tx
       .delete(session)
       .where(eq(session.userId, userId))
