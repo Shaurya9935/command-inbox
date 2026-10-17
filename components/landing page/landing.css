@@ -94,7 +94,25 @@ button.bg-accent *,
   border-radius: .6rem;
   font-size: .65rem !important;
 }
-.icon-button { display: grid; width: 2rem; height: 2rem; place-items: center; border-radius: .6rem; color: var(--landing-ink); }
+.icon-button {
+  display: grid;
+  width: 2rem;
+  height: 2rem;
+  place-items: center;
+  border-radius: .6rem;
+  color: var(--landing-ink);
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  transition: background-color .15s ease, color .15s ease, transform .15s ease;
+}
+.icon-button:hover {
+  background-color: var(--landing-glass-72);
+  transform: translateY(-1px);
+}
+.landing-page .bg-white {
+  background-color: var(--landing-surface-card) !important;
+}
 
 .mono-label, .mono-kicker, .mono-footnote { font-family: 'Geist Mono', monospace; text-transform: uppercase; letter-spacing: .14em; }
 .mono-label { font-size: 7px; color: var(--landing-ink-48); }

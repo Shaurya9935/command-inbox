@@ -33,7 +33,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
         // localStorage may be unavailable
       }
     }
-    return "system";
+    return "light";
   });
   const [resolvedTheme, setResolvedTheme] = useState<ResolvedTheme>("light");
 
