@@ -15,6 +15,9 @@ import {
   PaperclipIcon,
   SidebarToggleIcon,
 } from "@/components/dashboard/icons";
+import { GmailConnectView } from "@/components/inbox/gmail-connect-view";
+import { useIntegrations } from "@/hooks/use-integrations";
+import { GmailBrandIcon } from "@/components/connect/brand-icons";
 
 export interface StarredViewProps {
   sidebarCollapsed?: boolean;
@@ -25,9 +28,10 @@ export function StarredView({
   sidebarCollapsed = false,
   onToggleSidebar,
 }: StarredViewProps) {
+  const { isGmailConnected, isConnectingGmail, connectGmail, isLoading: integrationsLoading } = useIntegrations();
   const {
     threads,
-    isLoading,
+    isLoading: isStarredLoading,
     isRefreshing,
     error,
     hasMore,
@@ -35,7 +39,11 @@ export function StarredView({
     refresh,
     unstar,
     isStale,
+    isNotConnected: starredNotConnected,
   } = useStarredThreads();
+
+  const isNotConnected = starredNotConnected || (!integrationsLoading && !isGmailConnected);
+  const isLoading = isStarredLoading || integrationsLoading;
 
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedId, setSelectedId] = useState<string | number | null>(null);
@@ -420,7 +428,8 @@ export function StarredView({
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Search messages…"
+              placeholder={isNotConnected ? "Connect Gmail to search messages…" : "Search messages…"}
+              disabled={isNotConnected}
               style={{
                 border: "none",
                 background: "transparent",
@@ -433,59 +442,86 @@ export function StarredView({
             />
           </div>
 
-          {/* Sync / Refresh button */}
-          <button
-            onClick={() => refresh()}
-            disabled={isRefreshing}
-            title="Fetch latest starred emails from Gmail"
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: 6,
-              padding: "7px 14px",
-              background: isRefreshing ? "#7B6ED8" : "#5549C0",
-              color: "#FFFFFF",
-              border: "none",
-              borderRadius: 8,
-              fontSize: 12.5,
-              fontWeight: 500,
-              cursor: isRefreshing ? "default" : "pointer",
-              opacity: isRefreshing ? 0.85 : 1,
-              fontFamily: "var(--font-ui, 'DM Sans', system-ui, sans-serif)",
-              transition: "background 0.15s, opacity 0.15s",
-            }}
-          >
-            <svg
-              width="13"
-              height="13"
-              viewBox="0 0 16 16"
-              fill="none"
+          {/* Sync / Refresh or Connect button */}
+          {isNotConnected ? (
+            <button
+              onClick={() => connectGmail()}
+              disabled={isConnectingGmail}
+              title="Connect your Gmail account"
               style={{
-                animation: isRefreshing ? "spin 0.8s linear infinite" : "none",
-                opacity: isRefreshing ? 1 : 0.75,
+                display: "flex",
+                alignItems: "center",
+                gap: 6,
+                padding: "7px 14px",
+                background: isConnectingGmail ? "#7B6ED8" : "#5046B8",
+                color: "#FFFFFF",
+                border: "none",
+                borderRadius: 8,
+                fontSize: 12.5,
+                fontWeight: 500,
+                cursor: isConnectingGmail ? "default" : "pointer",
+                opacity: isConnectingGmail ? 0.85 : 1,
+                fontFamily: "var(--font-ui, 'DM Sans', system-ui, sans-serif)",
+                transition: "background 0.15s, opacity 0.15s",
               }}
             >
-              <circle
-                cx="8"
-                cy="8"
-                r="6"
-                stroke="rgba(255,255,255,0.35)"
-                strokeWidth="1.8"
-              />
-              <path
-                d="M8 2a6 6 0 016 6"
-                stroke="white"
-                strokeWidth="1.8"
-                strokeLinecap="round"
-              />
-            </svg>
-            {isRefreshing ? "Syncing…" : "Refresh"}
-          </button>
+              <GmailBrandIcon size={14} />
+              <span>{isConnectingGmail ? "Connecting…" : "Connect Gmail"}</span>
+            </button>
+          ) : (
+            <button
+              onClick={() => refresh()}
+              disabled={isRefreshing}
+              title="Fetch latest starred emails from Gmail"
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: 6,
+                padding: "7px 14px",
+                background: isRefreshing ? "#7B6ED8" : "#5549C0",
+                color: "#FFFFFF",
+                border: "none",
+                borderRadius: 8,
+                fontSize: 12.5,
+                fontWeight: 500,
+                cursor: isRefreshing ? "default" : "pointer",
+                opacity: isRefreshing ? 0.85 : 1,
+                fontFamily: "var(--font-ui, 'DM Sans', system-ui, sans-serif)",
+                transition: "background 0.15s, opacity 0.15s",
+              }}
+            >
+              <svg
+                width="13"
+                height="13"
+                viewBox="0 0 16 16"
+                fill="none"
+                style={{
+                  animation: isRefreshing ? "spin 0.8s linear infinite" : "none",
+                  opacity: isRefreshing ? 1 : 0.75,
+                }}
+              >
+                <circle
+                  cx="8"
+                  cy="8"
+                  r="6"
+                  stroke="rgba(255,255,255,0.35)"
+                  strokeWidth="1.8"
+                />
+                <path
+                  d="M8 2a6 6 0 016 6"
+                  stroke="white"
+                  strokeWidth="1.8"
+                  strokeLinecap="round"
+                />
+              </svg>
+              {isRefreshing ? "Syncing…" : "Refresh"}
+            </button>
+          )}
         </div>
       </header>
 
       {/* ── Error Banner if any ── */}
-      {error && (
+      {error && !isNotConnected && (
         <div
           style={{
             padding: "10px 28px",
@@ -516,14 +552,17 @@ export function StarredView({
         </div>
       )}
 
-      {/* ── Main Two-Pane Container ── */}
-      <div
-        style={{
-          flex: 1,
-          display: "flex",
-          overflow: "hidden",
-        }}
-      >
+      {/* ── Main Two-Pane Container or Connect View ── */}
+      {isNotConnected && !isLoading ? (
+        <GmailConnectView onConnect={connectGmail} isConnecting={isConnectingGmail} />
+      ) : (
+        <div
+          style={{
+            flex: 1,
+            display: "flex",
+            overflow: "hidden",
+          }}
+        >
         {/* Left Pane: Starred Thread List */}
         <div
           style={{
@@ -1037,6 +1076,7 @@ export function StarredView({
           )}
         </div>
       </div>
+      )}
 
       {/* ── Toast Notification ── */}
       {toast && (

@@ -2,6 +2,8 @@ import { getCorsairTenant } from "@/lib/corsair-client";
 import { db } from "@/lib/db";
 import { corsairAccounts, corsairEntities, corsairIntegrations } from "@/db/corsair";
 import { and, desc, eq } from "drizzle-orm";
+import { auth } from "@/lib/auth";
+import { headers } from "next/headers";
 import crypto from "crypto";
 import type { TenantCorsair } from "@/lib/corsair";
 import type { CalendarEventResult } from "./types";
@@ -38,6 +40,18 @@ export interface EnrichedCalendarEvent {
  * Returns cached events stored in the database.
  */
 export async function getCalendarEvents(): Promise<EnrichedCalendarEvent[]> {
+  const session = await auth.api.getSession({
+    headers: await headers(),
+  });
+  if (!session?.user?.id) {
+    throw new Error("Unauthorized");
+  }
+
+  const accountId = await getCalendarAccountId(session.user.id);
+  if (!accountId) {
+    throw new Error("Google Calendar is not connected for this user");
+  }
+
   const corsair = await getCorsairTenant();
 
   try {
@@ -100,6 +114,18 @@ export async function getCalendarEvents(): Promise<EnrichedCalendarEvent[]> {
  * upsert into Corsair DB cache, and return the events list.
  */
 export async function syncCalendarEventsFromApi(): Promise<EnrichedCalendarEvent[]> {
+  const session = await auth.api.getSession({
+    headers: await headers(),
+  });
+  if (!session?.user?.id) {
+    throw new Error("Unauthorized");
+  }
+
+  const accountId = await getCalendarAccountId(session.user.id);
+  if (!accountId) {
+    throw new Error("Google Calendar is not connected for this user");
+  }
+
   const corsair = await getCorsairTenant();
 
   // Fetch events from 7 days ago to upcoming 30 days

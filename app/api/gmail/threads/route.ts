@@ -1,4 +1,6 @@
-import { getInboxThreads, syncInboxThreadsFromApi } from "@/features/gmail/server";
+import { getInboxThreads, syncInboxThreadsFromApi, getGmailAccountId } from "@/features/gmail/server";
+import { auth } from "@/lib/auth";
+import { headers } from "next/headers";
 import { NextRequest, NextResponse } from "next/server";
 
 /**
@@ -22,6 +24,21 @@ export async function GET(req: NextRequest) {
     if (wantsSync) {
       const enrichedThreads = await syncInboxThreadsFromApi(10, { force });
       return NextResponse.json(enrichedThreads);
+    }
+
+    const session = await auth.api.getSession({
+      headers: await headers(),
+    });
+    if (!session?.user?.id) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    const accountId = await getGmailAccountId(session.user.id);
+    if (!accountId) {
+      return NextResponse.json(
+        { error: "Gmail is not connected for this user", notConnected: true },
+        { status: 404 }
+      );
     }
 
     // Cold read from DB (fast, may not have from/subject yet)

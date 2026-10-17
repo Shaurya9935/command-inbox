@@ -19,6 +19,8 @@ export interface DefaultWorkspaceProps {
   isLoading?: boolean;
   activeConversationId?: string | null;
   onActiveConversationChange?: (id: string | null) => void;
+  isGmailConnected?: boolean;
+  onConnectGmail?: () => void;
 }
 
 import type { PendingActionPreview } from "@/lib/ai/agent";
@@ -134,6 +136,8 @@ export function DefaultWorkspace({
   isLoading = false,
   activeConversationId = null,
   onActiveConversationChange,
+  isGmailConnected,
+  onConnectGmail,
 }: DefaultWorkspaceProps) {
   const [commandInput, setCommandInput] = useState("");
   const [messages, setMessages] = useState<ChatMessage[]>([]);
@@ -590,6 +594,8 @@ export function DefaultWorkspace({
               isLoading={isLoading}
               onSelectEmail={onSelectEmail}
               onViewInbox={onSelectInbox || (() => {})}
+              isGmailConnected={isGmailConnected}
+              onConnectGmail={onConnectGmail}
             />
           </div>
         ) : (

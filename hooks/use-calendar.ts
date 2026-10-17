@@ -174,6 +174,7 @@ export function useCalendarEvents() {
   const [events, setEvents] = useState<CalEvent[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [isSyncing, setIsSyncing] = useState<boolean>(false);
+  const [isConnected, setIsConnected] = useState<boolean | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [lastSyncedAt, setLastSyncedAt] = useState<Date | null>(null);
   const mountedRef = useRef(true);
@@ -185,7 +186,21 @@ export function useCalendarEvents() {
     try {
       const res = await fetch("/api/calendar/events");
       if (!res.ok) {
-        const errorData = (await res.json().catch(() => null)) as { error?: string } | null;
+        const errorData = (await res.json().catch(() => null)) as {
+          error?: string;
+          notConnected?: boolean;
+        } | null;
+        if (
+          res.status === 404 &&
+          (errorData?.notConnected || errorData?.error?.includes("not connected"))
+        ) {
+          if (mountedRef.current) {
+            setIsConnected(false);
+            setRawEvents([]);
+            setEvents([]);
+          }
+          return;
+        }
         throw new Error(errorData?.error || `Failed to fetch events (${res.status})`);
       }
       const data: unknown = await res.json();
@@ -198,6 +213,7 @@ export function useCalendarEvents() {
         throw new Error((data as { error: string }).error);
       }
       if (mountedRef.current) {
+        setIsConnected(true);
         const list = extractEvents(data);
         setRawEvents(list);
         if (list.length > 0) {
@@ -236,6 +252,9 @@ export function useCalendarEvents() {
           (errorData?.notConnected || errorData?.error?.includes("not connected"))
         ) {
           if (mountedRef.current) {
+            setIsConnected(false);
+            setRawEvents([]);
+            setEvents([]);
             setIsSyncing(false);
           }
           return;
@@ -244,6 +263,7 @@ export function useCalendarEvents() {
       }
       const data: unknown = await res.json();
       if (mountedRef.current) {
+        setIsConnected(true);
         const list = extractEvents(data);
         setRawEvents(list);
         if (list.length > 0) {
@@ -356,6 +376,8 @@ export function useCalendarEvents() {
     nextEvent,
     isLoading,
     isSyncing,
+    isConnected: isConnected !== false,
+    isNotConnected: isConnected === false,
     error,
     lastSyncedAt,
     refetch: () => fetchFromDb(),

@@ -1,5 +1,5 @@
 import { auth } from "@/lib/auth";
-import { getStarredThreads, unstarThread, toggleStarThread } from "@/features/gmail/server";
+import { getStarredThreads, unstarThread, toggleStarThread, getGmailAccountId } from "@/features/gmail/server";
 import { headers } from "next/headers";
 import { NextRequest, NextResponse } from "next/server";
 
@@ -11,6 +11,14 @@ export async function GET(req: NextRequest) {
 
     if (!session?.user?.id) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    const accountId = await getGmailAccountId(session.user.id);
+    if (!accountId) {
+      return NextResponse.json(
+        { error: "Gmail is not connected for this user", notConnected: true },
+        { status: 404 }
+      );
     }
 
     const { searchParams } = req.nextUrl;

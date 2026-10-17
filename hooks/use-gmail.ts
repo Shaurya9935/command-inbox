@@ -52,6 +52,7 @@ export function useGmailThreads() {
   const [threads, setThreads] = useState<GmailThread[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [isSyncing, setIsSyncing] = useState<boolean>(false);
+  const [isConnected, setIsConnected] = useState<boolean | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [lastSyncedAt, setLastSyncedAt] = useState<Date | null>(null);
   const mountedRef = useRef(true);
@@ -64,7 +65,20 @@ export function useGmailThreads() {
     try {
       const res = await fetch("/api/gmail/threads");
       if (!res.ok) {
-        const errorData = (await res.json().catch(() => null)) as { error?: string } | null;
+        const errorData = (await res.json().catch(() => null)) as {
+          error?: string;
+          notConnected?: boolean;
+        } | null;
+        if (
+          res.status === 404 &&
+          (errorData?.notConnected || errorData?.error?.includes("not connected"))
+        ) {
+          if (mountedRef.current) {
+            setIsConnected(false);
+            setThreads([]);
+          }
+          return 0;
+        }
         throw new Error(errorData?.error || `Failed to fetch threads (${res.status})`);
       }
       const data: unknown = await res.json();
@@ -79,6 +93,7 @@ export function useGmailThreads() {
       const extracted = extractThreads(data);
       count = extracted.length;
       if (mountedRef.current) {
+        setIsConnected(true);
         setThreads(extracted);
       }
     } catch (err: unknown) {
@@ -115,6 +130,7 @@ export function useGmailThreads() {
           (errorData?.notConnected || errorData?.error?.includes("not connected"))
         ) {
           if (mountedRef.current) {
+            setIsConnected(false);
             setThreads([]);
             setIsSyncing(false);
           }
@@ -124,6 +140,7 @@ export function useGmailThreads() {
       }
       const data: unknown = await res.json();
       if (mountedRef.current) {
+        setIsConnected(true);
         setThreads(extractThreads(data));
         setLastSyncedAt(new Date());
       }
@@ -181,6 +198,8 @@ export function useGmailThreads() {
     isLoading,
     /** True only during an active API sync (not DB reads) */
     isSyncing,
+    isConnected: isConnected !== false,
+    isNotConnected: isConnected === false,
     error,
     lastSyncedAt,
     /** Re-read from the local DB (fast, no API call) */
@@ -194,6 +213,8 @@ export interface UseStarredThreadsResult {
   threads: GmailThread[];
   isLoading: boolean;
   isRefreshing: boolean;
+  isConnected: boolean;
+  isNotConnected: boolean;
   error: string | null;
   hasMore: boolean;
   loadMore: () => Promise<void>;
@@ -208,6 +229,7 @@ export function useStarredThreads(): UseStarredThreadsResult {
   const [threads, setThreads] = useState<GmailThread[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [isRefreshing, setIsRefreshing] = useState<boolean>(false);
+  const [isConnected, setIsConnected] = useState<boolean | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [nextPageToken, setNextPageToken] = useState<string | null>(null);
   const [isStale, setIsStale] = useState<boolean>(false);
@@ -241,6 +263,7 @@ export function useStarredThreads(): UseStarredThreadsResult {
           } | null;
           if (res.status === 404 && (errorData?.notConnected || errorData?.error?.includes("not connected"))) {
             if (mountedRef.current) {
+              setIsConnected(false);
               setThreads([]);
               setIsLoading(false);
               setIsRefreshing(false);
@@ -248,6 +271,10 @@ export function useStarredThreads(): UseStarredThreadsResult {
             return;
           }
           throw new Error(errorData?.error || `Failed to fetch starred threads (${res.status})`);
+        }
+
+        if (mountedRef.current) {
+          setIsConnected(true);
         }
 
         const data = (await res.json()) as {
@@ -376,6 +403,8 @@ export function useStarredThreads(): UseStarredThreadsResult {
     threads,
     isLoading,
     isRefreshing,
+    isConnected: isConnected !== false,
+    isNotConnected: isConnected === false,
     error,
     hasMore: Boolean(nextPageToken),
     loadMore,

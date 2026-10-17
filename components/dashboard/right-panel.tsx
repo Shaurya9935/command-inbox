@@ -11,14 +11,19 @@ export interface RightPanelProps {
   events?: CalendarEvent[];
   onOpenCalendar: () => void;
   onOpenNextEvent?: (event: CalendarEvent) => void;
+  isCalendarConnected?: boolean;
+  onConnectCalendar?: () => void;
 }
 
 export function RightPanel({
   events: propEvents,
   onOpenCalendar,
   onOpenNextEvent,
+  isCalendarConnected: propIsConnected,
+  onConnectCalendar,
 }: RightPanelProps) {
-  const { todayEvents, isLoading, rawEvents } = useCalendarEvents();
+  const { todayEvents, isLoading, rawEvents, isNotConnected: hookNotConnected } = useCalendarEvents();
+  const isNotConnected = propIsConnected !== undefined ? !propIsConnected : hookNotConnected;
 
   // Prefer caller-provided events if they are custom, otherwise use live todayEvents
   const events = propEvents !== undefined ? propEvents : todayEvents;
@@ -121,8 +126,89 @@ export function RightPanel({
         </div>
       </div>
 
-      {/* If loading and no events fetched yet */}
-      {isLoading && rawEvents.length === 0 && events.length === 0 ? (
+      {/* If not connected */}
+      {isNotConnected ? (
+        <div
+          style={{
+            padding: "36px 20px",
+            textAlign: "center",
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            justifyContent: "center",
+            gap: 12,
+            flex: 1,
+          }}
+        >
+          <div
+            style={{
+              width: 40,
+              height: 40,
+              borderRadius: 11,
+              background: "#F2EFE9",
+              border: "1px solid #E8E4DC",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              color: "#5046B8",
+            }}
+          >
+            <CalendarIcon size={20} />
+          </div>
+          <div
+            style={{
+              fontSize: 13,
+              fontWeight: 600,
+              color: "#1A1917",
+              fontFamily: "var(--font-ui, 'DM Sans', system-ui, sans-serif)",
+            }}
+          >
+            Calendar not connected
+          </div>
+          <div
+            style={{
+              fontSize: 11.5,
+              color: "#9B9691",
+              lineHeight: 1.45,
+              fontFamily: "var(--font-body, 'Inter', system-ui, sans-serif)",
+              maxWidth: 190,
+            }}
+          >
+            Connect Google Calendar to view today&apos;s meetings and schedule.
+          </div>
+          <button
+            type="button"
+            onClick={onConnectCalendar || onOpenCalendar}
+            style={{
+              marginTop: 4,
+              display: "inline-flex",
+              alignItems: "center",
+              gap: 6,
+              padding: "7px 14px",
+              borderRadius: 8,
+              background: "#5046B8",
+              color: "#FFFFFF",
+              fontSize: 11.5,
+              fontWeight: 600,
+              border: "none",
+              cursor: "pointer",
+              fontFamily: "var(--font-ui, 'DM Sans', system-ui, sans-serif)",
+              boxShadow: "0 1px 3px rgba(80, 70, 184, 0.25)",
+              transition: "background 0.15s, transform 0.1s",
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.background = "#4339A6";
+              e.currentTarget.style.transform = "translateY(-1px)";
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.background = "#5046B8";
+              e.currentTarget.style.transform = "translateY(0)";
+            }}
+          >
+            Connect Calendar →
+          </button>
+        </div>
+      ) : isLoading && rawEvents.length === 0 && events.length === 0 ? (
         <div
           style={{
             padding: "24px 20px",

@@ -10,6 +10,9 @@ import { Dot } from "@/components/dashboard/dot";
 import { Sidebar } from "@/components/dashboard/sidebar";
 import { EmailBodyContent } from "@/components/inbox/email-body";
 import { StarredView } from "@/components/inbox/starred-view";
+import { GmailConnectView } from "@/components/inbox/gmail-connect-view";
+import { useIntegrations } from "@/hooks/use-integrations";
+import { GmailBrandIcon } from "@/components/connect/brand-icons";
 import {
   InboxIcon,
   StarIcon,
@@ -138,7 +141,19 @@ function InboxInner() {
   const [starredIds, setStarredIds] = useState<Set<string | number>>(new Set());
   const [sidebarCollapsed, setSidebarCollapsed] = useState(true);
   const [secondaryOpen, setSecondaryOpen] = useState(true);
-  const { threads, isLoading, isSyncing, error, lastSyncedAt, sync } = useGmailThreads();
+  const { isGmailConnected, isConnectingGmail, connectGmail, isLoading: integrationsLoading } = useIntegrations();
+  const {
+    threads,
+    isLoading: isThreadsLoading,
+    isSyncing,
+    error,
+    lastSyncedAt,
+    sync,
+    isNotConnected: gmailNotConnected,
+  } = useGmailThreads();
+
+  const isNotConnected = gmailNotConnected || (!integrationsLoading && !isGmailConnected);
+  const isLoading = isThreadsLoading || integrationsLoading;
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedId, setSelectedId] = useState<string | number | null>(null);
   const [readIds, setReadIds] = useState<Set<string | number>>(new Set());
@@ -481,19 +496,35 @@ function InboxInner() {
                   ? "All Mail"
                   : activeFolder}
               </h1>
-              <span
-                style={{
-                  fontSize: 11,
-                  fontFamily: "var(--font-mono, 'JetBrains Mono', monospace)",
-                  color: unreadCount > 0 ? "#5549C0" : "#9B9691",
-                  background: unreadCount > 0 ? "#EAE8F8" : "#E8E4DC",
-                  padding: "2px 7px",
-                  borderRadius: 12,
-                  fontWeight: 500,
-                }}
-              >
-                {unreadCount} unread
-              </span>
+              {isNotConnected ? (
+                <span
+                  style={{
+                    fontSize: 11,
+                    fontFamily: "var(--font-mono, 'JetBrains Mono', monospace)",
+                    color: "#92400E",
+                    background: "#FEF3C7",
+                    padding: "2px 7px",
+                    borderRadius: 12,
+                    fontWeight: 500,
+                  }}
+                >
+                  Not connected
+                </span>
+              ) : (
+                <span
+                  style={{
+                    fontSize: 11,
+                    fontFamily: "var(--font-mono, 'JetBrains Mono', monospace)",
+                    color: unreadCount > 0 ? "#5549C0" : "#9B9691",
+                    background: unreadCount > 0 ? "#EAE8F8" : "#E8E4DC",
+                    padding: "2px 7px",
+                    borderRadius: 12,
+                    fontWeight: 500,
+                  }}
+                >
+                  {unreadCount} unread
+                </span>
+              )}
             </div>
           </div>
 
@@ -518,7 +549,8 @@ function InboxInner() {
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Search messages…"
+              placeholder={isNotConnected ? "Connect Gmail to search messages…" : "Search messages…"}
+              disabled={isNotConnected}
               style={{
                 border: "none",
                 background: "transparent",
@@ -532,7 +564,7 @@ function InboxInner() {
           </div>
 
           {/* Last synced label */}
-          {lastSyncedAt && !isSyncing && (
+          {lastSyncedAt && !isSyncing && !isNotConnected && (
             <span
               style={{
                 fontSize: 11.5,
@@ -553,59 +585,86 @@ function InboxInner() {
             </span>
           )}
 
-          {/* Sync / Refresh button */}
-          <button
-            onClick={() => sync()}
-            disabled={isSyncing}
-            title="Fetch latest emails from Gmail"
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: 6,
-              padding: "7px 14px",
-              background: isSyncing ? "#7B6ED8" : "#5549C0",
-              color: "#FFFFFF",
-              border: "none",
-              borderRadius: 8,
-              fontSize: 12.5,
-              fontWeight: 500,
-              cursor: isSyncing ? "default" : "pointer",
-              opacity: isSyncing ? 0.85 : 1,
-              fontFamily: "var(--font-ui, 'DM Sans', system-ui, sans-serif)",
-              transition: "background 0.15s, opacity 0.15s",
-            }}
-          >
-            {/* Spinner SVG shown while syncing */}
-            <svg
-              width="13"
-              height="13"
-              viewBox="0 0 16 16"
-              fill="none"
+          {/* Sync / Refresh or Connect button */}
+          {isNotConnected ? (
+            <button
+              onClick={() => connectGmail()}
+              disabled={isConnectingGmail}
+              title="Connect your Gmail account"
               style={{
-                animation: isSyncing ? "spin 0.8s linear infinite" : "none",
-                opacity: isSyncing ? 1 : 0.75,
+                display: "flex",
+                alignItems: "center",
+                gap: 6,
+                padding: "7px 14px",
+                background: isConnectingGmail ? "#7B6ED8" : "#5046B8",
+                color: "#FFFFFF",
+                border: "none",
+                borderRadius: 8,
+                fontSize: 12.5,
+                fontWeight: 500,
+                cursor: isConnectingGmail ? "default" : "pointer",
+                opacity: isConnectingGmail ? 0.85 : 1,
+                fontFamily: "var(--font-ui, 'DM Sans', system-ui, sans-serif)",
+                transition: "background 0.15s, opacity 0.15s",
               }}
             >
-              <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
-              <circle
-                cx="8" cy="8" r="6"
-                stroke="rgba(255,255,255,0.35)"
-                strokeWidth="1.8"
-              />
-              <path
-                d="M8 2a6 6 0 016 6"
-                stroke="white"
-                strokeWidth="1.8"
-                strokeLinecap="round"
-              />
-            </svg>
-            {isSyncing ? "Syncing…" : "Refresh"}
-          </button>
+              <GmailBrandIcon size={14} />
+              <span>{isConnectingGmail ? "Connecting…" : "Connect Gmail"}</span>
+            </button>
+          ) : (
+            <button
+              onClick={() => sync()}
+              disabled={isSyncing}
+              title="Fetch latest emails from Gmail"
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: 6,
+                padding: "7px 14px",
+                background: isSyncing ? "#7B6ED8" : "#5549C0",
+                color: "#FFFFFF",
+                border: "none",
+                borderRadius: 8,
+                fontSize: 12.5,
+                fontWeight: 500,
+                cursor: isSyncing ? "default" : "pointer",
+                opacity: isSyncing ? 0.85 : 1,
+                fontFamily: "var(--font-ui, 'DM Sans', system-ui, sans-serif)",
+                transition: "background 0.15s, opacity 0.15s",
+              }}
+            >
+              {/* Spinner SVG shown while syncing */}
+              <svg
+                width="13"
+                height="13"
+                viewBox="0 0 16 16"
+                fill="none"
+                style={{
+                  animation: isSyncing ? "spin 0.8s linear infinite" : "none",
+                  opacity: isSyncing ? 1 : 0.75,
+                }}
+              >
+                <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
+                <circle
+                  cx="8" cy="8" r="6"
+                  stroke="rgba(255,255,255,0.35)"
+                  strokeWidth="1.8"
+                />
+                <path
+                  d="M8 2a6 6 0 016 6"
+                  stroke="white"
+                  strokeWidth="1.8"
+                  strokeLinecap="round"
+                />
+              </svg>
+              {isSyncing ? "Syncing…" : "Refresh"}
+            </button>
+          )}
         </div>
       </header>
 
       {/* ── Error Banner if any ── */}
-      {error && (
+      {error && !isNotConnected && (
         <div
           style={{
             padding: "10px 28px",
@@ -636,7 +695,10 @@ function InboxInner() {
         </div>
       )}
 
-      {/* ── Main Two-Pane Container ── */}
+      {/* ── Main Content Area (Connect View or Two-Pane Container) ── */}
+      {isNotConnected && !isLoading ? (
+        <GmailConnectView onConnect={connectGmail} isConnecting={isConnectingGmail} />
+      ) : (
       <div
         style={{
           flex: 1,
@@ -1126,6 +1188,7 @@ function InboxInner() {
           )}
         </div>
       </div>
+      )}
     </div>
   )}
 </div>

@@ -71,6 +71,12 @@ export function TopBar({
     return "Nexus";
   };
 
+  const essentialConnections = connections.filter((c) => c.label !== "Command AI");
+  const allConnected = essentialConnections.length > 0 && essentialConnections.every((c) => c.ok);
+  const anyConnected = essentialConnections.some((c) => c.ok);
+  const statusColor = allConnected ? "#8BAE92" : anyConnected ? "#D4943E" : "#9B9691";
+  const statusLabel = allConnected ? "Connected" : anyConnected ? "Partial" : "Not connected";
+
   return (
     <header
       style={{
@@ -110,7 +116,7 @@ export function TopBar({
             alignItems: "center",
             gap: 5,
             fontSize: 11.5,
-            color: "#8BAE92",
+            color: statusColor,
             background: statusOpen ? "#EEE9E1" : "transparent",
             border: "none",
             cursor: "pointer",
@@ -126,7 +132,7 @@ export function TopBar({
             if (!statusOpen) e.currentTarget.style.background = "transparent";
           }}
         >
-          <Dot color="#8BAE92" size={5.5} /> Connected
+          <Dot color={statusColor} size={5.5} /> {statusLabel}
         </button>
 
         {statusOpen && (

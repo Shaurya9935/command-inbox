@@ -10,4 +10,5 @@ export * from "./event-popover";
 export * from "./new-event-form";
 export * from "./calendar-workspace";
 export * from "./calendar-syncing";
+export * from "./calendar-connect-view";
 

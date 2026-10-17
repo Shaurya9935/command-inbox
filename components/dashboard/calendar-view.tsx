@@ -4,18 +4,40 @@ import React from "react";
 import { CalendarEvent } from "./types";
 import { BackIcon } from "./icons";
 import { EVENTS, EVENT_COLORS } from "./mock-data";
+import { CalendarConnectView } from "@/components/calendar";
 
 export interface CalendarViewProps {
   events?: CalendarEvent[];
   onBack: () => void;
   onSelectEvent?: (event: CalendarEvent) => void;
+  isCalendarConnected?: boolean;
+  onConnectCalendar?: () => void;
 }
 
 export function CalendarView({
   events = EVENTS,
   onBack,
   onSelectEvent,
+  isCalendarConnected,
+  onConnectCalendar,
 }: CalendarViewProps) {
+  if (isCalendarConnected === false) {
+    return (
+      <div
+        style={{
+          flex: 1,
+          display: "flex",
+          flexDirection: "column",
+          overflowY: "auto",
+        }}
+      >
+        <CalendarConnectView
+          onConnect={onConnectCalendar}
+          onBack={onBack}
+        />
+      </div>
+    );
+  }
   return (
     <div
       style={{

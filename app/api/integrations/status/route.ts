@@ -1,5 +1,7 @@
 import { auth } from "@/lib/auth";
 import { corsair } from "@/lib/corsair";
+import { getGmailAccountId } from "@/features/gmail/server";
+import { getCalendarAccountId } from "@/features/calendar/server";
 import { headers } from "next/headers";
 
 export async function GET() {
@@ -28,6 +30,9 @@ export async function GET() {
       ])
     );
 
+    const gmailAccountId = await getGmailAccountId(tenantId);
+    const calendarAccountId = await getCalendarAccountId(tenantId);
+
     return Response.json({
       user: {
         id: session.user.id,
@@ -36,9 +41,9 @@ export async function GET() {
         image: session.user.image,
       },
       statuses: {
-        gmail: false,
-        googlecalendar: false,
         ...booleanStatuses,
+        gmail: Boolean(booleanStatuses.gmail || gmailAccountId),
+        googlecalendar: Boolean(booleanStatuses.googlecalendar || calendarAccountId),
       },
       email: session.user.email,
     });

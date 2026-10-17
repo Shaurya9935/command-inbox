@@ -5,9 +5,16 @@ import { useRouter } from "next/navigation";
 import { Sidebar } from "@/components/dashboard/sidebar";
 import { RightPanel } from "@/components/dashboard/right-panel";
 import { CalendarIcon, SearchIcon, SidebarToggleIcon } from "@/components/dashboard/icons";
-import { CalendarWorkspace, CalendarSyncingView, CalendarEmptyView } from "@/components/calendar";
+import {
+  CalendarWorkspace,
+  CalendarSyncingView,
+  CalendarEmptyView,
+  CalendarConnectView,
+} from "@/components/calendar";
 import { useGmailThreads } from "@/hooks/use-gmail";
 import { useCalendarEvents } from "@/hooks/use-calendar";
+import { useIntegrations } from "@/hooks/use-integrations";
+import { GoogleCalendarBrandIcon } from "@/components/connect/brand-icons";
 import { useCurrentTime } from "@/hooks/use-current-time";
 
 export default function CalendarPage() {
@@ -15,8 +22,25 @@ export default function CalendarPage() {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const { threads } = useGmailThreads();
-  const { events, todayEvents, isLoading, isSyncing, sync, lastSyncedAt } = useCalendarEvents();
+  const {
+    isCalendarConnected,
+    isConnectingCalendar,
+    connectCalendar,
+    isLoading: integrationsLoading,
+  } = useIntegrations();
+  const {
+    events,
+    todayEvents,
+    isLoading: isEventsLoading,
+    isSyncing,
+    sync,
+    lastSyncedAt,
+    isNotConnected: calendarNotConnected,
+  } = useCalendarEvents();
   const currentMs = useCurrentTime();
+
+  const isNotConnected = calendarNotConnected || (!integrationsLoading && !isCalendarConnected);
+  const isLoading = isEventsLoading || integrationsLoading;
 
   const unreadCount = Array.isArray(threads)
     ? threads.filter((t) => t.unread || t.data?.unread).length
@@ -121,19 +145,35 @@ export default function CalendarPage() {
               >
                 Calendar
               </h1>
-              <span
-                style={{
-                  fontSize: 11,
-                  fontFamily: "var(--font-mono, 'JetBrains Mono', monospace)",
-                  color: "#5549C0",
-                  background: "#EAE8F8",
-                  padding: "2px 7px",
-                  borderRadius: 12,
-                  fontWeight: 500,
-                }}
-              >
-                Google Calendar
-              </span>
+              {isNotConnected ? (
+                <span
+                  style={{
+                    fontSize: 11,
+                    fontFamily: "var(--font-mono, 'JetBrains Mono', monospace)",
+                    color: "#92400E",
+                    background: "#FEF3C7",
+                    padding: "2px 7px",
+                    borderRadius: 12,
+                    fontWeight: 500,
+                  }}
+                >
+                  Not connected
+                </span>
+              ) : (
+                <span
+                  style={{
+                    fontSize: 11,
+                    fontFamily: "var(--font-mono, 'JetBrains Mono', monospace)",
+                    color: "#5549C0",
+                    background: "#EAE8F8",
+                    padding: "2px 7px",
+                    borderRadius: 12,
+                    fontWeight: 500,
+                  }}
+                >
+                  Google Calendar
+                </span>
+              )}
             </div>
           </div>
 
@@ -158,7 +198,8 @@ export default function CalendarPage() {
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Search events…"
+                placeholder={isNotConnected ? "Connect Calendar to search events…" : "Search events…"}
+                disabled={isNotConnected}
                 style={{
                   border: "none",
                   background: "transparent",
@@ -172,7 +213,7 @@ export default function CalendarPage() {
             </div>
 
             {/* Last synced label */}
-            {lastSyncedAt && !isSyncing && (
+            {lastSyncedAt && !isSyncing && !isNotConnected && (
               <span
                 style={{
                   fontSize: 11.5,
@@ -193,50 +234,79 @@ export default function CalendarPage() {
               </span>
             )}
 
-            {/* Sync / Refresh button */}
-            <button
-              onClick={() => sync()}
-              disabled={isSyncing}
-              title="Fetch latest events from Google Calendar"
-              style={{
-                display: "flex",
-                alignItems: "center",
-                gap: 6,
-                padding: "7px 14px",
-                background: isSyncing ? "#7B6ED8" : "#5549C0",
-                color: "#FFFFFF",
-                border: "none",
-                borderRadius: 8,
-                fontSize: 12.5,
-                fontWeight: 500,
-                cursor: isSyncing ? "default" : "pointer",
-                opacity: isSyncing ? 0.85 : 1,
-                fontFamily: "var(--font-ui, 'DM Sans', system-ui, sans-serif)",
-                transition: "background 0.15s, opacity 0.15s",
-              }}
-            >
-              <svg
-                width="13"
-                height="13"
-                viewBox="0 0 16 16"
-                fill="none"
+            {/* Sync / Refresh or Connect button */}
+            {isNotConnected ? (
+              <button
+                onClick={() => connectCalendar()}
+                disabled={isConnectingCalendar}
+                title="Connect your Google Calendar account"
                 style={{
-                  animation: isSyncing ? "spin 0.8s linear infinite" : "none",
-                  opacity: isSyncing ? 1 : 0.75,
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 6,
+                  padding: "7px 14px",
+                  background: isConnectingCalendar ? "#7B6ED8" : "#5046B8",
+                  color: "#FFFFFF",
+                  border: "none",
+                  borderRadius: 8,
+                  fontSize: 12.5,
+                  fontWeight: 500,
+                  cursor: isConnectingCalendar ? "default" : "pointer",
+                  opacity: isConnectingCalendar ? 0.85 : 1,
+                  fontFamily: "var(--font-ui, 'DM Sans', system-ui, sans-serif)",
+                  transition: "background 0.15s, opacity 0.15s",
                 }}
               >
-                <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
-                <circle cx="8" cy="8" r="6" stroke="rgba(255,255,255,0.35)" strokeWidth="1.8" />
-                <path d="M8 2a6 6 0 016 6" stroke="white" strokeWidth="1.8" strokeLinecap="round" />
-              </svg>
-              {isSyncing ? "Syncing…" : "Refresh"}
-            </button>
+                <GoogleCalendarBrandIcon size={14} />
+                <span>{isConnectingCalendar ? "Connecting…" : "Connect Calendar"}</span>
+              </button>
+            ) : (
+              <button
+                onClick={() => sync()}
+                disabled={isSyncing}
+                title="Fetch latest events from Google Calendar"
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 6,
+                  padding: "7px 14px",
+                  background: isSyncing ? "#7B6ED8" : "#5549C0",
+                  color: "#FFFFFF",
+                  border: "none",
+                  borderRadius: 8,
+                  fontSize: 12.5,
+                  fontWeight: 500,
+                  cursor: isSyncing ? "default" : "pointer",
+                  opacity: isSyncing ? 0.85 : 1,
+                  fontFamily: "var(--font-ui, 'DM Sans', system-ui, sans-serif)",
+                  transition: "background 0.15s, opacity 0.15s",
+                }}
+              >
+                <svg
+                  width="13"
+                  height="13"
+                  viewBox="0 0 16 16"
+                  fill="none"
+                  style={{
+                    animation: isSyncing ? "spin 0.8s linear infinite" : "none",
+                    opacity: isSyncing ? 1 : 0.75,
+                  }}
+                >
+                  <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
+                  <circle cx="8" cy="8" r="6" stroke="rgba(255,255,255,0.35)" strokeWidth="1.8" />
+                  <path d="M8 2a6 6 0 016 6" stroke="white" strokeWidth="1.8" strokeLinecap="round" />
+                </svg>
+                {isSyncing ? "Syncing…" : "Refresh"}
+              </button>
+            )}
           </div>
         </header>
 
-        {/* ── Calendar Workspace / Syncing View / Empty View ── */}
+        {/* ── Calendar Workspace / Syncing View / Empty View / Connect View ── */}
         <div style={{ flex: 1, display: "flex", flexDirection: "column", overflow: "hidden", position: "relative" }}>
-          {(isLoading || isSyncing) && events.length === 0 ? (
+          {isNotConnected && !isLoading ? (
+            <CalendarConnectView onConnect={connectCalendar} isConnecting={isConnectingCalendar} />
+          ) : (isLoading || isSyncing) && events.length === 0 ? (
             <CalendarSyncingView />
           ) : events.length === 0 ? (
             <CalendarEmptyView onSync={() => sync()} isSyncing={isSyncing} />
@@ -278,7 +348,12 @@ export default function CalendarPage() {
       </div>
 
       {/* ── Right Context Panel ── */}
-      <RightPanel events={todayEvents} onOpenCalendar={() => {}} />
+      <RightPanel
+        events={todayEvents}
+        onOpenCalendar={() => {}}
+        isCalendarConnected={!isNotConnected}
+        onConnectCalendar={connectCalendar}
+      />
     </div>
   );
 }

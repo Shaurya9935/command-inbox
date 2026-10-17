@@ -11,6 +11,8 @@ export interface NeedsAttentionProps {
   isLoading?: boolean;
   onSelectEmail: (email: Email) => void;
   onViewInbox: () => void;
+  isGmailConnected?: boolean;
+  onConnectGmail?: () => void;
   className?: string;
 }
 
@@ -19,6 +21,8 @@ export function NeedsAttention({
   isLoading = false,
   onSelectEmail,
   onViewInbox,
+  isGmailConnected,
+  onConnectGmail,
   className = "",
 }: NeedsAttentionProps) {
   return (
@@ -94,6 +98,74 @@ export function NeedsAttention({
               </div>
             </div>
           ))}
+        </div>
+      ) : isGmailConnected === false ? (
+        <div
+          style={{
+            padding: "24px 20px",
+            textAlign: "center",
+            borderRadius: 12,
+            background: "#FAF8F4",
+            border: "1px dashed #E2DED6",
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            justifyContent: "center",
+            gap: 10,
+          }}
+        >
+          <div
+            style={{
+              fontSize: 13,
+              fontWeight: 600,
+              color: "#1A1917",
+              fontFamily: "var(--font-ui, 'DM Sans', system-ui, sans-serif)",
+            }}
+          >
+            Gmail not connected
+          </div>
+          <div
+            style={{
+              fontSize: 12,
+              color: "#9B9691",
+              lineHeight: 1.45,
+              fontFamily: "var(--font-body, 'Inter', system-ui, sans-serif)",
+              maxWidth: 280,
+            }}
+          >
+            Connect your Gmail account to manage unread emails, view threads, and draft AI replies.
+          </div>
+          <button
+            type="button"
+            onClick={onConnectGmail || onViewInbox}
+            style={{
+              marginTop: 4,
+              display: "inline-flex",
+              alignItems: "center",
+              gap: 6,
+              padding: "7px 14px",
+              borderRadius: 8,
+              background: "#5046B8",
+              color: "#FFFFFF",
+              fontSize: 12,
+              fontWeight: 600,
+              border: "none",
+              cursor: "pointer",
+              fontFamily: "var(--font-ui, 'DM Sans', system-ui, sans-serif)",
+              boxShadow: "0 1px 3px rgba(80, 70, 184, 0.25)",
+              transition: "background 0.15s, transform 0.1s",
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.background = "#4339A6";
+              e.currentTarget.style.transform = "translateY(-1px)";
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.background = "#5046B8";
+              e.currentTarget.style.transform = "translateY(0)";
+            }}
+          >
+            Connect Gmail →
+          </button>
         </div>
       ) : emails.length === 0 ? (
         <div

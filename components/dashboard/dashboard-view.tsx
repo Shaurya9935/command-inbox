@@ -12,11 +12,11 @@ import { RightPanel } from "./right-panel";
 import {
   CURRENT_USER,
   FOCUS_ITEMS,
-  SERVICE_CONNECTIONS,
 } from "./mock-data";
 import { useGmailThreads, GmailThread } from "@/hooks/use-gmail";
 import { useCalendarEvents } from "@/hooks/use-calendar";
 import { useCurrentTime } from "@/hooks/use-current-time";
+import { useIntegrations } from "@/hooks/use-integrations";
 
 export interface DashboardViewProps {
   initialUser?: UserProfile;
@@ -119,8 +119,6 @@ function mapThreadToEmail(thread: GmailThread, index: number): Email {
 
 export function DashboardView({
   initialUser = CURRENT_USER,
-  initialEmails = [],
-  connections = SERVICE_CONNECTIONS,
 }: DashboardViewProps) {
   const router = useRouter();
   const [view, setView] = useState<View>("default");
@@ -131,14 +129,27 @@ export function DashboardView({
   const [readEmailIds, setReadEmailIds] = useState<Set<string | number>>(new Set());
   const nowMs = useCurrentTime();
 
+  // Connection status & actions
+  const {
+    isGmailConnected,
+    isCalendarConnected,
+    isLoading: integrationsLoading,
+    connectGmail,
+    connectCalendar,
+  } = useIntegrations();
+
   // Fetch threads using the useGmailThreads hook
-  const { threads, isLoading } = useGmailThreads();
-  const { todayEvents, nextEvent: calendarNextEvent } = useCalendarEvents();
+  const { threads, isLoading: threadsLoading, isNotConnected: gmailNotConnected } = useGmailThreads();
+  const { todayEvents, nextEvent: calendarNextEvent, isNotConnected: calendarNotConnected } = useCalendarEvents();
+
+  const isGmailActive = !integrationsLoading ? isGmailConnected : !gmailNotConnected;
+  const isCalendarActive = !integrationsLoading ? isCalendarConnected : !calendarNotConnected;
+  const isLoading = threadsLoading || integrationsLoading;
 
   // Map API threads to UI emails format, applying local read overrides
   const emails: Email[] = useMemo(() => {
-    if (!Array.isArray(threads) || threads.length === 0) {
-      return initialEmails;
+    if (!isGmailActive || !Array.isArray(threads) || threads.length === 0) {
+      return [];
     }
     return threads.map((thread, idx) => {
       const email = mapThreadToEmail(thread, idx);
@@ -147,7 +158,13 @@ export function DashboardView({
       }
       return email;
     });
-  }, [threads, initialEmails, readEmailIds]);
+  }, [threads, isGmailActive, readEmailIds]);
+
+  const liveConnections: ServiceConnection[] = useMemo(() => [
+    { label: "Gmail", ok: isGmailActive },
+    { label: "Google Calendar", ok: isCalendarActive },
+    { label: "Command AI", ok: true },
+  ], [isGmailActive, isCalendarActive]);
 
   const goBack = () => {
     setView("default");
@@ -190,10 +207,10 @@ export function DashboardView({
     const unreadCount = emails.filter((e) => e.unread).length;
     const meetingCount = todayEvents.length;
 
-    let nextMeetingStr = "24m";
-    let nextMeetingLabel = "until Team sync";
+    let nextMeetingStr = "—";
+    let nextMeetingLabel = isCalendarActive ? "no upcoming meetings" : "calendar offline";
 
-    if (calendarNextEvent?.startIso) {
+    if (isCalendarActive && calendarNextEvent?.startIso) {
       const currentMs = nowMs ?? new Date(calendarNextEvent.startIso).getTime();
       const diffMin = Math.max(
         0,
@@ -208,13 +225,13 @@ export function DashboardView({
 
     return [
       {
-        count: String(unreadCount || emails.length || 0),
-        label: "emails need attention",
+        count: isGmailActive ? String(unreadCount || emails.length || 0) : "—",
+        label: isGmailActive ? "emails need attention" : "connect Gmail",
         action: "email",
       },
       {
-        count: String(meetingCount),
-        label: meetingCount === 1 ? "meeting today" : "meetings today",
+        count: isCalendarActive ? String(meetingCount) : "—",
+        label: isCalendarActive ? (meetingCount === 1 ? "meeting today" : "meetings today") : "connect Calendar",
         action: "calendar",
       },
       FOCUS_ITEMS[2] || { count: "2", label: "drafts waiting", action: "email" },
@@ -224,9 +241,9 @@ export function DashboardView({
         action: "calendar",
       },
     ];
-  }, [emails, todayEvents, calendarNextEvent, nowMs]);
+  }, [emails, todayEvents, calendarNextEvent, nowMs, isGmailActive, isCalendarActive]);
 
-  const inboxBadgeCount = emails.filter((e) => e.unread).length || emails.length || 0;
+  const inboxBadgeCount = isGmailActive ? (emails.filter((e) => e.unread).length || emails.length || 0) : 0;
 
   return (
     <div
@@ -267,7 +284,7 @@ export function DashboardView({
           statusOpen={statusOpen}
           onToggleStatus={() => setStatusOpen((prev) => !prev)}
           onCloseStatus={() => setStatusOpen(false)}
-          connections={connections}
+          connections={liveConnections}
           user={initialUser}
         />
 
@@ -284,7 +301,12 @@ export function DashboardView({
           {view === "email" && selectedEmail ? (
             <EmailThreadView email={selectedEmail} onBack={goBack} />
           ) : view === "calendar" ? (
-            <CalendarView events={todayEvents} onBack={goBack} />
+            <CalendarView
+              events={todayEvents}
+              onBack={goBack}
+              isCalendarConnected={isCalendarActive}
+              onConnectCalendar={connectCalendar}
+            />
           ) : (
             <DefaultWorkspace
               onSelectEmail={openEmail}
@@ -296,6 +318,8 @@ export function DashboardView({
               isLoading={isLoading}
               activeConversationId={activeConversationId}
               onActiveConversationChange={setActiveConversationId}
+              isGmailConnected={isGmailActive}
+              onConnectGmail={connectGmail}
             />
           )}
         </div>
@@ -306,6 +330,8 @@ export function DashboardView({
         events={todayEvents}
         onOpenCalendar={openCalendar}
         onOpenNextEvent={openCalendar}
+        isCalendarConnected={isCalendarActive}
+        onConnectCalendar={connectCalendar}
       />
     </div>
   );
