@@ -6,6 +6,7 @@ import { eq, desc } from "drizzle-orm";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { conversations } from "@/lib/schema";
+import { log } from "@/lib/logger";
 
 export async function GET() {
   try {
@@ -30,7 +31,7 @@ export async function GET() {
 
     return NextResponse.json(items);
   } catch (error) {
-    console.error("Failed to list conversations:", error);
+    log.error("Failed to list conversations", { error });
     return NextResponse.json(
       { error: "Failed to list conversations" },
       { status: 500 }
@@ -67,7 +68,7 @@ export async function POST() {
 
     return NextResponse.json(conversation);
   } catch (error) {
-    console.error("Failed to create conversation:", error);
+    log.error("Failed to create conversation", { error });
     return NextResponse.json(
       { error: "Failed to create conversation" },
       { status: 500 }

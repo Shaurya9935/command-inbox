@@ -7,6 +7,7 @@ import React, {
   useEffect,
   useCallback,
 } from "react";
+import { log } from "@/lib/logger";
 import { TOUR_STEPS, TourStep } from "./tour-steps";
 import { useTourTarget } from "./use-tour-target";
 import { TourOverlay, computeTourPlacement } from "./tour-overlay";
@@ -101,7 +102,7 @@ export function TourProvider({ children }: { children: React.ReactNode }) {
         body: JSON.stringify({ action }),
       });
     } catch (err) {
-      console.warn("Failed to save onboarding status:", err);
+      log.warn("Failed to save onboarding status", { error: err });
     }
   };
 

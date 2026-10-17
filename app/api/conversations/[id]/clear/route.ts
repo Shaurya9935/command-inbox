@@ -5,6 +5,7 @@ import { and, eq } from "drizzle-orm";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { conversations, chatMessages } from "@/lib/schema";
+import { log } from "@/lib/logger";
 
 export async function POST(
   request: Request,
@@ -46,11 +47,16 @@ export async function POST(
         agentHistory: [],
         updatedAt: new Date(),
       })
-      .where(eq(conversations.id, id));
+      .where(
+        and(
+          eq(conversations.id, id),
+          eq(conversations.userId, session.user.id)
+        )
+      );
 
     return NextResponse.json({ success: true });
   } catch (error) {
-    console.error("Failed to clear conversation:", error);
+    log.error("Failed to clear conversation", { error });
     return NextResponse.json(
       { error: "Failed to clear conversation" },
       { status: 500 }

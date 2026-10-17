@@ -5,6 +5,7 @@ import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { conversations, chatMessages } from "@/db/conversation";
 import { corsairAccounts } from "@/db/corsair";
+import { log } from "@/lib/logger";
 
 export async function GET() {
   try {
@@ -98,8 +99,7 @@ export async function GET() {
       },
     });
   } catch (err) {
-    console.error("[account/export] Error exporting data:", err);
-    const msg = err instanceof Error ? err.message : "Internal Server Error";
-    return NextResponse.json({ error: msg }, { status: 500 });
+    log.error("[account/export] Error exporting data", { error: err });
+    return NextResponse.json({ error: "Failed to export data" }, { status: 500 });
   }
 }

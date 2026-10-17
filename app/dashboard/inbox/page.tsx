@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useMemo, useEffect, useRef, Suspense } from "react";
+import { log } from "@/lib/logger";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useGmailThreads, GmailThread } from "@/hooks/use-gmail";
 import { useCurrentTime } from "@/hooks/use-current-time";
@@ -288,7 +289,7 @@ function InboxInner() {
         }
       })
       .catch((err) => {
-        console.warn("Failed to fetch full thread body:", err);
+        log.warn("Failed to fetch full thread body", { error: err });
         if (isMounted) {
           setFailedBodyThreadIds((prev) => new Set(prev).add(idStr));
         }
@@ -352,7 +353,7 @@ function InboxInner() {
       setReplyText("");
       sync().catch(() => {});
     } catch (err) {
-      console.error("Failed to send reply:", err);
+      log.error("Failed to send reply", { error: err });
       setReplyError(err instanceof Error ? err.message : "Failed to send reply");
     } finally {
       setIsSendingReply(false);

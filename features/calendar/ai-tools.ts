@@ -84,7 +84,13 @@ export function calendarTools(ctx: ToolContext): Tool<unknown>[] {
         });
       }
 
-      // 2. Validate attendees
+      // 2. Validate attendees (max 10)
+      if (attendeeEmails && attendeeEmails.length > 10) {
+        return JSON.stringify({
+          error: "Attendee limit exceeded. A maximum of 10 attendees is allowed per calendar event.",
+        });
+      }
+
       const validAttendees: string[] = [];
       if (attendeeEmails && attendeeEmails.length > 0) {
         for (const email of attendeeEmails) {

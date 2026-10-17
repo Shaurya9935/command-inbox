@@ -2,10 +2,24 @@ import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import * as schema from "../db/auth";
 import { db } from "./db";
+import { env } from "./env";
 
 export const auth = betterAuth({
   database: drizzleAdapter(db, { provider: "pg", schema }),
-  baseURL: process.env.BETTER_AUTH_URL,
+  baseURL: env.APP_URL,
+  trustedOrigins: [env.APP_URL],
+  advanced: {
+    useSecureCookies: env.NODE_ENV === "production",
+  },
+  rateLimit: {
+    enabled: true,
+    window: 60,
+    max: 100,
+    customRules: {
+      "/sign-in/email": { window: 60, max: 10 },
+      "/sign-up/email": { window: 60, max: 5 },
+    },
+  },
   emailAndPassword: { enabled: true },
   socialProviders: {
     ...(process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET

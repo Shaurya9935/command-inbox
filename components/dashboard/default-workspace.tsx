@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useRef, useEffect, useMemo } from "react";
+import { log } from "@/lib/logger";
 import { Email, FocusItem, UserProfile, View } from "./types";
 import { Dot } from "./dot";
 import { CommandSurface } from "./command-surface";
@@ -231,7 +232,7 @@ export function DefaultWorkspace({
           })),
         );
       } catch (error) {
-        console.error("Failed to load chat history:", error);
+        log.error("Failed to load chat history", { error });
       }
     }
 
@@ -260,7 +261,7 @@ export function DefaultWorkspace({
         });
         if (!res.ok) {
           const errData = await res.json().catch(() => null);
-          console.error(`Failed to ${decision} token ${token}:`, errData);
+          log.error("Failed to process approval token", { decision, token, errData });
         }
       }
 
@@ -275,7 +276,7 @@ export function DefaultWorkspace({
         )
       );
     } catch (err) {
-      console.error(`Error processing approval decision:`, err);
+      log.error("Error processing approval decision", { error: err });
     } finally {
       setApprovingTokens((prev) => {
         const next = { ...prev };
@@ -398,7 +399,7 @@ export function DefaultWorkspace({
 
       setMessages((prev) => [...prev, assistantMsg]);
     } catch (err) {
-      console.error("Failed to send message to /api/ai:", err);
+      log.error("Failed to send message to /api/ai", { error: err });
       const errorMsg: ChatMessage = {
         id: `msg-${Date.now() + 1}`,
         role: "assistant",
@@ -473,7 +474,7 @@ export function DefaultWorkspace({
                     method: "POST",
                   });
                 } catch (e) {
-                  console.error("Failed to clear chat", e);
+                  log.error("Failed to clear chat", { error: e });
                 }
               }
               setMessages([]);

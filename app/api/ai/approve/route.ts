@@ -7,6 +7,8 @@ import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { corsairPermissions, corsairEntities } from "@/db/corsair";
 import { corsair } from "@/lib/corsair";
+import { getCalendarAccountId } from "@/features/calendar/server";
+import { log } from "@/lib/logger";
 
 export async function POST(request: Request) {
   try {
@@ -81,17 +83,21 @@ export async function POST(request: Request) {
           const parsedArgs = JSON.parse(row.args || "{}");
           const eventId = parsedArgs.id;
           if (eventId) {
-            await db
-              .delete(corsairEntities)
-              .where(
-                and(
-                  eq(corsairEntities.entityType, "events"),
-                  eq(corsairEntities.entityId, eventId)
-                )
-              );
+            const accountId = await getCalendarAccountId(session.user.id);
+            if (accountId) {
+              await db
+                .delete(corsairEntities)
+                .where(
+                  and(
+                    eq(corsairEntities.accountId, accountId),
+                    eq(corsairEntities.entityType, "events"),
+                    eq(corsairEntities.entityId, eventId)
+                  )
+                );
+            }
           }
         } catch (cacheErr) {
-          console.warn("Failed to clean up deleted event from cache on approval:", cacheErr);
+          log.warn("Failed to clean up deleted event from cache on approval", { error: cacheErr });
         }
       }
 
@@ -118,9 +124,9 @@ export async function POST(request: Request) {
       });
     }
   } catch (error) {
-    console.error("[api/ai/approve] error:", error);
+    log.error("[api/ai/approve] error", { error });
     return NextResponse.json(
-      { error: error instanceof Error ? error.message : "Failed to process permission approval" },
+      { error: "Failed to process permission approval" },
       { status: 500 }
     );
   }

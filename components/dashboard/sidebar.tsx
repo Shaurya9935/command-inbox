@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useRef } from "react";
+import { log } from "@/lib/logger";
 import { useTour } from "@/components/onboarding";
 import {
   LogoIcon,
@@ -914,7 +915,7 @@ function ChatSecondaryPanel({
           setConversations(data);
         }
       } catch (e) {
-        console.error("Failed to load conversations:", e);
+        log.error("Failed to load conversations", { error: e });
       }
     }
     loadConversations();
@@ -1102,7 +1103,7 @@ function PrimaryNav({
           setConversations(data);
         }
       } catch (e) {
-        console.error("Failed to load conversations:", e);
+        log.error("Failed to load conversations", { error: e });
       }
     }
     loadConversations();

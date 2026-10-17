@@ -2,6 +2,7 @@ import { processWebhook } from 'corsair';
 import type { NextRequest } from 'next/server';
 import { NextResponse } from 'next/server';
 import { corsair } from '../../../lib/corsair';
+import { log } from '../../../lib/logger';
 
 export async function POST(request: NextRequest) {
     const url = new URL(request.url);
@@ -23,19 +24,46 @@ export async function POST(request: NextRequest) {
         body = text && text.trim() ? text : {};
     }
 
-    // Multi-tenancy: tenantId must come from ?tenantId= query param per https://docs.corsair.dev/concepts/multi-tenancy
-    // Gmail webhook tenant is also resolved via email_address matcher, but query param takes precedence for isolation
-    const tenantId = url.searchParams.get('tenantId') || url.searchParams.get('tenant_id');
+    const webhookSecret = process.env.WEBHOOK_SECRET || process.env.CORSAIR_DEV_SIGNING_SECRET;
+
+    // Verify secret / signature
+    const authHeader = request.headers.get("authorization");
+    const secretHeader =
+      request.headers.get("x-webhook-secret") ||
+      request.headers.get("x-corsair-secret") ||
+      request.headers.get("x-corsair-signing-secret");
+    const channelToken = request.headers.get("x-goog-channel-token");
+    const signatureHeader = request.headers.get("x-corsair-signature");
+    const secretQuery = url.searchParams.get("secret");
+
+    const isAuthorizedCaller = Boolean(
+      webhookSecret &&
+        (authHeader === `Bearer ${webhookSecret}` ||
+          secretHeader === webhookSecret ||
+          channelToken === webhookSecret ||
+          signatureHeader === webhookSecret ||
+          secretQuery === webhookSecret)
+    );
+
+    // If webhook secret is configured, require authorized caller
+    if (webhookSecret && !isAuthorizedCaller) {
+      log.warn("Unauthorized webhook attempt rejected");
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    // Never act on tenantId supplied by an untrusted caller.
+    // Only accept tenantId if caller is authenticated with secret.
+    const rawTenantId = url.searchParams.get('tenantId') || url.searchParams.get('tenant_id');
+    const tenantId = isAuthorizedCaller ? (rawTenantId || undefined) : undefined;
 
     const result = await processWebhook(corsair, headers, body, {
         ...(tenantId ? { tenantId } : {}),
     });
 
-    console.info(
-        'Plugin Processed:',
-        result.plugin,
-        result.action
-    );
+    log.info('Webhook processed', {
+        plugin: result.plugin,
+        action: result.action,
+    });
 
     // Build response headers (e.g. Asana X-Hook-Secret handshake)
     const responseHeaders = result.responseHeaders;

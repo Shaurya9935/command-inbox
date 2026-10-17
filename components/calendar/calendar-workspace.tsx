@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useMemo, useEffect, useRef } from "react";
+import { log } from "@/lib/logger";
 import { CalEvent, CalViewType, EventType } from "./types";
 import {
   today,
@@ -254,10 +255,10 @@ export function CalendarWorkspace({ initialEvents = [] }: CalendarWorkspaceProps
           setSelectedEv((cur) => (cur?.id === tempId ? { ...cur, id: saved.id } : cur));
         }
       } else {
-        console.error("Failed to persist calendar event to server:", await res.text());
+        log.error("Failed to persist calendar event to server", { status: res.status });
       }
     } catch (err) {
-      console.error("Failed to post calendar event:", err);
+      log.error("Failed to post calendar event", { error: err });
     }
   };
 

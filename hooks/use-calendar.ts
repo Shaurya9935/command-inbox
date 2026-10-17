@@ -4,6 +4,7 @@ import { useEffect, useState, useCallback, useRef, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { CalEvent, EventType } from "@/components/calendar/types";
 import { CalendarEvent } from "@/components/dashboard/types";
+import { log } from "@/lib/logger";
 
 export interface GoogleCalendarApiEvent {
   id: string;
@@ -223,7 +224,7 @@ export function useCalendarEvents() {
     } catch (err: unknown) {
       if (mountedRef.current) {
         const message = err instanceof Error ? err.message : "Failed to load calendar events";
-        console.warn("useCalendarEvents fetchFromDb:", message);
+        log.warn("useCalendarEvents fetchFromDb", { message });
         // Retain default CAL_EVENTS on initial error
       }
     } finally {
@@ -274,7 +275,7 @@ export function useCalendarEvents() {
     } catch (err: unknown) {
       if (mountedRef.current) {
         const message = err instanceof Error ? err.message : "Calendar sync failed";
-        console.warn("useCalendarEvents syncFromApi:", message);
+        log.warn("useCalendarEvents syncFromApi", { message });
         setError(message);
       }
     } finally {

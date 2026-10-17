@@ -1,5 +1,6 @@
 import { auth } from "@/lib/auth";
 import { unstarThread, toggleStarThread } from "@/features/gmail/server";
+import { log } from "@/lib/logger";
 import { headers } from "next/headers";
 import { NextRequest, NextResponse } from "next/server";
 
@@ -27,9 +28,8 @@ export async function POST(
     const result = await toggleStarThread(session.user.id, id, starred);
     return NextResponse.json(result);
   } catch (error) {
-    const message = error instanceof Error ? error.message : String(error);
-    console.error("[gmail/threads/[id]/star POST]", error);
-    return NextResponse.json({ error: message || "Failed to toggle star" }, { status: 500 });
+    log.error("[gmail/threads/[id]/star POST] Error toggling star", { error });
+    return NextResponse.json({ error: "Failed to toggle star" }, { status: 500 });
   }
 }
 
@@ -54,8 +54,7 @@ export async function DELETE(
     const result = await unstarThread(session.user.id, id);
     return NextResponse.json(result);
   } catch (error) {
-    const message = error instanceof Error ? error.message : String(error);
-    console.error("[gmail/threads/[id]/star DELETE]", error);
-    return NextResponse.json({ error: message || "Failed to unstar thread" }, { status: 500 });
+    log.error("[gmail/threads/[id]/star DELETE] Error unstarring thread", { error });
+    return NextResponse.json({ error: "Failed to unstar thread" }, { status: 500 });
   }
 }

@@ -11,6 +11,8 @@ import {
 import { conversations, chatMessages } from "@/db/conversation";
 import { user, session, account } from "@/db/auth";
 import { userOnboarding } from "@/db/onboarding";
+import { aiUsage } from "@/db/ai-usage";
+import { log } from "@/lib/logger";
 
 export interface RevocationResult {
   revoked: boolean;
@@ -25,6 +27,7 @@ export interface DeletedCounts {
   conversations: number;
   chatMessages: number;
   onboarding?: number;
+  aiUsage?: number;
   sessions?: number;
   accounts?: number;
   users?: number;
@@ -71,7 +74,7 @@ export async function verifyUserPassword(
 
     return { ok: true, hasPassword: true };
   } catch (err) {
-    console.error("[account] Password verification failed:", err);
+    log.error("[account] Password verification failed", { error: err });
     return { ok: false, hasPassword: true, error: "Failed to verify password" };
   }
 }
@@ -217,13 +220,20 @@ export async function deleteUserData(
       .where(eq(userOnboarding.userId, userId))
       .returning({ id: userOnboarding.id });
     deletedCounts.onboarding = onbRes.length;
+
+    // E. AI Usage
+    const aiUsageRes = await tx
+      .delete(aiUsage)
+      .where(eq(aiUsage.userId, userId))
+      .returning({ id: aiUsage.id });
+    deletedCounts.aiUsage = aiUsageRes.length;
   });
 
-  console.log(
-    `[account] deleteUserData completed for user %s: %j`,
+  log.info("[account] deleteUserData completed", {
     userId,
-    { counts: deletedCounts, revocations }
-  );
+    counts: deletedCounts,
+    revocations,
+  });
 
   return { deletedCounts, revocations };
 }
@@ -315,7 +325,14 @@ export async function deleteFullAccount(
       .returning({ id: userOnboarding.id });
     deletedCounts.onboarding = onbRes.length;
 
-    // E. Auth Sessions
+    // E. AI Usage
+    const aiUsageRes = await tx
+      .delete(aiUsage)
+      .where(eq(aiUsage.userId, userId))
+      .returning({ id: aiUsage.id });
+    deletedCounts.aiUsage = aiUsageRes.length;
+
+    // F. Auth Sessions
     const sessRes = await tx
       .delete(session)
       .where(eq(session.userId, userId))
@@ -337,11 +354,11 @@ export async function deleteFullAccount(
     deletedCounts.users = userRes.length;
   });
 
-  console.log(
-    `[account] deleteFullAccount completed for user %s: %j`,
+  log.info("[account] deleteFullAccount completed", {
     userId,
-    { counts: deletedCounts, revocations }
-  );
+    counts: deletedCounts,
+    revocations,
+  });
 
   return { deletedCounts, revocations };
 }

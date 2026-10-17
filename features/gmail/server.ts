@@ -6,6 +6,7 @@ import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
 import crypto from "crypto";
 import { corsair, type TenantCorsair } from "@/lib/corsair";
+import { log } from "@/lib/logger";
 import type { EmailResult } from "./types";
 
 export interface ThreadMessageItem {
@@ -181,7 +182,7 @@ export async function getGmailAccountId(userId: string): Promise<string | null> 
       .limit(1);
     return accts[0]?.id || null;
   } catch (err) {
-    console.warn("Failed to get Gmail account ID:", err);
+    log.warn("Failed to get Gmail account ID", { error: err });
     return null;
   }
 }
@@ -255,7 +256,7 @@ export async function getInboxThreadsFromDb(userId: string): Promise<EnrichedThr
     });
     return threads;
   } catch (err) {
-    console.warn("Error reading threads from DB:", err);
+    log.warn("Error reading threads from DB", { error: err });
     return [];
   }
 }
@@ -329,7 +330,7 @@ export async function getStarredThreadsFromDb(userId: string): Promise<EnrichedT
     });
     return threads;
   } catch (err) {
-    console.warn("Error reading starred threads from DB:", err);
+    log.warn("Error reading starred threads from DB", { error: err });
     return [];
   }
 }
@@ -393,7 +394,7 @@ export async function saveEnrichedThreadsToDb(accountId: string, threads: Enrich
         });
       }
     } catch (err) {
-      console.warn(`Failed to save thread ${thread.id} to DB:`, err);
+      log.warn("Failed to save thread to DB", { threadId: thread.id, error: err });
       // A successful Gmail response is not a successful sync unless it was
       // persisted. Propagate this so callers do not silently keep serving
       // stale cache data.
@@ -456,6 +457,70 @@ async function markGmailSyncComplete(accountId: string): Promise<void> {
   });
 }
 
+const GMAIL_SYNC_LOCK_ENTITY_TYPE = "gmail_sync_lock";
+const GMAIL_SYNC_LOCK_ENTITY_ID = "inbox_lock";
+
+async function acquireGmailSyncLock(accountId: string, ttlMs = 120_000): Promise<boolean> {
+  const now = new Date();
+  try {
+    const existing = await db
+      .select({ id: corsairEntities.id, updatedAt: corsairEntities.updatedAt })
+      .from(corsairEntities)
+      .where(
+        and(
+          eq(corsairEntities.accountId, accountId),
+          eq(corsairEntities.entityType, GMAIL_SYNC_LOCK_ENTITY_TYPE),
+          eq(corsairEntities.entityId, GMAIL_SYNC_LOCK_ENTITY_ID)
+        )
+      )
+      .limit(1);
+
+    if (existing[0]) {
+      const elapsed = now.getTime() - existing[0].updatedAt.getTime();
+      if (elapsed < ttlMs) {
+        // Concurrency guard: sync currently in progress
+        return false;
+      }
+      // Stale lock: update timestamp to take over
+      await db
+        .update(corsairEntities)
+        .set({ updatedAt: now })
+        .where(eq(corsairEntities.id, existing[0].id));
+      return true;
+    }
+
+    await db.insert(corsairEntities).values({
+      id: crypto.randomUUID(),
+      accountId,
+      entityId: GMAIL_SYNC_LOCK_ENTITY_ID,
+      entityType: GMAIL_SYNC_LOCK_ENTITY_TYPE,
+      version: "1.0.0",
+      data: { lockedAt: now.toISOString() },
+      createdAt: now,
+      updatedAt: now,
+    });
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+async function releaseGmailSyncLock(accountId: string): Promise<void> {
+  try {
+    await db
+      .delete(corsairEntities)
+      .where(
+        and(
+          eq(corsairEntities.accountId, accountId),
+          eq(corsairEntities.entityType, GMAIL_SYNC_LOCK_ENTITY_TYPE),
+          eq(corsairEntities.entityId, GMAIL_SYNC_LOCK_ENTITY_ID)
+        )
+      );
+  } catch (err) {
+    log.warn("Failed to release Gmail sync lock", { error: err });
+  }
+}
+
 /**
  * Read threads from the local DB for the currently authenticated user.
  */
@@ -469,7 +534,7 @@ export async function getInboxThreads(): Promise<EnrichedThread[]> {
     }
     return await getInboxThreadsFromDb(session.user.id);
   } catch (err) {
-    console.warn("DB thread fetch failed:", err);
+    log.warn("DB thread fetch failed", { error: err });
     return [];
   }
 }
@@ -478,58 +543,60 @@ export async function getInboxThreads(): Promise<EnrichedThread[]> {
  * Fetch a single full thread by ID. Checks local DB cache first before hitting Gmail API.
  */
 export async function getThreadById(threadId: string): Promise<EnrichedThread | null> {
+  const session = await auth.api.getSession({
+    headers: await headers(),
+  });
+  if (!session?.user?.id) {
+    throw new Error("Unauthorized");
+  }
+
   // Check DB cache first
   try {
-    const session = await auth.api.getSession({
-      headers: await headers(),
-    });
-    if (session?.user?.id) {
-      const accountId = await getGmailAccountId(session.user.id);
-      if (accountId) {
-        const row = await db
-          .select()
-          .from(corsairEntities)
-          .where(
-            and(
-              eq(corsairEntities.accountId, accountId),
-              eq(corsairEntities.entityType, "threads"),
-              eq(corsairEntities.entityId, threadId)
-            )
+    const accountId = await getGmailAccountId(session.user.id);
+    if (accountId) {
+      const row = await db
+        .select()
+        .from(corsairEntities)
+        .where(
+          and(
+            eq(corsairEntities.accountId, accountId),
+            eq(corsairEntities.entityType, "threads"),
+            eq(corsairEntities.entityId, threadId)
           )
-          .orderBy(desc(corsairEntities.updatedAt))
-          .limit(1);
+        )
+        .orderBy(desc(corsairEntities.updatedAt))
+        .limit(1);
 
-        if (row.length > 0) {
-          const d = (row[0].data || {}) as CachedThreadData;
-          if (d.body || d.bodyHtml) {
-            return {
-              id: threadId,
-              entity_id: threadId,
-              snippet: d.snippet || "",
-              subject: d.subject || "",
-              from: d.from || "",
-              createdAt: d.createdAt || row[0].createdAt.toISOString(),
-              created_at: d.createdAt || row[0].createdAt.toISOString(),
-              updated_at: d.updatedAt ? row[0].updatedAt.toISOString() : new Date().toISOString(),
-              unread: d.unread !== undefined ? Boolean(d.unread) : true,
-              historyId: d.historyId,
-              messagesCount: d.messagesCount || 1,
-              body: d.body || "",
-              bodyHtml: d.bodyHtml || "",
-              messages: d.messages || [],
-            };
-          }
+      if (row.length > 0) {
+        const d = (row[0].data || {}) as CachedThreadData;
+        if (d.body || d.bodyHtml) {
+          return {
+            id: threadId,
+            entity_id: threadId,
+            snippet: d.snippet || "",
+            subject: d.subject || "",
+            from: d.from || "",
+            createdAt: d.createdAt || row[0].createdAt.toISOString(),
+            created_at: d.createdAt || row[0].createdAt.toISOString(),
+            updated_at: d.updatedAt ? row[0].updatedAt.toISOString() : new Date().toISOString(),
+            unread: d.unread !== undefined ? Boolean(d.unread) : true,
+            historyId: d.historyId,
+            messagesCount: d.messagesCount || 1,
+            body: d.body || "",
+            bodyHtml: d.bodyHtml || "",
+            messages: d.messages || [],
+          };
         }
       }
     }
   } catch (err) {
-    console.warn("DB check in getThreadById failed:", err);
+    log.warn("DB check in getThreadById failed", { error: err });
   }
 
-  // Not in DB or missing body: fetch from Gmail API
-  const corsair = await getCorsairTenant();
+  // Not in DB or missing body: fetch from Gmail API using strict session tenant
+  const corsairClient = corsair.withTenant(session.user.id);
   try {
-    const full = await corsair.gmail.api.threads.get({ id: threadId, format: "full" });
+    const full = await corsairClient.gmail.api.threads.get({ id: threadId, format: "full" });
     if (!full || !full.id) return null;
 
     const messages: GmailMessage[] = full.messages || [];
@@ -618,12 +685,12 @@ export async function getThreadById(threadId: string): Promise<EnrichedThread | 
         }
       }
     } catch (err) {
-      console.warn(`Failed to cache thread ${threadId}:`, err);
+      log.warn("Failed to cache thread", { threadId, error: err });
     }
 
     return enrichedResult;
   } catch (err) {
-    console.error(`Failed to get thread ${threadId}:`, err);
+    log.error("Failed to get thread", { threadId, error: err });
     return null;
   }
 }
@@ -743,7 +810,7 @@ export async function enrichThreadFromGmail(
       labelIds: allLabelIds,
     };
   } catch (err) {
-    console.warn(`Failed to enrich thread ${t.id}:`, err);
+    log.warn("Failed to enrich thread", { threadId: t.id, error: err });
     return null;
   }
 }
@@ -778,7 +845,7 @@ export async function syncInboxThreadsFromApi(
         existingDbThreads = await getInboxThreadsFromDb(explicitTenantId);
       }
     } catch (err) {
-      console.warn("Could not load user account for DB caching:", err);
+      log.warn("Could not load user account for DB caching", { error: err });
     }
   } else {
     try {
@@ -793,7 +860,7 @@ export async function syncInboxThreadsFromApi(
         }
       }
     } catch (err) {
-      console.warn("Could not load user account for DB caching:", err);
+      log.warn("Could not load user account for DB caching", { error: err });
     }
   }
 
@@ -818,86 +885,96 @@ export async function syncInboxThreadsFromApi(
     }
   }
 
-  const corsairClient = explicitTenantId
-    ? corsair.withTenant(explicitTenantId)
-    : await getCorsairTenant();
+  // Concurrency guard: avoid duplicate concurrent sync runs for the same user
+  const lockAcquired = await acquireGmailSyncLock(accountId);
+  if (!lockAcquired) {
+    return existingDbThreads;
+  }
 
-  // 1. Single threads.list call (1 API call)
-  let rawThreads: { id?: string; snippet?: string; historyId?: string }[] = [];
   try {
-    const res = await corsairClient.gmail.api.threads.list({ maxResults: limit });
-    rawThreads = res?.threads ?? [];
-  } catch (err) {
-    console.warn("Gmail threads.list failed, falling back to cached DB threads:", err);
-    return existingDbThreads;
-  }
+    const corsairClient = explicitTenantId
+      ? corsair.withTenant(explicitTenantId)
+      : await getCorsairTenant();
 
-  if (!rawThreads.length) {
+    // 1. Single threads.list call (1 API call)
+    let rawThreads: { id?: string; snippet?: string; historyId?: string }[] = [];
+    try {
+      const res = await corsairClient.gmail.api.threads.list({ maxResults: limit });
+      rawThreads = res?.threads ?? [];
+    } catch (err) {
+      log.warn("Gmail threads.list failed, falling back to cached DB threads", { error: err });
+      return existingDbThreads;
+    }
+
+    if (!rawThreads.length) {
+      await markGmailSyncComplete(accountId);
+      return existingDbThreads;
+    }
+
+    // 2. Fetch newly discovered threads and cached threads whose Gmail history changed.
+    const cachedMap = new Map<string, EnrichedThread>(
+      existingDbThreads.map((t) => [t.id, t])
+    );
+
+    const threadsToFetch: { id: string; snippet?: string; historyId?: string }[] = [];
+    const cachedThreadsToRestore: EnrichedThread[] = [];
+
+    for (const t of rawThreads) {
+      if (!t.id) continue;
+      const cached = cachedMap.get(t.id);
+      const hasUsableCache = hasUsableThreadMetadata(cached);
+      const hasChangedOnGmail = Boolean(
+        t.historyId && cached?.historyId !== t.historyId
+      );
+
+      // Keep historyId incremental sync so it stays cheap when nothing changed.
+      if (!hasUsableCache || hasChangedOnGmail) {
+        threadsToFetch.push({ id: t.id, snippet: t.snippet, historyId: t.historyId });
+      } else if (cached) {
+        cachedThreadsToRestore.push({
+          ...cached,
+          snippet: t.snippet || cached.snippet,
+          historyId: t.historyId || cached.historyId,
+        });
+      }
+    }
+
+    if (cachedThreadsToRestore.length > 0) {
+      await saveEnrichedThreadsToDb(accountId, cachedThreadsToRestore);
+    }
+
+    // 3. Fetch ONLY uncached threads, batched safely
+    if (threadsToFetch.length > 0) {
+      const newlyEnriched = await batchedMap(
+        threadsToFetch,
+        (t) => enrichThreadFromGmail(corsairClient, t),
+        2,   // batch size 2
+        250  // 250ms pause between batches
+      );
+
+      const validNew = newlyEnriched.filter((t): t is EnrichedThread => t !== null);
+
+      // Save newly enriched threads to DB
+      if (accountId && validNew.length > 0) {
+        await saveEnrichedThreadsToDb(accountId, validNew);
+      }
+    }
+
+    // Only mark the sync after all changed threads were durably written.
     await markGmailSyncComplete(accountId);
+
+    // 4. Return the updated list from the DB
+    if (userId) {
+      const updated = await getInboxThreadsFromDb(userId);
+      if (updated.length > 0) {
+        return updated;
+      }
+    }
+
     return existingDbThreads;
+  } finally {
+    await releaseGmailSyncLock(accountId);
   }
-
-  // 2. Fetch newly discovered threads and cached threads whose Gmail history changed.
-  const cachedMap = new Map<string, EnrichedThread>(
-    existingDbThreads.map((t) => [t.id, t])
-  );
-
-  const threadsToFetch: { id: string; snippet?: string; historyId?: string }[] = [];
-  const cachedThreadsToRestore: EnrichedThread[] = [];
-
-  for (const t of rawThreads) {
-    if (!t.id) continue;
-    const cached = cachedMap.get(t.id);
-    const hasUsableCache = hasUsableThreadMetadata(cached);
-    const hasChangedOnGmail = Boolean(
-      t.historyId && cached?.historyId !== t.historyId
-    );
-
-    // Keep historyId incremental sync so it stays cheap when nothing changed.
-    if (!hasUsableCache || hasChangedOnGmail) {
-      threadsToFetch.push({ id: t.id, snippet: t.snippet, historyId: t.historyId });
-    } else if (cached) {
-      cachedThreadsToRestore.push({
-        ...cached,
-        snippet: t.snippet || cached.snippet,
-        historyId: t.historyId || cached.historyId,
-      });
-    }
-  }
-
-  if (cachedThreadsToRestore.length > 0) {
-    await saveEnrichedThreadsToDb(accountId, cachedThreadsToRestore);
-  }
-
-  // 3. Fetch ONLY uncached threads, batched safely
-  if (threadsToFetch.length > 0) {
-    const newlyEnriched = await batchedMap(
-      threadsToFetch,
-      (t) => enrichThreadFromGmail(corsairClient, t),
-      2,   // batch size 2
-      250  // 250ms pause between batches
-    );
-
-    const validNew = newlyEnriched.filter((t): t is EnrichedThread => t !== null);
-
-    // Save newly enriched threads to DB
-    if (accountId && validNew.length > 0) {
-      await saveEnrichedThreadsToDb(accountId, validNew);
-    }
-  }
-
-  // Only mark the sync after all changed threads were durably written.
-  await markGmailSyncComplete(accountId);
-
-  // 4. Return the updated list from the DB
-  if (userId) {
-    const updated = await getInboxThreadsFromDb(userId);
-    if (updated.length > 0) {
-      return updated;
-    }
-  }
-
-  return existingDbThreads;
 }
 
 export interface StarredThreadsResult {
@@ -1021,7 +1098,7 @@ export async function getStarredThreads(
       stale: false,
     };
   } catch (err) {
-    console.warn("Gmail getStarredThreads refresh failed, returning cached:", err);
+    log.warn("Gmail getStarredThreads refresh failed, returning cached", { error: err });
     return {
       threads: cachedStarred,
       nextPageToken: undefined,
@@ -1080,7 +1157,7 @@ export async function unstarThread(
           .where(eq(corsairEntities.id, rows[0].id));
       }
     } catch (err) {
-      console.warn("Failed to update cache after unstarring:", err);
+      log.warn("Failed to update cache after unstarring", { error: err });
     }
   }
 
@@ -1137,7 +1214,7 @@ export async function starThread(
           .where(eq(corsairEntities.id, rows[0].id));
       }
     } catch (err) {
-      console.warn("Failed to update cache after starring:", err);
+      log.warn("Failed to update cache after starring", { error: err });
     }
   }
 
@@ -1277,7 +1354,7 @@ export async function sendGmailMessage(
         }
       }
     } catch (err) {
-      console.warn("Failed to fetch thread info for reply:", err);
+      log.warn("Failed to fetch thread info for reply", { error: err });
     }
   }
 
@@ -1363,7 +1440,7 @@ export async function getRecentEmails(
       "Gmail sync timed out"
     );
   } catch (err) {
-    console.warn("[getRecentEmails] Sync failed or timed out, serving cached emails:", err);
+    log.warn("[getRecentEmails] Sync failed or timed out, serving cached emails", { error: err });
     stale = true;
   }
 

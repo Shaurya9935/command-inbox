@@ -3,6 +3,7 @@ import { db } from "@/lib/db";
 import { corsairAccounts, corsairIntegrations, corsairEntities, corsairEvents } from "@/db/corsair";
 import { eq, and } from "drizzle-orm";
 import { headers } from "next/headers";
+import { log } from "@/lib/logger";
 
 export async function POST(request: Request) {
   try {
@@ -56,7 +57,7 @@ export async function POST(request: Request) {
 
     return Response.json({ success: true, plugin: pluginName });
   } catch (err) {
-    const msg = err instanceof Error ? err.message : String(err);
-    return Response.json({ error: msg }, { status: 500 });
+    log.error("[integrations/disconnect] Error disconnecting plugin", { error: err });
+    return Response.json({ error: "Something went wrong" }, { status: 500 });
   }
 }

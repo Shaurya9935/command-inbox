@@ -12,6 +12,7 @@ const PROTECTED_API_PREFIXES = [
   "/api/ai",
   "/api/account",
   "/api/onboarding",
+  "/api/mcp",
 ];
 const AUTH_ROUTES = ["/login", "/register"];
 const PUBLIC_EXACT = ["/", "/api/auth", "/api/corsair", "/api/webhooks"];
@@ -47,7 +48,9 @@ export function proxy(request: NextRequest) {
       (c.name.includes("session") && !c.name.includes("csrf"))
   );
 
-  if (isProtectedApi(pathname) && !hasSession) {
+  const hasBearer = Boolean(request.headers.get("authorization")?.startsWith("Bearer "));
+
+  if (isProtectedApi(pathname) && !hasSession && !hasBearer) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
@@ -77,5 +80,6 @@ export const config = {
     "/api/ai/:path*",
     "/api/account/:path*",
     "/api/onboarding/:path*",
+    "/api/mcp/:path*",
   ],
 };

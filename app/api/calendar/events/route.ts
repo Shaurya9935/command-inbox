@@ -6,6 +6,7 @@ import {
 } from "@/features/calendar/server";
 import { auth } from "@/lib/auth";
 import { corsair } from "@/lib/corsair";
+import { log } from "@/lib/logger";
 import { headers } from "next/headers";
 import { NextRequest, NextResponse } from "next/server";
 
@@ -36,7 +37,7 @@ export async function GET(req: NextRequest) {
     if (message.includes("not connected")) {
       return NextResponse.json({ error: message, notConnected: true }, { status: 404 });
     }
-    console.error("[calendar/events]", error);
+    log.error("[calendar/events] Error fetching events", { error });
     return NextResponse.json({ error: "Failed to fetch calendar events" }, { status: 500 });
   }
 }
@@ -111,9 +112,9 @@ export async function POST(req: NextRequest) {
     if (message === "Unauthorized") {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
-    console.error("[calendar/events:POST]", error);
+    log.error("[calendar/events:POST] Error creating event", { error });
     return NextResponse.json(
-      { error: message || "Failed to create calendar event" },
+      { error: "Failed to create calendar event" },
       { status: 500 }
     );
   }
@@ -158,9 +159,9 @@ export async function DELETE(req: NextRequest) {
     if (message === "Unauthorized") {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
-    console.error("[calendar/events:DELETE]", error);
+    log.error("[calendar/events:DELETE] Error deleting event", { error });
     return NextResponse.json(
-      { error: message || "Failed to delete calendar event" },
+      { error: "Failed to delete calendar event" },
       { status: 500 }
     );
   }

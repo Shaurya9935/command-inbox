@@ -50,4 +50,6 @@ export interface RunCommandParams {
 export interface RunCommandResult {
   response: string;
   pendingActions?: PendingActionPreview[];
+  tokensIn?: number;
+  tokensOut?: number;
 }

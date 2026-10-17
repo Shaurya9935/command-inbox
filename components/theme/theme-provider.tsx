@@ -22,22 +22,20 @@ function getSystemTheme(): ResolvedTheme {
 }
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
-  const [theme, setThemeState] = useState<Theme>("system");
-  const [resolvedTheme, setResolvedTheme] = useState<ResolvedTheme>("light");
-  const [mounted, setMounted] = useState(false);
-
-  // Read stored preference on mount
-  useEffect(() => {
-    try {
-      const stored = localStorage.getItem(STORAGE_KEY) as Theme | null;
-      if (stored === "light" || stored === "dark" || stored === "system") {
-        setThemeState(stored);
+  const [theme, setThemeState] = useState<Theme>(() => {
+    if (typeof window !== "undefined") {
+      try {
+        const stored = localStorage.getItem(STORAGE_KEY) as Theme | null;
+        if (stored === "light" || stored === "dark" || stored === "system") {
+          return stored;
+        }
+      } catch {
+        // localStorage may be unavailable
       }
-    } catch {
-      // localStorage may be unavailable
     }
-    setMounted(true);
-  }, []);
+    return "system";
+  });
+  const [resolvedTheme, setResolvedTheme] = useState<ResolvedTheme>("light");
 
   // Update DOM and resolved theme when theme or system preference changes
   useEffect(() => {

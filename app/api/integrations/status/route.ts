@@ -2,6 +2,7 @@ import { auth } from "@/lib/auth";
 import { corsair } from "@/lib/corsair";
 import { getGmailAccountId } from "@/features/gmail/server";
 import { getCalendarAccountId } from "@/features/calendar/server";
+import { log } from "@/lib/logger";
 import { headers } from "next/headers";
 
 export async function GET() {
@@ -20,7 +21,7 @@ export async function GET() {
     try {
       statuses = await corsair.manage.connectionStatus.get({ tenantId });
     } catch (e) {
-      console.warn("Could not fetch connectionStatus from corsair:", e);
+      log.warn("Could not fetch connectionStatus from corsair", { error: e });
     }
 
     const booleanStatuses: Record<string, boolean> = Object.fromEntries(
@@ -48,7 +49,7 @@ export async function GET() {
       email: session.user.email,
     });
   } catch (err) {
-    const msg = err instanceof Error ? err.message : String(err);
-    return Response.json({ error: msg }, { status: 500 });
+    log.error("[integrations/status] Error fetching status", { error: err });
+    return Response.json({ error: "Something went wrong" }, { status: 500 });
   }
 }

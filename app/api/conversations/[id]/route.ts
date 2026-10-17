@@ -5,6 +5,7 @@ import { and, eq, asc } from "drizzle-orm";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { conversations, chatMessages } from "@/lib/schema";
+import { log } from "@/lib/logger";
 
 export async function GET(
   request: Request,
@@ -54,7 +55,7 @@ export async function GET(
 
     return NextResponse.json({ ...conversation, messages });
   } catch (error) {
-    console.error("Failed to load conversation:", error);
+    log.error("Failed to load conversation", { error });
     return NextResponse.json(
       { error: "Failed to load conversation" },
       { status: 500 }
@@ -106,7 +107,7 @@ export async function DELETE(
 
     return NextResponse.json({ success: true });
   } catch (error) {
-    console.error("Failed to delete conversation:", error);
+    log.error("Failed to delete conversation", { error });
     return NextResponse.json(
       { error: "Failed to delete conversation" },
       { status: 500 }

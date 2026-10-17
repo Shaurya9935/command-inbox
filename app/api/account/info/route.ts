@@ -4,6 +4,7 @@ import { eq } from "drizzle-orm";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { account } from "@/db/auth";
+import { log } from "@/lib/logger";
 
 export async function GET() {
   try {
@@ -40,8 +41,7 @@ export async function GET() {
       providers,
     });
   } catch (err) {
-    console.error("[account/info] Error fetching account info:", err);
-    const msg = err instanceof Error ? err.message : "Internal Server Error";
-    return NextResponse.json({ error: msg }, { status: 500 });
+    log.error("[account/info] Error fetching account info", { error: err });
+    return NextResponse.json({ error: "Failed to fetch account info" }, { status: 500 });
   }
 }

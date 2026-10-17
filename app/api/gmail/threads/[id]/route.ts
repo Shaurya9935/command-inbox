@@ -1,4 +1,5 @@
 import { getThreadById } from "@/features/gmail/server";
+import { log } from "@/lib/logger";
 import { NextRequest, NextResponse } from "next/server";
 
 export async function GET(
@@ -22,7 +23,7 @@ export async function GET(
     if (message === "Unauthorized") {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
-    console.error("[gmail/threads/[id]]", error);
+    log.error("[gmail/threads/[id]] Error fetching thread", { error });
     return NextResponse.json({ error: "Failed to fetch thread" }, { status: 500 });
   }
 }

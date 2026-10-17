@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { headers } from "next/headers";
 import { auth } from "@/lib/auth";
 import { verifyUserPassword, deleteFullAccount } from "@/lib/account/server";
+import { log } from "@/lib/logger";
 
 export async function POST(request: Request) {
   try {
@@ -49,8 +50,7 @@ export async function POST(request: Request) {
 
     return response;
   } catch (err) {
-    console.error("[account/delete] Error deleting account:", err);
-    const msg = err instanceof Error ? err.message : "Internal Server Error";
-    return NextResponse.json({ error: msg }, { status: 500 });
+    log.error("[account/delete] Error deleting account", { error: err });
+    return NextResponse.json({ error: "Failed to delete account" }, { status: 500 });
   }
 }

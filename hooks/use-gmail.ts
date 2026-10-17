@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useCallback, useRef } from "react";
 import { useRouter } from "next/navigation";
+import { log } from "@/lib/logger";
 
 export interface GmailThread {
   id?: string;
@@ -99,7 +100,7 @@ export function useGmailThreads() {
     } catch (err: unknown) {
       if (mountedRef.current) {
         const message = err instanceof Error ? err.message : "Failed to load Gmail threads";
-        console.error("useGmailThreads fetchFromDb error:", err);
+        log.error("useGmailThreads fetchFromDb error", { error: err });
         setError(message);
         setThreads([]);
       }
@@ -147,7 +148,7 @@ export function useGmailThreads() {
     } catch (err: unknown) {
       if (mountedRef.current) {
         const message = err instanceof Error ? err.message : "Sync failed";
-        console.error("useGmailThreads syncFromApi error:", err);
+        log.error("useGmailThreads syncFromApi error", { error: err });
         // Only show error banner if we don't already have threads displaying from DB
         setThreads((prev) => {
           if (prev.length === 0) {
@@ -308,7 +309,7 @@ export function useStarredThreads(): UseStarredThreadsResult {
       } catch (err: unknown) {
         if (mountedRef.current) {
           const message = err instanceof Error ? err.message : "Failed to load starred threads";
-          console.error("useStarredThreads fetch error:", err);
+          log.error("useStarredThreads fetch error", { error: err });
           setError(message);
         }
       } finally {
@@ -386,7 +387,7 @@ export function useStarredThreads(): UseStarredThreadsResult {
 
         return true;
       } catch (err: unknown) {
-        console.error("Failed to unstar thread, rolling back:", err);
+        log.error("Failed to unstar thread, rolling back", { error: err });
         // Restore threads on failure
         if (mountedRef.current) {
           setThreads(originalThreads);

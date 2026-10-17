@@ -1,4 +1,5 @@
 import { sendGmailMessage } from "@/features/gmail/server";
+import { log } from "@/lib/logger";
 import { NextRequest, NextResponse } from "next/server";
 
 export async function POST(req: NextRequest) {
@@ -29,9 +30,9 @@ export async function POST(req: NextRequest) {
     if (message === "Unauthorized") {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
-    console.error("[gmail/messages/send]", error);
+    log.error("[gmail/messages/send] Error sending message", { error });
     return NextResponse.json(
-      { error: message || "Failed to send email message" },
+      { error: "Failed to send email message" },
       { status: 500 }
     );
   }

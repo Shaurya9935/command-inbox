@@ -1,6 +1,7 @@
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 import { corsair } from "@/lib/corsair";
+import { log } from "@/lib/logger";
 
 function escapeHtml(value: string): string {
   return value
@@ -35,9 +36,9 @@ export async function GET(request: NextRequest) {
     const result = await corsair.manage.connect.oauthCallback({ code, state });
     return NextResponse.redirect(new URL(`/dashboard?connected=${encodeURIComponent(result.plugin)}`, request.url));
   } catch (err) {
-    const message = err instanceof Error ? err.message : String(err);
+    log.error("[oauth/callback] OAuth error", { error: err });
     return new NextResponse(
-      `<html><body><h2>OAuth error</h2><p>${escapeHtml(message)}</p><a href="/connect">Back</a></body></html>`,
+      `<html><body><h2>Authorization error</h2><p>Something went wrong during authorization. Please try again.</p><a href="/connect">Back</a></body></html>`,
       { status: 500, headers: { "Content-Type": "text/html" } }
     );
   }

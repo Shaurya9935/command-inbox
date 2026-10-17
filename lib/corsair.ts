@@ -4,9 +4,10 @@ import { createCorsair } from "corsair";
 import { gmail } from "@corsair-dev/gmail";
 import { googlecalendar } from "@corsair-dev/googlecalendar";
 import { pool } from "./db";
+import { env } from "./env";
 
 export const corsair = createCorsair({
-  kek: process.env.CORSAIR_KEK!,
+  kek: env.CORSAIR_KEK,
   database: pool,
   permissions: {
     timeout: "30m",
@@ -14,9 +15,9 @@ export const corsair = createCorsair({
     mode: "asynchronous",
   },
   manual: {
-    baseUrl: `${process.env.APP_URL || "http://localhost:3000"}/connect`,
-    redirectUri: `${process.env.APP_URL || "http://localhost:3000"}/api/oauth/callback`,
-    approvalBaseUrl: `${process.env.APP_URL || "http://localhost:3000"}/approve`,
+    baseUrl: `${env.APP_URL}/connect`,
+    redirectUri: `${env.APP_URL}/api/oauth/callback`,
+    approvalBaseUrl: `${env.APP_URL}/approve`,
     onApprovalRequired: () =>
       "This action is waiting for the user's approval in the chat. Tell the user it is ready for approval. Do not retry.",
   },
@@ -27,6 +28,12 @@ export const corsair = createCorsair({
         overrides: {
           "messages.send": "require_approval",
           "drafts.send": "require_approval",
+          "messages.delete": "require_approval",
+          "messages.trash": "require_approval",
+          "messages.modify": "require_approval",
+          "threads.modify": "require_approval",
+          "threads.trash": "require_approval",
+          "threads.delete": "require_approval",
         },
       },
     }),
@@ -35,6 +42,7 @@ export const corsair = createCorsair({
         mode: "cautious",
         overrides: {
           "events.create": "require_approval",
+          "events.update": "require_approval",
           "events.delete": "require_approval",
         },
       },

@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useRef } from "react";
+import { log } from "@/lib/logger";
 import { Email } from "../dashboard/types";
 import { Avatar } from "../dashboard/avatar";
 import { BackIcon, ReplyIcon, PaperclipIcon } from "../dashboard/icons";
@@ -70,7 +71,7 @@ export function EmailThreadView({
         }
       })
       .catch((err) => {
-        console.warn("Failed to fetch full thread:", err);
+        log.warn("Failed to fetch full thread", { error: err });
         if (isMounted) setFetchFailed(true);
       })
       .finally(() => {

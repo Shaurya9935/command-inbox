@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useMemo, useEffect, useRef } from "react";
+import { log } from "@/lib/logger";
 import { useStarredThreads } from "@/hooks/use-gmail";
 import { Email } from "@/components/dashboard/types";
 import { Avatar } from "@/components/dashboard/avatar";
@@ -163,7 +164,7 @@ export function StarredView({
         }
       })
       .catch((err) => {
-        console.warn("Failed to fetch full thread body:", err);
+        log.warn("Failed to fetch full thread body", { error: err });
         if (isMounted) {
           setFailedBodyThreadIds((prev) => new Set(prev).add(idStr));
         }
@@ -282,7 +283,7 @@ export function StarredView({
       setReplyText("");
       refresh().catch(() => {});
     } catch (err) {
-      console.error("Failed to send reply:", err);
+      log.error("Failed to send reply", { error: err });
       setReplyError(err instanceof Error ? err.message : "Failed to send reply");
     } finally {
       setIsSendingReply(false);

@@ -4,6 +4,7 @@ import { eq } from "drizzle-orm";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { userOnboarding } from "@/db/onboarding";
+import { log } from "@/lib/logger";
 
 export async function GET() {
   try {
@@ -37,9 +38,8 @@ export async function GET() {
       skippedAt: record.skippedAt ? record.skippedAt.toISOString() : null,
     });
   } catch (err) {
-    console.error("[api/onboarding] GET error:", err);
-    const msg = err instanceof Error ? err.message : "Internal Server Error";
-    return NextResponse.json({ error: msg }, { status: 500 });
+    log.error("[api/onboarding] GET error", { error: err });
+    return NextResponse.json({ error: "Failed to fetch onboarding status" }, { status: 500 });
   }
 }
 
@@ -98,8 +98,7 @@ export async function POST(request: Request) {
       timestamp: now.toISOString(),
     });
   } catch (err) {
-    console.error("[api/onboarding] POST error:", err);
-    const msg = err instanceof Error ? err.message : "Internal Server Error";
-    return NextResponse.json({ error: msg }, { status: 500 });
+    log.error("[api/onboarding] POST error", { error: err });
+    return NextResponse.json({ error: "Failed to update onboarding status" }, { status: 500 });
   }
 }

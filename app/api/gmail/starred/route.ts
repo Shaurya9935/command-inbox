@@ -1,5 +1,6 @@
 import { auth } from "@/lib/auth";
 import { getStarredThreads, unstarThread, toggleStarThread, getGmailAccountId } from "@/features/gmail/server";
+import { log } from "@/lib/logger";
 import { headers } from "next/headers";
 import { NextRequest, NextResponse } from "next/server";
 
@@ -42,7 +43,7 @@ export async function GET(req: NextRequest) {
     if (message.includes("not connected")) {
       return NextResponse.json({ error: message, notConnected: true }, { status: 404 });
     }
-    console.error("[gmail/starred GET]", error);
+    log.error("[gmail/starred GET] Error fetching starred threads", { error });
     return NextResponse.json({ error: "Failed to fetch starred threads" }, { status: 500 });
   }
 }
@@ -68,9 +69,8 @@ export async function POST(req: NextRequest) {
     const result = await toggleStarThread(session.user.id, threadId, starred);
     return NextResponse.json(result);
   } catch (error) {
-    const message = error instanceof Error ? error.message : String(error);
-    console.error("[gmail/starred POST]", error);
-    return NextResponse.json({ error: message || "Failed to update star" }, { status: 500 });
+    log.error("[gmail/starred POST] Error toggling star", { error });
+    return NextResponse.json({ error: "Failed to update star" }, { status: 500 });
   }
 }
 
@@ -94,8 +94,7 @@ export async function DELETE(req: NextRequest) {
     const result = await unstarThread(session.user.id, threadId);
     return NextResponse.json(result);
   } catch (error) {
-    const message = error instanceof Error ? error.message : String(error);
-    console.error("[gmail/starred DELETE]", error);
-    return NextResponse.json({ error: message || "Failed to unstar thread" }, { status: 500 });
+    log.error("[gmail/starred DELETE] Error unstarring thread", { error });
+    return NextResponse.json({ error: "Failed to unstar thread" }, { status: 500 });
   }
 }

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback, useRef } from "react";
+import { log } from "@/lib/logger";
 
 export interface IntegrationStatuses {
   gmail: boolean;
@@ -30,7 +31,7 @@ export function useIntegrations() {
       }
     } catch (err) {
       if (mountedRef.current) {
-        console.warn("useIntegrations fetchStatus error:", err);
+        log.warn("useIntegrations fetchStatus error", { error: err });
       }
     } finally {
       if (mountedRef.current) {

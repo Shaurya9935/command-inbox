@@ -6,6 +6,7 @@ import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
 import crypto from "crypto";
 import type { TenantCorsair } from "@/lib/corsair";
+import { log } from "@/lib/logger";
 import type { CalendarEventResult } from "./types";
 
 export interface EnrichedCalendarEvent {
@@ -103,17 +104,136 @@ export async function getCalendarEvents(): Promise<EnrichedCalendarEvent[]> {
       });
     }
   } catch (err) {
-    console.warn("DB calendar events fetch failed:", err);
+    log.warn("DB calendar events fetch failed", { error: err });
   }
 
   return [];
+}
+
+const CALENDAR_SYNC_STATE_ENTITY_TYPE = "calendar_sync_state";
+const CALENDAR_SYNC_STATE_ENTITY_ID = "events_state";
+const CALENDAR_SYNC_LOCK_ENTITY_TYPE = "calendar_sync_lock";
+const CALENDAR_SYNC_LOCK_ENTITY_ID = "events_lock";
+const CALENDAR_SYNC_INTERVAL_MS = 15 * 60 * 1000;
+
+async function getLastCalendarSyncAt(accountId: string): Promise<Date | null> {
+  const row = await db
+    .select({ data: corsairEntities.data })
+    .from(corsairEntities)
+    .where(
+      and(
+        eq(corsairEntities.accountId, accountId),
+        eq(corsairEntities.entityType, CALENDAR_SYNC_STATE_ENTITY_TYPE),
+        eq(corsairEntities.entityId, CALENDAR_SYNC_STATE_ENTITY_ID)
+      )
+    )
+    .limit(1);
+
+  const value = (row[0]?.data as { lastSyncedAt?: unknown } | undefined)?.lastSyncedAt;
+  if (typeof value !== "string") return null;
+
+  const date = new Date(value);
+  return Number.isNaN(date.getTime()) ? null : date;
+}
+
+async function markCalendarSyncComplete(accountId: string): Promise<void> {
+  const existing = await db
+    .select({ id: corsairEntities.id })
+    .from(corsairEntities)
+    .where(
+      and(
+        eq(corsairEntities.accountId, accountId),
+        eq(corsairEntities.entityType, CALENDAR_SYNC_STATE_ENTITY_TYPE),
+        eq(corsairEntities.entityId, CALENDAR_SYNC_STATE_ENTITY_ID)
+      )
+    )
+    .limit(1);
+
+  const data = { lastSyncedAt: new Date().toISOString() };
+  if (existing[0]) {
+    await db
+      .update(corsairEntities)
+      .set({ data, updatedAt: new Date() })
+      .where(eq(corsairEntities.id, existing[0].id));
+    return;
+  }
+
+  await db.insert(corsairEntities).values({
+    id: crypto.randomUUID(),
+    accountId,
+    entityId: CALENDAR_SYNC_STATE_ENTITY_ID,
+    entityType: CALENDAR_SYNC_STATE_ENTITY_TYPE,
+    version: "1.0.0",
+    data,
+    createdAt: new Date(),
+    updatedAt: new Date(),
+  });
+}
+
+async function acquireCalendarSyncLock(accountId: string, ttlMs = 120_000): Promise<boolean> {
+  const now = new Date();
+  try {
+    const existing = await db
+      .select({ id: corsairEntities.id, updatedAt: corsairEntities.updatedAt })
+      .from(corsairEntities)
+      .where(
+        and(
+          eq(corsairEntities.accountId, accountId),
+          eq(corsairEntities.entityType, CALENDAR_SYNC_LOCK_ENTITY_TYPE),
+          eq(corsairEntities.entityId, CALENDAR_SYNC_LOCK_ENTITY_ID)
+        )
+      )
+      .limit(1);
+
+    if (existing[0]) {
+      const elapsed = now.getTime() - existing[0].updatedAt.getTime();
+      if (elapsed < ttlMs) {
+        return false;
+      }
+      await db
+        .update(corsairEntities)
+        .set({ updatedAt: now })
+        .where(eq(corsairEntities.id, existing[0].id));
+      return true;
+    }
+
+    await db.insert(corsairEntities).values({
+      id: crypto.randomUUID(),
+      accountId,
+      entityId: CALENDAR_SYNC_LOCK_ENTITY_ID,
+      entityType: CALENDAR_SYNC_LOCK_ENTITY_TYPE,
+      version: "1.0.0",
+      data: { lockedAt: now.toISOString() },
+      createdAt: now,
+      updatedAt: now,
+    });
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+async function releaseCalendarSyncLock(accountId: string): Promise<void> {
+  try {
+    await db
+      .delete(corsairEntities)
+      .where(
+        and(
+          eq(corsairEntities.accountId, accountId),
+          eq(corsairEntities.entityType, CALENDAR_SYNC_LOCK_ENTITY_TYPE),
+          eq(corsairEntities.entityId, CALENDAR_SYNC_LOCK_ENTITY_ID)
+        )
+      );
+  } catch (err) {
+    log.warn("Failed to release Calendar sync lock", { error: err });
+  }
 }
 
 /**
  * Pull fresh events from the Google Calendar API,
  * upsert into Corsair DB cache, and return the events list.
  */
-export async function syncCalendarEventsFromApi(): Promise<EnrichedCalendarEvent[]> {
+export async function syncCalendarEventsFromApi(options: { force?: boolean } = {}): Promise<EnrichedCalendarEvent[]> {
   const session = await auth.api.getSession({
     headers: await headers(),
   });
@@ -126,26 +246,41 @@ export async function syncCalendarEventsFromApi(): Promise<EnrichedCalendarEvent
     throw new Error("Google Calendar is not connected for this user");
   }
 
-  const corsair = await getCorsairTenant();
-
-  // Fetch events from 7 days ago to upcoming 30 days
-  const timeMin = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
-  const timeMax = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString();
-
-  const res = await corsair.googlecalendar.api.events.getMany({
-    calendarId: "primary",
-    maxResults: 50,
-    singleEvents: true,
-    orderBy: "startTime",
-    timeMin,
-    timeMax,
-  });
-
-  const rawEvents = res?.items ?? [];
-
-  if (!rawEvents.length) {
-    return [];
+  const existingEvents = await getCalendarEvents();
+  if (!options.force && existingEvents.length > 0) {
+    const lastSyncedAt = await getLastCalendarSyncAt(accountId);
+    if (lastSyncedAt && Date.now() - lastSyncedAt.getTime() < CALENDAR_SYNC_INTERVAL_MS) {
+      return existingEvents;
+    }
   }
+
+  const lockAcquired = await acquireCalendarSyncLock(accountId);
+  if (!lockAcquired) {
+    return existingEvents;
+  }
+
+  try {
+    const corsair = await getCorsairTenant();
+
+    // Fetch events from 7 days ago to upcoming 30 days
+    const timeMin = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
+    const timeMax = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString();
+
+    const res = await corsair.googlecalendar.api.events.getMany({
+      calendarId: "primary",
+      maxResults: 50,
+      singleEvents: true,
+      orderBy: "startTime",
+      timeMin,
+      timeMax,
+    });
+
+    const rawEvents = res?.items ?? [];
+
+    if (!rawEvents.length) {
+      await markCalendarSyncComplete(accountId);
+      return existingEvents;
+    }
 
   const events: EnrichedCalendarEvent[] = [];
 
@@ -220,7 +355,7 @@ export async function syncCalendarEventsFromApi(): Promise<EnrichedCalendarEvent
           createdAt: new Date(createdIso),
         });
       } catch (e) {
-        console.warn(`Failed to upsert calendar event ${ev.id}:`, e);
+        log.warn("Failed to upsert calendar event", { eventId: ev.id, error: e });
       }
 
       events.push({
@@ -259,13 +394,20 @@ export async function syncCalendarEventsFromApi(): Promise<EnrichedCalendarEvent
       });
     })
   );
+  await markCalendarSyncComplete(accountId);
 
-  // Sort events by start time
-  return events.sort((a, b) => {
-    const timeA = new Date(a.start.dateTime || a.start.date || 0).getTime();
-    const timeB = new Date(b.start.dateTime || b.start.date || 0).getTime();
-    return timeA - timeB;
-  });
+    // Sort events by start time
+    return events.sort((a, b) => {
+      const timeA = new Date(a.start.dateTime || a.start.date || 0).getTime();
+      const timeB = new Date(b.start.dateTime || b.start.date || 0).getTime();
+      return timeA - timeB;
+    });
+  } catch (error) {
+    log.error("Calendar sync failed", { error });
+    return existingEvents;
+  } finally {
+    await releaseCalendarSyncLock(accountId);
+  }
 }
 
 export interface CreateCalendarEventInput {
@@ -364,7 +506,7 @@ export async function getCalendarAccountId(tenantId: string): Promise<string | n
       .limit(1);
     return accts[0]?.id ?? null;
   } catch (err) {
-    console.warn("Failed to get calendar account ID:", err);
+    log.warn("Failed to get calendar account ID", { error: err });
     return null;
   }
 }
@@ -553,7 +695,7 @@ export async function deleteCalendarEvent({
           );
       }
     } catch (err) {
-      console.warn(`Failed to remove deleted event ${eventId} from cache:`, err);
+      log.warn("Failed to remove deleted event from cache", { eventId, error: err });
     }
   }
 

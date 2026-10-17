@@ -2,6 +2,7 @@ import { Agent, run, tool, MaxTurnsExceededError } from "@openai/agents";
 import { OpenAIAgentsProvider } from "@corsair-dev/mcp";
 
 import { corsair } from "@/lib/corsair";
+import { log } from "@/lib/logger";
 import { strictTool } from "./strict-tool";
 import { buildTools } from "./tools";
 import { buildInstructions } from "./instructions";
@@ -67,7 +68,7 @@ export async function runCommand({
     });
   } catch (err) {
     if (err instanceof MaxTurnsExceededError) {
-      console.warn("[ai] max turns exceeded");
+      log.warn("[ai] max turns exceeded");
       return {
         response:
           "I couldn't complete that in time — please try rephrasing or breaking it into smaller steps.",
@@ -80,16 +81,36 @@ export async function runCommand({
   const llmCalls = result.rawResponses.length;
   const totalIn = result.rawResponses.reduce((s, r) => s + (r.usage?.inputTokens ?? 0), 0);
   const totalOut = result.rawResponses.reduce((s, r) => s + (r.usage?.outputTokens ?? 0), 0);
-  console.log(
+  log.info(
     `[ai] elapsed=${elapsedMs}ms llmCalls=${llmCalls} tokensIn=${totalIn} tokensOut=${totalOut}`
   );
 
   for (const item of result.newItems) {
     if (item.type === "tool_call_item") {
-      console.log("[ai] TOOL CALL:", JSON.stringify(item.rawItem).slice(0, 400));
+      const raw = item.rawItem as { name?: string; function?: { name?: string } };
+      const toolName = raw?.name || raw?.function?.name || "tool";
+      log.info(`[ai] TOOL CALL name=${toolName}`);
     }
     if (item.type === "tool_call_output_item") {
-      console.log("[ai] TOOL OUT:", JSON.stringify(item.output).slice(0, 400));
+      let isSuccess = true;
+      let itemCount = 0;
+      let errorClass: string | undefined;
+
+      try {
+        const outStr = typeof item.output === "string" ? item.output : JSON.stringify(item.output);
+        const parsed = JSON.parse(outStr);
+        if (parsed.error) {
+          isSuccess = false;
+          errorClass = typeof parsed.error === "string" ? parsed.error.slice(0, 30) : "Error";
+        }
+        if (Array.isArray(parsed.emails)) itemCount = parsed.emails.length;
+        if (Array.isArray(parsed.events)) itemCount = parsed.events.length;
+        if (parsed.sent || parsed.created) itemCount = 1;
+      } catch {
+        // Non-JSON output
+      }
+
+      log.info(`[ai] TOOL OUT success=${isSuccess} itemCount=${itemCount}${errorClass ? ` error=${errorClass}` : ""}`);
     }
   }
 
@@ -99,5 +120,7 @@ export async function runCommand({
   return {
     response: result.finalOutput ?? "",
     pendingActions: pendingActions.length > 0 ? pendingActions : undefined,
+    tokensIn: totalIn,
+    tokensOut: totalOut,
   };
 }

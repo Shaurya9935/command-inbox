@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { headers } from "next/headers";
 import { auth } from "@/lib/auth";
 import { verifyUserPassword, deleteUserData } from "@/lib/account/server";
+import { log } from "@/lib/logger";
 
 export async function POST(request: Request) {
   try {
@@ -43,8 +44,7 @@ export async function POST(request: Request) {
       revocations: result.revocations,
     });
   } catch (err) {
-    console.error("[account/delete-data] Error deleting data:", err);
-    const msg = err instanceof Error ? err.message : "Internal Server Error";
-    return NextResponse.json({ error: msg }, { status: 500 });
+    log.error("[account/delete-data] Error deleting data", { error: err });
+    return NextResponse.json({ error: "Failed to delete user data" }, { status: 500 });
   }
 }

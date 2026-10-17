@@ -1,0 +1,54 @@
+import { z } from "zod";
+
+const envSchema = z.object({
+  NODE_ENV: z.enum(["development", "production", "test"]).default("development"),
+  APP_URL: z.string().url().default("http://localhost:3000"),
+  DATABASE_URL: z.string().min(1, "DATABASE_URL is required"),
+  BETTER_AUTH_SECRET: z.string().min(1, "BETTER_AUTH_SECRET is required"),
+  BETTER_AUTH_URL: z.string().optional(),
+  OPENAI_API_KEY: z.string().min(1, "OPENAI_API_KEY is required"),
+  CORSAIR_KEK: z.string().min(1, "CORSAIR_KEK is required"),
+  CORSAIR_DEV_API_KEY: z.string().min(1, "CORSAIR_DEV_API_KEY is required"),
+  CORSAIR_DEV_SIGNING_SECRET: z.string().optional(),
+  WEBHOOK_SECRET: z.string().optional(),
+  MCP_SECRET: z.string().optional(),
+  GOOGLE_CLIENT_ID: z.string().min(1, "GOOGLE_CLIENT_ID is required"),
+  GOOGLE_CLIENT_SECRET: z.string().min(1, "GOOGLE_CLIENT_SECRET is required"),
+  AI_DAILY_MESSAGE_LIMIT: z.coerce.number().int().positive().default(50),
+  AI_BURST_MESSAGE_LIMIT: z.coerce.number().int().positive().default(8),
+  AI_DAILY_TOKEN_BUDGET_TOTAL: z.coerce.number().int().positive().default(2_000_000),
+  APPLE_CLIENT_ID: z.string().optional(),
+  APPLE_CLIENT_SECRET: z.string().optional(),
+  GITHUB_CLIENT_ID: z.string().optional(),
+  GITHUB_CLIENT_SECRET: z.string().optional(),
+  GITLAB_CLIENT_ID: z.string().optional(),
+  GITLAB_CLIENT_SECRET: z.string().optional(),
+});
+
+export type Env = z.infer<typeof envSchema>;
+
+function validateEnv(): Env {
+  const parsed = envSchema.safeParse(process.env);
+  if (!parsed.success) {
+    const missingKeys = Array.from(new Set(parsed.error.issues.map((i) => i.path.join("."))));
+    const errorMessage = `Missing or invalid required environment variables: ${missingKeys.join(", ")}`;
+    if (process.env.NODE_ENV === "production") {
+      throw new Error(`[FATAL] ${errorMessage}`);
+    } else {
+      // In development or build/test, warn and use fallback defaults
+      return envSchema.parse({
+        ...process.env,
+        DATABASE_URL: process.env.DATABASE_URL || "postgres://postgres:postgres@localhost:5432/command-inbox",
+        BETTER_AUTH_SECRET: process.env.BETTER_AUTH_SECRET || "dev-better-auth-secret-key-32-chars",
+        OPENAI_API_KEY: process.env.OPENAI_API_KEY || "dummy-openai-key",
+        CORSAIR_KEK: process.env.CORSAIR_KEK || "dummy-corsair-kek",
+        CORSAIR_DEV_API_KEY: process.env.CORSAIR_DEV_API_KEY || "ck_dev_dummy",
+        GOOGLE_CLIENT_ID: process.env.GOOGLE_CLIENT_ID || "dummy-google-client-id",
+        GOOGLE_CLIENT_SECRET: process.env.GOOGLE_CLIENT_SECRET || "dummy-google-client-secret",
+      });
+    }
+  }
+  return parsed.data;
+}
+
+export const env = validateEnv();

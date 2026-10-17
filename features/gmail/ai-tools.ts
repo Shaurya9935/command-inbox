@@ -29,7 +29,15 @@ export function gmailTools(ctx: ToolContext): Tool<unknown>[] {
     execute: async ({ limit }): Promise<string> => {
       try {
         const { emails, stale } = await getRecentEmails(tenantId, limit);
-        if (!emails.length) {
+        const trimmedEmails = emails.map((e) => ({
+          threadId: e.threadId,
+          from: e.from,
+          subject: e.subject,
+          date: e.date,
+          snippet: (e.snippet || "").slice(0, 150),
+        }));
+
+        if (!trimmedEmails.length) {
           return JSON.stringify({
             emails: [],
             note: stale
@@ -39,11 +47,11 @@ export function gmailTools(ctx: ToolContext): Tool<unknown>[] {
         }
         if (stale) {
           return JSON.stringify({
-            emails,
+            emails: trimmedEmails,
             note: "Could not refresh from Gmail; results may be a few minutes old",
           });
         }
-        return JSON.stringify({ emails });
+        return JSON.stringify({ emails: trimmedEmails });
       } catch (err) {
         return JSON.stringify({ error: String(err) });
       }
@@ -73,10 +81,18 @@ export function gmailTools(ctx: ToolContext): Tool<unknown>[] {
           query,
           limit,
         });
-        if (!emails.length) {
+        const trimmedEmails = emails.map((e) => ({
+          threadId: e.threadId,
+          from: e.from,
+          subject: e.subject,
+          date: e.date,
+          snippet: (e.snippet || "").slice(0, 150),
+        }));
+
+        if (!trimmedEmails.length) {
           return JSON.stringify({ emails: [], note: "no matching emails" });
         }
-        return JSON.stringify({ emails });
+        return JSON.stringify({ emails: trimmedEmails });
       } catch (err) {
         return JSON.stringify({ error: `Gmail search failed: ${String(err)}` });
       }
@@ -91,7 +107,7 @@ export function gmailTools(ctx: ToolContext): Tool<unknown>[] {
     parameters: z.object({
       to: z
         .string()
-        .describe("Recipient real email address. Must be a valid email format, not a placeholder domain."),
+        .describe("Recipient real email address (max 5 comma-separated recipients). Must be a valid email format, not a placeholder domain."),
       subject: z.string().describe("Subject of the email"),
       body: z.string().describe("Body text of the email in plain text"),
       threadId: z
@@ -104,12 +120,26 @@ export function gmailTools(ctx: ToolContext): Tool<unknown>[] {
         .describe("Message-ID or message id to reference in In-Reply-To header if replying, otherwise null"),
     }),
     execute: async ({ to, subject, body, threadId, inReplyToMessageId }): Promise<string> => {
-      // 1. Validate recipient email
-      const emailCheck = extractAndValidateEmail(to);
-      if (!emailCheck.valid || !emailCheck.email) {
-        return JSON.stringify({ error: emailCheck.error });
+      // 1. Validate recipients (max 5)
+      const recipientList = to.split(",").map((s) => s.trim()).filter(Boolean);
+      if (recipientList.length > 5) {
+        return JSON.stringify({
+          error: "Recipient limit exceeded. A maximum of 5 recipients is allowed per email.",
+        });
       }
-      const validatedTo = emailCheck.email;
+      if (recipientList.length === 0) {
+        return JSON.stringify({ error: "At least one recipient email address is required." });
+      }
+
+      const validatedRecipients: string[] = [];
+      for (const rec of recipientList) {
+        const emailCheck = extractAndValidateEmail(rec);
+        if (!emailCheck.valid || !emailCheck.email) {
+          return JSON.stringify({ error: emailCheck.error });
+        }
+        validatedRecipients.push(emailCheck.email);
+      }
+      const validatedTo = validatedRecipients.join(", ");
 
       try {
         const res = await sendGmailMessage({

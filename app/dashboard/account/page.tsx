@@ -8,6 +8,7 @@ import { ConnectWorkspace } from "@/components/connect";
 import { useGmailThreads } from "@/hooks/use-gmail";
 import { authClient } from "@/lib/auth-client";
 import { ProfileCard, SecurityCard, DangerZoneCard } from "@/components/account";
+import { log } from "@/lib/logger";
 
 interface AccountInfo {
   user: {
@@ -45,7 +46,7 @@ export default function AccountPage() {
         if (data) setAccountInfo(data);
       })
       .catch((err) => {
-        console.error("Failed to load account info:", err);
+        log.error("Failed to load account info", { error: err });
       });
   };
 
@@ -59,7 +60,7 @@ export default function AccountPage() {
         }
       })
       .catch((err) => {
-        console.error("Failed to load account info:", err);
+        log.error("Failed to load account info", { error: err });
       });
 
     return () => {

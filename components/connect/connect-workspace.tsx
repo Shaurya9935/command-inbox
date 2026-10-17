@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useMemo } from "react";
+import { log } from "@/lib/logger";
 import { useRouter, useSearchParams } from "next/navigation";
 import { AppCategory, IntegrationApp, ConnectUser } from "./connect-types";
 import { DEFAULT_INTEGRATIONS } from "./integrations-data";
@@ -104,7 +105,7 @@ export function ConnectWorkspace({
         })
       );
     } catch (err) {
-      console.warn("Failed to fetch live integration statuses:", err);
+      log.warn("Failed to fetch live integration statuses", { error: err });
     }
   };
 
@@ -142,7 +143,7 @@ export function ConnectWorkspace({
         );
       })
       .catch((err) => {
-        console.warn("Failed to fetch live integration statuses:", err);
+        log.warn("Failed to fetch live integration statuses", { error: err });
       });
 
     // Check query params for OAuth redirects like ?connected=gmail

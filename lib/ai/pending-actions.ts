@@ -2,10 +2,8 @@ import { and, desc, eq } from "drizzle-orm";
 import { db } from "@/lib/db";
 import { corsairPermissions, corsairEntities } from "@/db/corsair";
 import { parseMimeRaw } from "@/features/gmail/mime";
-import type { PendingAction, PendingActionPreview } from "./types";
-
-// In-memory pending actions store kept for backward compatibility
-export const pendingActionsStore = new Map<string, PendingAction>();
+import { log } from "@/lib/logger";
+import type { PendingActionPreview } from "./types";
 
 export async function getPendingPermissions(tenantId: string): Promise<PendingActionPreview[]> {
   try {
@@ -83,7 +81,7 @@ export async function getPendingPermissions(tenantId: string): Promise<PendingAc
                 endISO = d.end?.dateTime || d.end?.date || "";
               }
             } catch (err) {
-              console.warn("Failed to lookup event details for delete preview:", err);
+              log.warn("Failed to lookup event details for delete preview", { error: err });
             }
           }
 
@@ -112,13 +110,13 @@ export async function getPendingPermissions(tenantId: string): Promise<PendingAc
           });
         }
       } catch (err) {
-        console.warn("Failed to parse permission row args:", err);
+        log.warn("Failed to parse permission row args", { error: err });
       }
     }
 
     return actions;
   } catch (error) {
-    console.error("Failed to query pending permissions:", error);
+    log.error("Failed to query pending permissions", { error });
     return [];
   }
 }

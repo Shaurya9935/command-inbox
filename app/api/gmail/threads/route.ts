@@ -3,6 +3,8 @@ import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
 import { NextRequest, NextResponse } from "next/server";
 
+import { log } from "@/lib/logger";
+
 /**
  * GET /api/gmail/threads
  *   – Serves threads from the local Corsair DB (fast, no rate limits).
@@ -52,7 +54,7 @@ export async function GET(req: NextRequest) {
     if (message.includes("not connected")) {
       return NextResponse.json({ error: message, notConnected: true }, { status: 404 });
     }
-    console.error("[gmail/threads]", error);
+    log.error("[gmail/threads] Error fetching threads", { error });
     return NextResponse.json({ error: "Failed to fetch Inbox" }, { status: 500 });
   }
 }
