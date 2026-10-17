@@ -58,7 +58,7 @@ export function ConnectCard({
               height: 34,
               borderRadius: 8,
               background: app.accentColor,
-              color: "#FFF",
+              color: "var(--on-accent)",
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
@@ -93,8 +93,8 @@ export function ConnectCard({
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
       style={{
-        background: "#FFFFFF",
-        border: app.connected ? "1.5px solid #D5E7D8" : "1px solid #E8E4DC",
+        background: "var(--surface-card)",
+        border: app.connected ? "1.5px solid var(--success-border)" : "1px solid var(--border-hairline)",
         borderRadius: 14,
         padding: "22px 24px",
         display: "flex",
@@ -102,8 +102,8 @@ export function ConnectCard({
         justifyContent: "space-between",
         position: "relative",
         boxShadow: isHovered
-          ? "0 10px 24px -4px rgba(0, 0, 0, 0.07), 0 2px 6px -1px rgba(0, 0, 0, 0.04)"
-          : "0 1px 3px rgba(0, 0, 0, 0.02)",
+          ? "0 10px 24px -4px var(--shadow-color), 0 2px 6px -1px var(--shadow-color)"
+          : "0 1px 3px var(--shadow-color)",
         transform: isHovered ? "translateY(-2px)" : "translateY(0)",
         transition: "all 0.2s cubic-bezier(0.16, 1, 0.3, 1)",
         fontFamily: "var(--font-ui, 'DM Sans', system-ui, sans-serif)",
@@ -138,7 +138,7 @@ export function ConnectCard({
                     margin: 0,
                     fontSize: 16,
                     fontWeight: 600,
-                    color: "#1A1917",
+                    color: "var(--text-primary)",
                     letterSpacing: "-0.01em",
                   }}
                 >
@@ -165,7 +165,7 @@ export function ConnectCard({
                 style={{
                   margin: "2px 0 0",
                   fontSize: 12,
-                  color: "#858079",
+                  color: "var(--text-muted)",
                 }}
               >
                 {app.tagline}
@@ -183,9 +183,9 @@ export function ConnectCard({
                   gap: 6,
                   padding: "4px 10px",
                   borderRadius: 20,
-                  background: "#ECFDF5",
-                  border: "1px solid #A7F3D0",
-                  color: "#065F46",
+                  background: "var(--success-tint)",
+                  border: "1px solid var(--success-border)",
+                  color: "var(--success)",
                   fontSize: 11.5,
                   fontWeight: 600,
                   whiteSpace: "nowrap",
@@ -196,8 +196,8 @@ export function ConnectCard({
                     width: 6.5,
                     height: 6.5,
                     borderRadius: "50%",
-                    background: "#10B981",
-                    boxShadow: "0 0 0 2px rgba(16, 185, 129, 0.2)",
+                    background: "var(--success)",
+                    boxShadow: "0 0 0 2px var(--success-tint)",
                     animation: "pulseDot 2s infinite ease-in-out",
                   }}
                 />
@@ -211,9 +211,9 @@ export function ConnectCard({
                   gap: 5,
                   padding: "4px 10px",
                   borderRadius: 20,
-                  background: "#F5F2EB",
-                  border: "1px solid #E4DED4",
-                  color: "#78726A",
+                  background: "var(--hover-subtle)",
+                  border: "1px solid var(--border-hairline)",
+                  color: "var(--text-secondary)",
                   fontSize: 11.5,
                   fontWeight: 500,
                   whiteSpace: "nowrap",
@@ -224,7 +224,7 @@ export function ConnectCard({
                     width: 5.5,
                     height: 5.5,
                     borderRadius: "50%",
-                    background: "#A8A29E",
+                    background: "var(--text-muted)",
                   }}
                 />
                 Not connected
@@ -238,8 +238,8 @@ export function ConnectCard({
           {app.connected ? (
             <div
               style={{
-                background: "#F9FBF9",
-                border: "1px solid #E2EFE4",
+                background: "var(--status-success-bg)",
+                border: "1px solid var(--status-success-border)",
                 borderRadius: 9,
                 padding: "8px 12px",
                 display: "flex",
@@ -255,7 +255,7 @@ export function ConnectCard({
                   height={14}
                   viewBox="0 0 16 16"
                   fill="none"
-                  style={{ flexShrink: 0, color: "#16A34A" }}
+                  style={{ flexShrink: 0, color: "var(--status-success-text)" }}
                 >
                   <path
                     d="M2 4a1.5 1.5 0 011.5-1.5h9A1.5 1.5 0 0114 4v8a1.5 1.5 0 01-1.5 1.5h-9A1.5 1.5 0 012 12V4z"
@@ -274,7 +274,7 @@ export function ConnectCard({
                     style={{
                       fontSize: 12,
                       fontWeight: 600,
-                      color: "#1E293B",
+                      color: "var(--text-primary)",
                       overflow: "hidden",
                       textOverflow: "ellipsis",
                       whiteSpace: "nowrap",
@@ -297,7 +297,7 @@ export function ConnectCard({
                   padding: "3px 6px",
                   borderRadius: 4,
                   fontSize: 11,
-                  color: copied ? "#16A34A" : "#64748B",
+                  color: copied ? "var(--status-success-text)" : "var(--text-tertiary)",
                   cursor: "pointer",
                   fontWeight: 500,
                   display: "flex",
@@ -312,8 +312,8 @@ export function ConnectCard({
           ) : (
             <div
               style={{
-                background: "#FAFAF9",
-                border: "1px dashed #E2DED6",
+                background: "var(--bg-inset)",
+                border: "1px dashed var(--border-subtle)",
                 borderRadius: 9,
                 padding: "8px 12px",
                 display: "flex",
@@ -326,12 +326,12 @@ export function ConnectCard({
                 height={13}
                 viewBox="0 0 16 16"
                 fill="none"
-                style={{ flexShrink: 0, color: "#A8A29E" }}
+                style={{ flexShrink: 0, color: "var(--text-muted)" }}
               >
                 <circle cx="8" cy="8" r="6" stroke="currentColor" strokeWidth="1.3" />
                 <path d="M8 5v3M8 11h.01" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" />
               </svg>
-              <span style={{ fontSize: 11.5, color: "#8C867E" }}>
+              <span style={{ fontSize: 11.5, color: "var(--text-tertiary)" }}>
                 No account linked. Authorize to start syncing.
               </span>
             </div>
@@ -344,7 +344,7 @@ export function ConnectCard({
             margin: "0 0 16px",
             fontSize: 12.5,
             lineHeight: 1.5,
-            color: "#4A4642",
+            color: "var(--text-secondary)",
           }}
         >
           {app.description}
@@ -357,7 +357,7 @@ export function ConnectCard({
               fontSize: 10.5,
               fontWeight: 600,
               letterSpacing: "0.05em",
-              color: "#A39E96",
+              color: "var(--text-muted)",
               textTransform: "uppercase",
               marginBottom: 8,
             }}
@@ -373,7 +373,7 @@ export function ConnectCard({
                   alignItems: "center",
                   gap: 7,
                   fontSize: 11.5,
-                  color: "#57534E",
+                  color: "var(--text-secondary)",
                 }}
               >
                 <svg
@@ -383,7 +383,7 @@ export function ConnectCard({
                   fill="none"
                   style={{
                     flexShrink: 0,
-                    color: app.connected ? "#10B981" : "#94A3B8",
+                    color: app.connected ? "var(--status-success-text)" : "var(--text-muted)",
                   }}
                 >
                   <path
@@ -404,7 +404,7 @@ export function ConnectCard({
       {/* Card Actions Footer */}
       <div
         style={{
-          borderTop: "1px solid #F1ECE4",
+          borderTop: "1px solid var(--border-subtle)",
           paddingTop: 16,
           display: "flex",
           alignItems: "center",
@@ -422,9 +422,9 @@ export function ConnectCard({
                 style={{
                   padding: "7px 12px",
                   borderRadius: 7,
-                  border: "1px solid #E2DED6",
-                  background: "#FFFFFF",
-                  color: "#3F3C37",
+                  border: "1px solid var(--border-subtle)",
+                  background: "var(--bg-card)",
+                  color: "var(--text-primary)",
                   fontSize: 12,
                   fontWeight: 500,
                   cursor: isSyncingLocal ? "not-allowed" : "pointer",
@@ -434,10 +434,10 @@ export function ConnectCard({
                   transition: "background 0.12s, border-color 0.12s",
                 }}
                 onMouseEnter={(e) => {
-                  if (!isSyncingLocal) e.currentTarget.style.background = "#F9F6F0";
+                  if (!isSyncingLocal) e.currentTarget.style.background = "var(--bg-hover)";
                 }}
                 onMouseLeave={(e) => {
-                  e.currentTarget.style.background = "#FFFFFF";
+                  e.currentTarget.style.background = "var(--bg-card)";
                 }}
               >
                 <svg
@@ -476,17 +476,17 @@ export function ConnectCard({
                   borderRadius: 7,
                   border: "none",
                   background: "transparent",
-                  color: "#6B6762",
+                  color: "var(--text-tertiary)",
                   fontSize: 12,
                   fontWeight: 500,
                   cursor: "pointer",
                   transition: "color 0.12s",
                 }}
                 onMouseEnter={(e) => {
-                  e.currentTarget.style.color = "#1A1917";
+                  e.currentTarget.style.color = "var(--text-primary)";
                 }}
                 onMouseLeave={(e) => {
-                  e.currentTarget.style.color = "#6B6762";
+                  e.currentTarget.style.color = "var(--text-tertiary)";
                 }}
               >
                 Reconnect
@@ -500,21 +500,21 @@ export function ConnectCard({
               style={{
                 padding: "7px 11px",
                 borderRadius: 7,
-                border: "1px solid #FEE2E2",
-                background: "#FEF2F2",
-                color: "#DC2626",
+                border: "1px solid var(--status-error-border)",
+                background: "var(--status-error-bg)",
+                color: "var(--status-error-text)",
                 fontSize: 12,
                 fontWeight: 500,
                 cursor: "pointer",
                 transition: "background 0.12s, border-color 0.12s",
               }}
               onMouseEnter={(e) => {
-                e.currentTarget.style.background = "#FEE2E2";
-                e.currentTarget.style.borderColor = "#FCA5A5";
+                e.currentTarget.style.background = "var(--status-error-border)";
+                e.currentTarget.style.borderColor = "var(--status-error-text)";
               }}
               onMouseLeave={(e) => {
-                e.currentTarget.style.background = "#FEF2F2";
-                e.currentTarget.style.borderColor = "#FEE2E2";
+                e.currentTarget.style.background = "var(--status-error-bg)";
+                e.currentTarget.style.borderColor = "var(--status-error-border)";
               }}
             >
               Disconnect
@@ -531,7 +531,7 @@ export function ConnectCard({
               borderRadius: 8,
               border: `1px solid ${app.accentColor}`,
               background: app.accentColor,
-              color: "#FFFFFF",
+              color: "var(--text-inverse)",
               fontSize: 13,
               fontWeight: 600,
               cursor: "pointer",
@@ -539,18 +539,18 @@ export function ConnectCard({
               alignItems: "center",
               justifyContent: "center",
               gap: 8,
-              boxShadow: "0 1px 3px rgba(0, 0, 0, 0.08)",
+              boxShadow: "var(--shadow-sm)",
               transition: "transform 0.12s, opacity 0.12s, box-shadow 0.12s",
             }}
             onMouseEnter={(e) => {
               e.currentTarget.style.opacity = "0.92";
               e.currentTarget.style.transform = "translateY(-1px)";
-              e.currentTarget.style.boxShadow = "0 3px 8px rgba(0, 0, 0, 0.12)";
+              e.currentTarget.style.boxShadow = "var(--shadow-md)";
             }}
             onMouseLeave={(e) => {
               e.currentTarget.style.opacity = "1";
               e.currentTarget.style.transform = "translateY(0)";
-              e.currentTarget.style.boxShadow = "0 1px 3px rgba(0, 0, 0, 0.08)";
+              e.currentTarget.style.boxShadow = "var(--shadow-sm)";
             }}
           >
             <svg width={13} height={13} viewBox="0 0 16 16" fill="none">

@@ -53,7 +53,7 @@ function renderFormattedMessage(text: string, isUser: boolean) {
           key={lineIdx}
           style={{
             fontWeight: 700,
-            color: "#1A1917",
+            color: "var(--text-primary)",
             marginTop: lineIdx > 0 ? 10 : 0,
             marginBottom: 4,
             fontSize: headingMatch[1].length <= 2 ? "1.1em" : "1.02em",
@@ -73,7 +73,7 @@ function renderFormattedMessage(text: string, isUser: boolean) {
     const formattedLine = parts.map((part, pIdx) => {
       if (part.startsWith("**") && part.endsWith("**")) {
         return (
-          <strong key={pIdx} style={{ fontWeight: 600, color: "#1A1917" }}>
+          <strong key={pIdx} style={{ fontWeight: 600, color: "var(--text-primary)" }}>
             {part.slice(2, -2)}
           </strong>
         );
@@ -83,7 +83,7 @@ function renderFormattedMessage(text: string, isUser: boolean) {
           <code
             key={pIdx}
             style={{
-              background: "#F2EFE8",
+              background: "var(--code-bg)",
               padding: "1px 5px",
               borderRadius: 4,
               fontSize: "0.9em",
@@ -110,7 +110,7 @@ function renderFormattedMessage(text: string, isUser: boolean) {
             paddingLeft: bulletMatch[1].length * 4,
           }}
         >
-          <span style={{ color: "#5549C0", flexShrink: 0, fontWeight: 500 }}>
+          <span style={{ color: "var(--accent-text)", flexShrink: 0, fontWeight: 500 }}>
             {isNumbered ? bulletMatch[2] : "•"}
           </span>
           <span style={{ flex: 1 }}>{formattedLine}</span>
@@ -432,8 +432,8 @@ export function DefaultWorkspace({
           display: "flex",
           alignItems: "center",
           justifyContent: "space-between",
-          borderBottom: "1px solid #EDE9E1",
-          background: "#F7F4EE",
+          borderBottom: "1px solid var(--border-hairline)",
+          background: "var(--bg-workspace)",
         }}
       >
         <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
@@ -441,24 +441,24 @@ export function DefaultWorkspace({
             style={{
               fontSize: 12,
               fontFamily: "var(--font-mono, 'JetBrains Mono', monospace)",
-              color: "#9B9691",
+              color: "var(--text-muted)",
               letterSpacing: "0.01em",
             }}
           >
             {dateStr}
           </div>
-          <div style={{ width: 1, height: 12, background: "#DEDAD3" }} />
+          <div style={{ width: 1, height: 12, background: "var(--border-hairline)" }} />
           <div
             style={{
               display: "flex",
               alignItems: "center",
               gap: 5,
               fontSize: 12,
-              color: "#3E7868",
+              color: "var(--status-connected)",
               fontFamily: "var(--font-mono, 'JetBrains Mono', monospace)",
             }}
           >
-            <Dot color="#3E7868" size={6} />
+            <Dot color="var(--status-connected)" size={6} />
             <span>AI Assistant Active</span>
           </div>
         </div>
@@ -482,7 +482,7 @@ export function DefaultWorkspace({
               background: "none",
               border: "none",
               fontSize: 12,
-              color: "#9B9691",
+              color: "var(--text-muted)",
               cursor: "pointer",
               fontFamily: "var(--font-ui, 'DM Sans', system-ui, sans-serif)",
               padding: "4px 8px",
@@ -490,11 +490,11 @@ export function DefaultWorkspace({
               transition: "color 0.15s, background 0.15s",
             }}
             onMouseEnter={(e) => {
-              e.currentTarget.style.color = "#5549C0";
-              e.currentTarget.style.background = "#EAE6DF";
+              e.currentTarget.style.color = "var(--accent-text)";
+              e.currentTarget.style.background = "var(--hover)";
             }}
             onMouseLeave={(e) => {
-              e.currentTarget.style.color = "#9B9691";
+              e.currentTarget.style.color = "var(--text-muted)";
               e.currentTarget.style.background = "none";
             }}
           >
@@ -534,7 +534,7 @@ export function DefaultWorkspace({
                 style={{
                   fontSize: 26,
                   fontWeight: 600,
-                  color: "#1A1917",
+                  color: "var(--text-primary)",
                   letterSpacing: "-0.03em",
                   margin: 0,
                   lineHeight: 1.25,
@@ -546,7 +546,7 @@ export function DefaultWorkspace({
               <p
                 style={{
                   fontSize: 14.5,
-                  color: "#8C8781",
+                  color: "var(--text-secondary)",
                   margin: "8px 0 0",
                   fontFamily: "var(--font-body, 'Inter', system-ui, sans-serif)",
                   fontWeight: 400,
@@ -572,7 +572,7 @@ export function DefaultWorkspace({
                   fontSize: 11.5,
                   textTransform: "uppercase",
                   letterSpacing: "0.06em",
-                  color: "#A8A49E",
+                  color: "var(--text-muted)",
                   fontFamily: "var(--font-mono, 'JetBrains Mono', monospace)",
                   marginBottom: 10,
                 }}
@@ -626,7 +626,7 @@ export function DefaultWorkspace({
                     gap: 6,
                     fontSize: 11,
                     fontFamily: "var(--font-mono, 'JetBrains Mono', monospace)",
-                    color: "#A8A49E",
+                    color: "var(--text-muted)",
                     padding: "0 4px",
                   }}
                 >
@@ -640,16 +640,16 @@ export function DefaultWorkspace({
                     maxWidth: "88%",
                     padding: "16px 20px",
                     borderRadius: 14,
-                    background: msg.role === "user" ? "#5549C0" : "#FFFFFF",
-                    color: msg.role === "user" ? "#FFFFFF" : "#1A1917",
+                    background: msg.role === "user" ? "var(--accent-solid)" : "var(--surface-card)",
+                    color: msg.role === "user" ? "var(--on-accent)" : "var(--text-primary)",
                     fontSize: 14,
                     lineHeight: 1.6,
                     fontFamily: "var(--font-body, 'Inter', system-ui, sans-serif)",
                     boxShadow:
                       msg.role === "user"
-                        ? "0 2px 10px rgba(85,73,192,0.2)"
-                        : "0 2px 10px rgba(0,0,0,0.04)",
-                    border: msg.role === "user" ? "none" : "1px solid #E8E4DC",
+                        ? "0 2px 10px var(--shadow-color)"
+                        : "0 2px 10px var(--shadow-color)",
+                    border: msg.role === "user" ? "none" : "1px solid var(--border-hairline)",
                     whiteSpace: "pre-wrap",
                   }}
                 >
@@ -662,8 +662,8 @@ export function DefaultWorkspace({
                         marginTop: 14,
                         padding: "14px 16px",
                         borderRadius: 10,
-                        background: "#FAF8F5",
-                        border: "1px solid #E4DFD5",
+                        background: "var(--surface-raised)",
+                        border: "1px solid var(--border-hairline)",
                         display: "flex",
                         flexDirection: "column",
                         gap: 12,
@@ -678,7 +678,7 @@ export function DefaultWorkspace({
                             gap: 6,
                             paddingBottom: idx < msg.pendingActions!.length - 1 ? 12 : 0,
                             borderBottom:
-                              idx < msg.pendingActions!.length - 1 ? "1px dashed #E0DBD1" : "none",
+                              idx < msg.pendingActions!.length - 1 ? "1px dashed var(--border-dashed)" : "none",
                           }}
                         >
                           <div
@@ -691,7 +691,7 @@ export function DefaultWorkspace({
                               letterSpacing: "0.05em",
                               textTransform: "uppercase",
                               fontFamily: "var(--font-mono, 'JetBrains Mono', monospace)",
-                              color: action.type === "send_email" ? "#5549C0" : "#2E6846",
+                              color: action.type === "send_email" ? "var(--accent-text)" : "var(--success)",
                             }}
                           >
                             <span>
@@ -704,11 +704,11 @@ export function DefaultWorkspace({
                           {action.type === "send_email" && (
                             <div style={{ display: "flex", flexDirection: "column", gap: 4, fontSize: 13 }}>
                               <div>
-                                <span style={{ color: "#8C8781", fontWeight: 500 }}>To: </span>
+                                <span style={{ color: "var(--text-secondary)", fontWeight: 500 }}>To: </span>
                                 <span
                                   style={{
                                     fontFamily: "var(--font-mono, monospace)",
-                                    color: "#1A1917",
+                                    color: "var(--text-primary)",
                                     fontWeight: 600,
                                   }}
                                 >
@@ -717,8 +717,8 @@ export function DefaultWorkspace({
                               </div>
                               {action.subject && (
                                 <div>
-                                  <span style={{ color: "#8C8781", fontWeight: 500 }}>Subject: </span>
-                                  <span style={{ color: "#1A1917" }}>{action.subject}</span>
+                                  <span style={{ color: "var(--text-secondary)", fontWeight: 500 }}>Subject: </span>
+                                  <span style={{ color: "var(--text-primary)" }}>{action.subject}</span>
                                 </div>
                               )}
                               {action.body && (
@@ -726,11 +726,11 @@ export function DefaultWorkspace({
                                   style={{
                                     marginTop: 4,
                                     padding: "8px 12px",
-                                    background: "#FFFFFF",
-                                    border: "1px solid #EAE6DF",
-                                    borderLeft: "3px solid #5549C0",
+                                    background: "var(--surface-card)",
+                                    border: "1px solid var(--border-hairline)",
+                                    borderLeft: "3px solid var(--accent-solid)",
                                     borderRadius: 6,
-                                    color: "#33312E",
+                                    color: "var(--text-primary)",
                                     whiteSpace: "pre-wrap",
                                     fontSize: 12.5,
                                     lineHeight: 1.5,
@@ -745,12 +745,12 @@ export function DefaultWorkspace({
                           {action.type === "create_calendar_event" && (
                             <div style={{ display: "flex", flexDirection: "column", gap: 4, fontSize: 13 }}>
                               <div>
-                                <span style={{ color: "#8C8781", fontWeight: 500 }}>Title: </span>
-                                <span style={{ color: "#1A1917", fontWeight: 600 }}>{action.title}</span>
+                                <span style={{ color: "var(--text-secondary)", fontWeight: 500 }}>Title: </span>
+                                <span style={{ color: "var(--text-primary)", fontWeight: 600 }}>{action.title}</span>
                               </div>
                               <div>
-                                <span style={{ color: "#8C8781", fontWeight: 500 }}>Time: </span>
-                                <span style={{ color: "#1A1917" }}>
+                                <span style={{ color: "var(--text-secondary)", fontWeight: 500 }}>Time: </span>
+                                <span style={{ color: "var(--text-primary)" }}>
                                   {new Date(action.startISO || "").toLocaleString("en-IN", {
                                     timeZone: "Asia/Kolkata",
                                     dateStyle: "medium",
@@ -770,11 +770,11 @@ export function DefaultWorkspace({
                               </div>
                               {action.attendeeEmails && action.attendeeEmails.length > 0 && (
                                 <div>
-                                  <span style={{ color: "#8C8781", fontWeight: 500 }}>Attendees: </span>
+                                  <span style={{ color: "var(--text-secondary)", fontWeight: 500 }}>Attendees: </span>
                                   <span
                                     style={{
                                       fontFamily: "var(--font-mono, monospace)",
-                                      color: "#1A1917",
+                                      color: "var(--text-primary)",
                                       fontSize: 12,
                                     }}
                                   >
@@ -784,8 +784,8 @@ export function DefaultWorkspace({
                               )}
                               {action.location && (
                                 <div>
-                                  <span style={{ color: "#8C8781", fontWeight: 500 }}>Location: </span>
-                                  <span style={{ color: "#1A1917" }}>{action.location}</span>
+                                  <span style={{ color: "var(--text-secondary)", fontWeight: 500 }}>Location: </span>
+                                  <span style={{ color: "var(--text-primary)" }}>{action.location}</span>
                                 </div>
                               )}
                             </div>
@@ -794,17 +794,17 @@ export function DefaultWorkspace({
                           {action.type === "delete_calendar_event" && (
                             <div style={{ display: "flex", flexDirection: "column", gap: 4, fontSize: 13 }}>
                               <div>
-                                <span style={{ color: "#DC2626", fontWeight: 600 }}>Action: </span>
-                                <span style={{ color: "#DC2626", fontWeight: 500 }}>Delete Calendar Event</span>
+                                <span style={{ color: "var(--danger)", fontWeight: 600 }}>Action: </span>
+                                <span style={{ color: "var(--danger)", fontWeight: 500 }}>Delete Calendar Event</span>
                               </div>
                               <div>
-                                <span style={{ color: "#8C8781", fontWeight: 500 }}>Event: </span>
-                                <span style={{ color: "#1A1917", fontWeight: 600 }}>{action.title || "Calendar Event"}</span>
+                                <span style={{ color: "var(--text-secondary)", fontWeight: 500 }}>Event: </span>
+                                <span style={{ color: "var(--text-primary)", fontWeight: 600 }}>{action.title || "Calendar Event"}</span>
                               </div>
                               {action.startISO && (
                                 <div>
-                                  <span style={{ color: "#8C8781", fontWeight: 500 }}>Time: </span>
-                                  <span style={{ color: "#1A1917" }}>
+                                  <span style={{ color: "var(--text-secondary)", fontWeight: 500 }}>Time: </span>
+                                  <span style={{ color: "var(--text-primary)" }}>
                                     {new Date(action.startISO || "").toLocaleString("en-IN", {
                                       timeZone: "Asia/Kolkata",
                                       dateStyle: "medium",
@@ -833,7 +833,7 @@ export function DefaultWorkspace({
                         style={{
                           marginTop: 6,
                           paddingTop: 10,
-                          borderTop: "1px solid #E8E4DC",
+                          borderTop: "1px solid var(--border-hairline)",
                           display: "flex",
                           alignItems: "center",
                           justifyContent: "space-between",
@@ -854,8 +854,8 @@ export function DefaultWorkspace({
                                     display: "inline-flex",
                                     alignItems: "center",
                                     gap: 6,
-                                    background: "#5549C0",
-                                    color: "#FFFFFF",
+                                    background: "var(--accent-solid)",
+                                    color: "var(--on-accent)",
                                     border: "none",
                                     borderRadius: 8,
                                     padding: "7px 16px",
@@ -881,9 +881,9 @@ export function DefaultWorkspace({
                                   style={{
                                     display: "inline-flex",
                                     alignItems: "center",
-                                    background: "#FFFFFF",
-                                    color: "#6E6A64",
-                                    border: "1px solid #D6D1C7",
+                                    background: "var(--surface-card)",
+                                    color: "var(--text-secondary)",
+                                    border: "1px solid var(--border-strong)",
                                     borderRadius: 8,
                                     padding: "7px 14px",
                                     fontSize: 12.5,
@@ -893,10 +893,10 @@ export function DefaultWorkspace({
                                     opacity: isOperating || isTyping ? 0.6 : 1,
                                   }}
                                   onMouseEnter={(e) => {
-                                    if (!isOperating && !isTyping) e.currentTarget.style.background = "#F4F0EA";
+                                    if (!isOperating && !isTyping) e.currentTarget.style.background = "var(--hover)";
                                   }}
                                   onMouseLeave={(e) => {
-                                    if (!isOperating && !isTyping) e.currentTarget.style.background = "#FFFFFF";
+                                    if (!isOperating && !isTyping) e.currentTarget.style.background = "var(--surface-card)";
                                   }}
                                 >
                                   Reject
@@ -911,8 +911,8 @@ export function DefaultWorkspace({
                                 style={{
                                   fontSize: 12,
                                   fontFamily: "var(--font-mono, monospace)",
-                                  color: "#2E6846",
-                                  background: "#EAF5EE",
+                                  color: "var(--success)",
+                                  background: "var(--success-tint)",
                                   padding: "4px 10px",
                                   borderRadius: 6,
                                   fontWeight: 500,
@@ -928,8 +928,8 @@ export function DefaultWorkspace({
                               style={{
                                 fontSize: 12,
                                 fontFamily: "var(--font-mono, monospace)",
-                                color: "#8B3A3A",
-                                background: "#F5EBEB",
+                                color: "var(--danger)",
+                                background: "var(--danger-tint)",
                                 padding: "4px 10px",
                                 borderRadius: 6,
                                 fontWeight: 500,
@@ -944,7 +944,7 @@ export function DefaultWorkspace({
                   )}
 
                   {msg.action && (
-                    <div style={{ marginTop: 14, paddingTop: 12, borderTop: "1px solid #F0ECE4" }}>
+                    <div style={{ marginTop: 14, paddingTop: 12, borderTop: "1px solid var(--border-hairline)" }}>
                       <button
                         type="button"
                         onClick={msg.action.onClick}
@@ -952,8 +952,8 @@ export function DefaultWorkspace({
                           display: "inline-flex",
                           alignItems: "center",
                           gap: 6,
-                          background: "#5549C0",
-                          color: "#FFFFFF",
+                          background: "var(--accent-solid)",
+                          color: "var(--on-accent)",
                           border: "none",
                           borderRadius: 8,
                           padding: "8px 14px",
@@ -981,15 +981,15 @@ export function DefaultWorkspace({
                   gap: 8,
                   padding: "12px 18px",
                   borderRadius: 12,
-                  background: "#FFFFFF",
-                  border: "1px solid #E8E4DC",
+                  background: "var(--surface-card)",
+                  border: "1px solid var(--border-hairline)",
                   width: "fit-content",
-                  color: "#9B9691",
+                  color: "var(--text-muted)",
                   fontSize: 12.5,
                   fontFamily: "var(--font-mono, 'JetBrains Mono', monospace)",
                 }}
               >
-                <Dot color="#5549C0" size={6} />
+                <Dot color="var(--accent-solid)" size={6} />
                 <span>Command AI is thinking…</span>
               </div>
             )}
@@ -1004,7 +1004,7 @@ export function DefaultWorkspace({
             style={{
               position: "sticky",
               bottom: 0,
-              background: "#F7F4EE",
+              background: "var(--bg-workspace)",
               paddingTop: 12,
               paddingBottom: 8,
             }}

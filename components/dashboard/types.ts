@@ -31,6 +31,7 @@ export interface EventColorSpec {
   dot: string;
   text: string;
   bg: string;
+  border?: string;
 }
 
 export interface FocusItem {

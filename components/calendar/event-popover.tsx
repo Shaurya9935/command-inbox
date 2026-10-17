@@ -39,10 +39,10 @@ export function EventPopover({
           right: 32,
           width: 300,
           zIndex: 41,
-          background: "#FFFFFF",
-          border: "1px solid #E4E0D8",
+          background: "var(--surface-card)",
+          border: "1px solid var(--border-hairline)",
           borderRadius: 14,
-          boxShadow: "0 8px 32px rgba(0,0,0,0.12), 0 2px 8px rgba(0,0,0,0.06)",
+          boxShadow: "0 8px 32px var(--shadow-color), 0 2px 8px var(--shadow-color)",
           overflow: "hidden",
           animation: "popIn 0.15s ease",
           fontFamily: "var(--font-ui, 'DM Sans', system-ui, sans-serif)",
@@ -59,7 +59,7 @@ export function EventPopover({
             style={{
               fontSize: 15,
               fontWeight: 600,
-              color: "#1A1917",
+              color: "var(--text-primary)",
               marginBottom: 6,
               letterSpacing: "-0.02em",
             }}
@@ -71,7 +71,7 @@ export function EventPopover({
           <div
             style={{
               fontSize: 12.5,
-              color: "#6B6762",
+              color: "var(--text-secondary)",
               fontFamily: "var(--font-mono, 'JetBrains Mono', monospace)",
               marginBottom: event.location || event.attendees ? 14 : 0,
             }}
@@ -87,7 +87,7 @@ export function EventPopover({
                 alignItems: "center",
                 gap: 7,
                 fontSize: 12.5,
-                color: "#6B6762",
+                color: "var(--text-secondary)",
                 marginBottom: 12,
               }}
             >
@@ -112,7 +112,7 @@ export function EventPopover({
                   fontSize: 10,
                   fontWeight: 600,
                   letterSpacing: "0.08em",
-                  color: "#B8B3AB",
+                  color: "var(--text-muted)",
                   textTransform: "uppercase",
                   marginBottom: 8,
                 }}
@@ -128,7 +128,7 @@ export function EventPopover({
                       alignItems: "center",
                       gap: 8,
                       fontSize: 12.5,
-                      color: "#3D3C3A",
+                      color: "var(--text-primary)",
                     }}
                   >
                     <div
@@ -136,8 +136,8 @@ export function EventPopover({
                         width: 22,
                         height: 22,
                         borderRadius: 6,
-                        background: "#EAE8F8",
-                        color: "#5549C0",
+                        background: "var(--accent-tint)",
+                        color: "var(--accent-text)",
                         display: "flex",
                         alignItems: "center",
                         justifyContent: "center",
@@ -165,7 +165,7 @@ export function EventPopover({
               display: "flex",
               gap: 8,
               paddingTop: 14,
-              borderTop: "1px solid #F0EDE7",
+              borderTop: "1px solid var(--border-hairline)",
             }}
           >
             {event.location?.includes("Meet") && (
@@ -175,8 +175,8 @@ export function EventPopover({
                   flex: 1,
                   fontSize: 12.5,
                   fontWeight: 500,
-                  color: "#FFF",
-                  background: "#5549C0",
+                  color: "var(--on-accent)",
+                  background: "var(--accent-solid)",
                   border: "none",
                   borderRadius: 8,
                   padding: "8px 0",
@@ -195,15 +195,15 @@ export function EventPopover({
               onClick={() => onEdit?.(event)}
               style={{
                 fontSize: 12.5,
-                color: "#7B7775",
+                color: "var(--text-secondary)",
                 background: "transparent",
-                border: "1px solid #E4E0D8",
+                border: "1px solid var(--border-hairline)",
                 borderRadius: 8,
                 padding: "8px 12px",
                 cursor: "pointer",
                 transition: "background 0.12s",
               }}
-              onMouseEnter={(e) => (e.currentTarget.style.background = "#F5F2EC")}
+              onMouseEnter={(e) => (e.currentTarget.style.background = "var(--hover-subtle)")}
               onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
             >
               Edit
@@ -217,15 +217,15 @@ export function EventPopover({
               }}
               style={{
                 fontSize: 12.5,
-                color: "#C9826B",
+                color: "var(--danger)",
                 background: "transparent",
-                border: "1px solid #EDD8D0",
+                border: "1px solid var(--danger-border)",
                 borderRadius: 8,
                 padding: "8px 12px",
                 cursor: "pointer",
                 transition: "background 0.12s",
               }}
-              onMouseEnter={(e) => (e.currentTarget.style.background = "#FDF2EF")}
+              onMouseEnter={(e) => (e.currentTarget.style.background = "var(--danger-tint)")}
               onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
             >
               Delete

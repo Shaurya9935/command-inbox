@@ -21,9 +21,9 @@ export function WindowFrame({
       <div className="window-frame">
         <div className="window-bar">
           <div className="flex gap-1.5">
-            <i className="bg-[#FF6B62]" />
-            <i className="bg-[#FFC04A]" />
-            <i className="bg-[#48C85A]" />
+            <i className="bg-[var(--window-dot-red)]" />
+            <i className="bg-[var(--window-dot-yellow)]" />
+            <i className="bg-[var(--window-dot-green)]" />
           </div>
           <span className="absolute left-1/2 -translate-x-1/2 text-[10px] font-medium text-muted">
             Nexus

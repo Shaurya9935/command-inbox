@@ -8,6 +8,8 @@ import { authClient } from "@/lib/auth-client";
 import { View, Email, ServiceConnection, UserProfile } from "./types";
 import { SERVICE_CONNECTIONS, CURRENT_USER } from "./mock-data";
 
+import { ThemeToggleButton } from "@/components/theme";
+
 export interface TopBarProps {
   view: View;
   selectedEmail: Email | null;
@@ -38,9 +40,12 @@ export function TopBar({
           .join("")
           .slice(0, 2)
           .toUpperCase(),
-        color: "#5549C0",
+        color: "var(--accent-text)",
       }
-    : user;
+    : {
+        ...user,
+        color: "var(--accent-text)",
+      };
   const statusMenuRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -74,7 +79,11 @@ export function TopBar({
   const essentialConnections = connections.filter((c) => c.label !== "Command AI");
   const allConnected = essentialConnections.length > 0 && essentialConnections.every((c) => c.ok);
   const anyConnected = essentialConnections.some((c) => c.ok);
-  const statusColor = allConnected ? "#8BAE92" : anyConnected ? "#D4943E" : "#9B9691";
+  const statusColor = allConnected
+    ? "var(--status-connected)"
+    : anyConnected
+    ? "var(--status-partial)"
+    : "var(--text-muted)";
   const statusLabel = allConnected ? "Connected" : anyConnected ? "Partial" : "Not connected";
 
   return (
@@ -83,8 +92,8 @@ export function TopBar({
         display: "flex",
         alignItems: "center",
         padding: "12px 28px",
-        borderBottom: "1px solid #EAE6DE",
-        background: "#FDFCF8",
+        borderBottom: "1px solid var(--border-hairline)",
+        background: "var(--surface-card)",
         flexShrink: 0,
         gap: 10,
       }}
@@ -94,14 +103,14 @@ export function TopBar({
         style={{
           flex: 1,
           fontSize: 12.5,
-          color: "#B8B3AB",
+          color: "var(--text-muted)",
           fontFamily: "var(--font-mono, 'JetBrains Mono', monospace)",
           overflow: "hidden",
           textOverflow: "ellipsis",
           whiteSpace: "nowrap",
         }}
       >
-        <span style={{ color: view !== "default" ? "#7B7775" : "#B8B3AB" }}>
+        <span style={{ color: view !== "default" ? "var(--text-secondary)" : "var(--text-muted)" }}>
           {breadcrumbText()}
         </span>
       </div>
@@ -117,7 +126,7 @@ export function TopBar({
             gap: 5,
             fontSize: 11.5,
             color: statusColor,
-            background: statusOpen ? "#EEE9E1" : "transparent",
+            background: statusOpen ? "var(--hover)" : "transparent",
             border: "none",
             cursor: "pointer",
             fontFamily: "var(--font-mono, 'JetBrains Mono', monospace)",
@@ -126,7 +135,7 @@ export function TopBar({
             transition: "background 0.12s",
           }}
           onMouseEnter={(e) => {
-            if (!statusOpen) e.currentTarget.style.background = "#EEE9E1";
+            if (!statusOpen) e.currentTarget.style.background = "var(--hover)";
           }}
           onMouseLeave={(e) => {
             if (!statusOpen) e.currentTarget.style.background = "transparent";
@@ -141,11 +150,11 @@ export function TopBar({
               position: "absolute",
               right: 0,
               top: "calc(100% + 6px)",
-              background: "#FFFFFF",
-              border: "1px solid #E8E4DC",
+              background: "var(--surface-card)",
+              border: "1px solid var(--border-hairline)",
               borderRadius: 10,
               padding: "12px 16px",
-              boxShadow: "0 4px 16px rgba(0,0,0,0.09)",
+              boxShadow: "0 4px 16px var(--shadow-color)",
               minWidth: 160,
               zIndex: 30,
             }}
@@ -160,12 +169,17 @@ export function TopBar({
                   gap: 16,
                   fontSize: 12.5,
                   fontFamily: "var(--font-ui, 'DM Sans', system-ui, sans-serif)",
-                  color: "#2D2C2A",
+                  color: "var(--text-primary)",
                   padding: "4px 0",
                 }}
               >
                 <span>{label}</span>
-                <span style={{ fontSize: 11.5, color: ok ? "#8BAE92" : "#C9826B" }}>
+                <span
+                  style={{
+                    fontSize: 11.5,
+                    color: ok ? "var(--status-connected)" : "var(--danger)",
+                  }}
+                >
                   {ok ? "✓" : "✗"}
                 </span>
               </div>
@@ -174,23 +188,28 @@ export function TopBar({
         )}
       </div>
 
+      {/* Theme Toggle Button (Light/Dark mode) */}
+      <ThemeToggleButton />
+
       {/* Notifications */}
       <button
+        type="button"
+        aria-label="Notifications"
         style={{
           width: 32,
           height: 32,
           borderRadius: 8,
-          border: "1px solid #E8E4DC",
+          border: "1px solid var(--border-hairline)",
           background: "transparent",
           cursor: "pointer",
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
-          color: "#7B7775",
+          color: "var(--text-secondary)",
           position: "relative",
-          transition: "background 0.12s",
+          transition: "background 0.12s, color 0.12s",
         }}
-        onMouseEnter={(e) => (e.currentTarget.style.background = "#EEE9E1")}
+        onMouseEnter={(e) => (e.currentTarget.style.background = "var(--hover)")}
         onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
       >
         <BellIcon />
@@ -202,8 +221,8 @@ export function TopBar({
             width: 4.5,
             height: 4.5,
             borderRadius: "50%",
-            background: "#5549C0",
-            border: "1.5px solid #FDFCF8",
+            background: "var(--accent-text)",
+            border: "1.5px solid var(--surface-card)",
           }}
         />
       </button>

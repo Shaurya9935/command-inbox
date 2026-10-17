@@ -113,7 +113,7 @@ export function EmailThreadView({
           alignItems: "center",
           gap: 6,
           fontSize: 12.5,
-          color: "#9B9691",
+          color: "var(--text-muted)",
           background: "none",
           border: "none",
           cursor: "pointer",
@@ -123,8 +123,8 @@ export function EmailThreadView({
           fontFamily: "var(--font-ui, 'DM Sans', system-ui, sans-serif)",
           transition: "color 0.12s",
         }}
-        onMouseEnter={(e) => (e.currentTarget.style.color = "#5549C0")}
-        onMouseLeave={(e) => (e.currentTarget.style.color = "#9B9691")}
+        onMouseEnter={(e) => (e.currentTarget.style.color = "var(--accent-text)")}
+        onMouseLeave={(e) => (e.currentTarget.style.color = "var(--text-muted)")}
       >
         <BackIcon />
         <span>Back to workspace</span>
@@ -135,7 +135,7 @@ export function EmailThreadView({
         style={{
           fontSize: 20,
           fontWeight: 600,
-          color: "#1A1917",
+          color: "var(--text-primary)",
           letterSpacing: "-0.03em",
           margin: "0 0 20px",
           fontFamily: "var(--font-ui, 'DM Sans', system-ui, sans-serif)",
@@ -147,11 +147,11 @@ export function EmailThreadView({
       {/* Message Card */}
       <div
         style={{
-          background: "#FFFFFF",
-          border: "1px solid #E8E4DC",
+          background: "var(--surface-card)",
+          border: "1px solid var(--border-hairline)",
           borderRadius: 12,
           padding: "24px 28px",
-          boxShadow: "0 1px 4px rgba(0,0,0,0.04)",
+          boxShadow: "0 1px 4px var(--shadow-color)",
           marginBottom: 24,
         }}
       >
@@ -169,7 +169,7 @@ export function EmailThreadView({
               style={{
                 fontSize: 14,
                 fontWeight: 600,
-                color: "#1A1917",
+                color: "var(--text-primary)",
                 fontFamily: "var(--font-ui, 'DM Sans', system-ui, sans-serif)",
               }}
             >
@@ -178,7 +178,7 @@ export function EmailThreadView({
             <div
               style={{
                 fontSize: 12,
-                color: "#9B9691",
+                color: "var(--text-muted)",
                 fontFamily: "var(--font-mono, 'JetBrains Mono', monospace)",
                 marginTop: 1,
               }}
@@ -199,17 +199,17 @@ export function EmailThreadView({
       {/* Reply composer */}
       <div
         style={{
-          background: "#FDFCF9",
-          border: "1px solid #E8E4DC",
+          background: "var(--bg-panel)",
+          border: "1px solid var(--border-hairline)",
           borderRadius: 12,
           padding: "16px 20px",
-          boxShadow: "0 1px 4px rgba(0,0,0,0.03)",
+          boxShadow: "0 1px 4px var(--shadow-color)",
         }}
       >
         <div
           style={{
             fontSize: 12,
-            color: "#9B9691",
+            color: "var(--text-muted)",
             marginBottom: 10,
             fontFamily: "var(--font-ui, 'DM Sans', system-ui, sans-serif)",
           }}
@@ -229,7 +229,7 @@ export function EmailThreadView({
             resize: "none",
             fontSize: 13.5,
             fontFamily: "var(--font-body, 'Inter', system-ui, sans-serif)",
-            color: "#1A1917",
+            color: "var(--text-primary)",
             lineHeight: 1.6,
           }}
         />
@@ -240,7 +240,7 @@ export function EmailThreadView({
             alignItems: "center",
             marginTop: 12,
             paddingTop: 12,
-            borderTop: "1px solid #EDEAE4",
+            borderTop: "1px solid var(--border-hairline)",
           }}
         >
           <div style={{ display: "flex", gap: 8 }}>
@@ -251,9 +251,9 @@ export function EmailThreadView({
                 alignItems: "center",
                 gap: 5,
                 fontSize: 12,
-                color: "#7B7775",
+                color: "var(--text-secondary)",
                 background: "transparent",
-                border: "1px solid #E4E0D8",
+                border: "1px solid var(--border-hairline)",
                 borderRadius: 7,
                 padding: "5px 11px",
                 cursor: "pointer",
@@ -261,12 +261,12 @@ export function EmailThreadView({
                 transition: "all 0.12s",
               }}
               onMouseEnter={(e) => {
-                e.currentTarget.style.background = "#F5F2EC";
-                e.currentTarget.style.color = "#1A1917";
+                e.currentTarget.style.background = "var(--hover)";
+                e.currentTarget.style.color = "var(--text-primary)";
               }}
               onMouseLeave={(e) => {
                 e.currentTarget.style.background = "transparent";
-                e.currentTarget.style.color = "#7B7775";
+                e.currentTarget.style.color = "var(--text-secondary)";
               }}
             >
               <ReplyIcon />
@@ -279,9 +279,9 @@ export function EmailThreadView({
                 alignItems: "center",
                 gap: 5,
                 fontSize: 12,
-                color: "#7B7775",
+                color: "var(--text-secondary)",
                 background: "transparent",
-                border: "1px solid #E4E0D8",
+                border: "1px solid var(--border-hairline)",
                 borderRadius: 7,
                 padding: "5px 11px",
                 cursor: "pointer",
@@ -289,12 +289,12 @@ export function EmailThreadView({
                 transition: "all 0.12s",
               }}
               onMouseEnter={(e) => {
-                e.currentTarget.style.background = "#F5F2EC";
-                e.currentTarget.style.color = "#1A1917";
+                e.currentTarget.style.background = "var(--hover)";
+                e.currentTarget.style.color = "var(--text-primary)";
               }}
               onMouseLeave={(e) => {
                 e.currentTarget.style.background = "transparent";
-                e.currentTarget.style.color = "#7B7775";
+                e.currentTarget.style.color = "var(--text-secondary)";
               }}
             >
               <PaperclipIcon />
@@ -307,8 +307,8 @@ export function EmailThreadView({
             style={{
               fontSize: 12.5,
               fontWeight: 500,
-              color: "#FFF",
-              background: "#5549C0",
+              color: "var(--on-accent)",
+              background: "var(--accent-solid)",
               border: "none",
               borderRadius: 8,
               padding: "7px 16px",

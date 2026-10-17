@@ -299,7 +299,7 @@ export function StarredView({
         flexDirection: "column",
         minWidth: 0,
         overflow: "hidden",
-        background: "#F5F2EC",
+        background: "var(--bg-page)",
       }}
     >
       {/* ── Top Header Bar ── */}
@@ -309,8 +309,8 @@ export function StarredView({
           alignItems: "center",
           justifyContent: "space-between",
           padding: "14px 28px",
-          borderBottom: "1px solid #E8E4DC",
-          background: "#FDFCF8",
+          borderBottom: "1px solid var(--border-hairline)",
+          background: "var(--surface-card)",
           flexShrink: 0,
           gap: 16,
         }}
@@ -325,38 +325,38 @@ export function StarredView({
                 alignItems: "center",
                 justifyContent: "center",
                 background: "transparent",
-                border: "1px solid #E4DED4",
+                border: "1px solid var(--border-hairline)",
                 borderRadius: 6,
                 padding: "4px 6px",
                 cursor: "pointer",
-                color: "#6B6762",
+                color: "var(--text-secondary)",
                 transition: "background 0.12s, color 0.12s",
               }}
               onMouseEnter={(e) => {
-                e.currentTarget.style.background = "#EEE9E1";
-                e.currentTarget.style.color = "#1A1917";
+                e.currentTarget.style.background = "var(--hover)";
+                e.currentTarget.style.color = "var(--text-primary)";
               }}
               onMouseLeave={(e) => {
                 e.currentTarget.style.background = "transparent";
-                e.currentTarget.style.color = "#6B6762";
+                e.currentTarget.style.color = "var(--text-secondary)";
               }}
             >
               <SidebarToggleIcon size={14} />
             </button>
           )}
           {onToggleSidebar && (
-            <div style={{ width: 1, height: 16, background: "#E8E4DC" }} />
+            <div style={{ width: 1, height: 16, background: "var(--border-hairline)" }} />
           )}
 
           <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-            <span style={{ color: "#F59E0B", display: "flex" }}>
+            <span style={{ color: "var(--warning)", display: "flex" }}>
               <StarIcon size={16} />
             </span>
             <h1
               style={{
                 fontSize: 16,
                 fontWeight: 600,
-                color: "#1A1917",
+                color: "var(--text-primary)",
                 margin: 0,
                 letterSpacing: "-0.02em",
               }}
@@ -367,8 +367,8 @@ export function StarredView({
               style={{
                 fontSize: 11,
                 fontFamily: "var(--font-mono, 'JetBrains Mono', monospace)",
-                color: "#5549C0",
-                background: "#EAE8F8",
+                color: "var(--accent-text)",
+                background: "var(--accent-tint)",
                 padding: "2px 7px",
                 borderRadius: 12,
                 fontWeight: 500,
@@ -386,8 +386,8 @@ export function StarredView({
             <span
               style={{
                 fontSize: 11.5,
-                color: "#9B9691",
-                background: "#EDEAE4",
+                color: "var(--text-muted)",
+                background: "var(--hover)",
                 padding: "3px 8px",
                 borderRadius: 6,
                 fontFamily: "var(--font-ui, 'DM Sans', system-ui, sans-serif)",
@@ -402,7 +402,7 @@ export function StarredView({
                   width: 6,
                   height: 6,
                   borderRadius: "50%",
-                  background: "#B8B3AB",
+                  background: "var(--text-disabled)",
                 }}
               />
               Showing saved results
@@ -414,14 +414,14 @@ export function StarredView({
               display: "flex",
               alignItems: "center",
               gap: 8,
-              background: "#F5F2EC",
-              border: "1px solid #E4E0D8",
+              background: "var(--bg-page)",
+              border: "1px solid var(--border-hairline)",
               borderRadius: 8,
               padding: "6px 12px",
               width: 260,
             }}
           >
-            <span style={{ color: "#A8A49E", display: "flex" }}>
+            <span style={{ color: "var(--text-muted)", display: "flex" }}>
               <SearchIcon size={13} />
             </span>
             <input
@@ -436,7 +436,7 @@ export function StarredView({
                 outline: "none",
                 fontSize: 13,
                 fontFamily: "var(--font-body, 'Inter', system-ui, sans-serif)",
-                color: "#1A1917",
+                color: "var(--text-primary)",
                 width: "100%",
               }}
             />
@@ -453,8 +453,8 @@ export function StarredView({
                 alignItems: "center",
                 gap: 6,
                 padding: "7px 14px",
-                background: isConnectingGmail ? "#7B6ED8" : "#5046B8",
-                color: "#FFFFFF",
+                background: isConnectingGmail ? "var(--accent-tint-hover)" : "var(--accent-solid)",
+                color: "var(--on-accent)",
                 border: "none",
                 borderRadius: 8,
                 fontSize: 12.5,
@@ -478,8 +478,8 @@ export function StarredView({
                 alignItems: "center",
                 gap: 6,
                 padding: "7px 14px",
-                background: isRefreshing ? "#7B6ED8" : "#5549C0",
-                color: "#FFFFFF",
+                background: isRefreshing ? "var(--accent-tint-hover)" : "var(--accent-solid)",
+                color: "var(--on-accent)",
                 border: "none",
                 borderRadius: 8,
                 fontSize: 12.5,
@@ -504,7 +504,8 @@ export function StarredView({
                   cx="8"
                   cy="8"
                   r="6"
-                  stroke="rgba(255,255,255,0.35)"
+                  stroke="currentColor"
+                  strokeOpacity="0.35"
                   strokeWidth="1.8"
                 />
                 <path
@@ -525,9 +526,9 @@ export function StarredView({
         <div
           style={{
             padding: "10px 28px",
-            background: "#FDF2F2",
-            borderBottom: "1px solid #F8D7DA",
-            color: "#C53030",
+            background: "var(--danger-tint)",
+            borderBottom: "1px solid var(--danger-border)",
+            color: "var(--danger)",
             fontSize: 12.5,
             display: "flex",
             alignItems: "center",
@@ -540,7 +541,7 @@ export function StarredView({
             style={{
               background: "none",
               border: "none",
-              color: "#9B2C2C",
+              color: "var(--danger)",
               fontWeight: 600,
               cursor: "pointer",
               fontSize: 12,
@@ -568,8 +569,8 @@ export function StarredView({
           style={{
             width: 380,
             flexShrink: 0,
-            borderRight: "1px solid #E8E4DC",
-            background: "#FAF8F4",
+            borderRight: "1px solid var(--border-hairline)",
+            background: "var(--surface-raised)",
             display: "flex",
             flexDirection: "column",
             overflowY: "auto",
@@ -598,7 +599,7 @@ export function StarredView({
                       width: 36,
                       height: 36,
                       borderRadius: 10,
-                      background: "#E8E4DC",
+                      background: "var(--hover)",
                       flexShrink: 0,
                     }}
                   />
@@ -614,7 +615,7 @@ export function StarredView({
                       style={{
                         width: "45%",
                         height: 12,
-                        background: "#E8E4DC",
+                        background: "var(--hover)",
                         borderRadius: 4,
                       }}
                     />
@@ -622,7 +623,7 @@ export function StarredView({
                       style={{
                         width: "80%",
                         height: 10,
-                        background: "#EDEAE4",
+                        background: "var(--hover)",
                         borderRadius: 4,
                       }}
                     />
@@ -630,7 +631,7 @@ export function StarredView({
                       style={{
                         width: "60%",
                         height: 9,
-                        background: "#F0EDE7",
+                        background: "var(--hover)",
                         borderRadius: 4,
                       }}
                     />
@@ -648,7 +649,7 @@ export function StarredView({
                 justifyContent: "center",
                 padding: "36px 24px",
                 textAlign: "center",
-                color: "#9B9691",
+                color: "var(--text-muted)",
               }}
             >
               <div
@@ -656,11 +657,11 @@ export function StarredView({
                   width: 48,
                   height: 48,
                   borderRadius: "50%",
-                  background: "#EDE8DF",
+                  background: "var(--hover)",
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "center",
-                  color: "#A8A49E",
+                  color: "var(--text-muted)",
                   marginBottom: 12,
                 }}
               >
@@ -670,7 +671,7 @@ export function StarredView({
                 style={{
                   fontSize: 14,
                   fontWeight: 500,
-                  color: "#1A1917",
+                  color: "var(--text-primary)",
                   margin: "0 0 4px",
                 }}
               >
@@ -715,12 +716,12 @@ export function StarredView({
                     style={{
                       width: "100%",
                       padding: "8px 14px",
-                      background: "#FFFFFF",
-                      border: "1px solid #E4E0D8",
+                      background: "var(--surface-card)",
+                      border: "1px solid var(--border-hairline)",
                       borderRadius: 8,
                       fontSize: 12.5,
                       fontWeight: 500,
-                      color: "#5549C0",
+                      color: "var(--accent-text)",
                       cursor: isLoadingMore ? "default" : "pointer",
                       display: "flex",
                       alignItems: "center",
@@ -730,10 +731,10 @@ export function StarredView({
                       transition: "background 0.12s",
                     }}
                     onMouseEnter={(e) => {
-                      if (!isLoadingMore) e.currentTarget.style.background = "#F5F2EC";
+                      if (!isLoadingMore) e.currentTarget.style.background = "var(--hover)";
                     }}
                     onMouseLeave={(e) => {
-                      if (!isLoadingMore) e.currentTarget.style.background = "#FFFFFF";
+                      if (!isLoadingMore) e.currentTarget.style.background = "var(--surface-card)";
                     }}
                   >
                     {isLoadingMore ? "Loading more…" : "Load more starred messages"}
@@ -750,7 +751,7 @@ export function StarredView({
             flex: 1,
             display: "flex",
             flexDirection: "column",
-            background: "#F7F4EE",
+            background: "var(--bg-workspace)",
             overflowY: "auto",
             padding: "36px 48px",
           }}
@@ -775,21 +776,21 @@ export function StarredView({
                     gap: 6,
                     padding: "3px 9px",
                     borderRadius: 6,
-                    background: "#EAE8F8",
-                    color: "#5549C0",
+                    background: "var(--accent-tint)",
+                    color: "var(--accent-text)",
                     fontSize: 11.5,
                     fontFamily: "var(--font-mono, 'JetBrains Mono', monospace)",
                     marginBottom: 12,
                   }}
                 >
-                  <Dot color="#5549C0" size={5} />
+                  <Dot color="var(--accent-text)" size={5} />
                   <span>Starred</span>
                 </div>
                 <h2
                   style={{
                     fontSize: 22,
                     fontWeight: 600,
-                    color: "#1A1917",
+                    color: "var(--text-primary)",
                     letterSpacing: "-0.03em",
                     margin: 0,
                     lineHeight: 1.3,
@@ -802,11 +803,11 @@ export function StarredView({
               {/* Message Body Card */}
               <div
                 style={{
-                  background: "#FFFFFF",
-                  border: "1px solid #E8E4DC",
+                  background: "var(--surface-card)",
+                  border: "1px solid var(--border-hairline)",
                   borderRadius: 12,
                   padding: "24px 28px",
-                  boxShadow: "0 1px 4px rgba(0,0,0,0.04)",
+                  boxShadow: "0 1px 4px var(--shadow-color)",
                   marginBottom: 24,
                 }}
               >
@@ -828,7 +829,7 @@ export function StarredView({
                       style={{
                         fontSize: 14,
                         fontWeight: 600,
-                        color: "#1A1917",
+                        color: "var(--text-primary)",
                       }}
                     >
                       {selectedEmail.from}
@@ -836,7 +837,7 @@ export function StarredView({
                     <div
                       style={{
                         fontSize: 12,
-                        color: "#9B9691",
+                        color: "var(--text-muted)",
                         fontFamily: "var(--font-mono, 'JetBrains Mono', monospace)",
                         marginTop: 1,
                       }}
@@ -863,17 +864,17 @@ export function StarredView({
               {/* Reply Composer */}
               <div
                 style={{
-                  background: "#FDFCF9",
-                  border: "1px solid #E8E4DC",
+                  background: "var(--surface-card)",
+                  border: "1px solid var(--border-hairline)",
                   borderRadius: 12,
                   padding: "16px 20px",
-                  boxShadow: "0 1px 4px rgba(0,0,0,0.03)",
+                  boxShadow: "0 1px 4px var(--shadow-color)",
                 }}
               >
                 <div
                   style={{
                     fontSize: 12,
-                    color: "#9B9691",
+                    color: "var(--text-muted)",
                     marginBottom: 10,
                   }}
                 >
@@ -892,7 +893,7 @@ export function StarredView({
                     resize: "none",
                     fontSize: 13.5,
                     fontFamily: "var(--font-body, 'Inter', system-ui, sans-serif)",
-                    color: "#1A1917",
+                    color: "var(--text-primary)",
                     lineHeight: 1.6,
                   }}
                 />
@@ -900,9 +901,9 @@ export function StarredView({
                   <div
                     style={{
                       fontSize: 12,
-                      color: "#DC2626",
-                      background: "#FEF2F2",
-                      border: "1px solid #FCA5A5",
+                      color: "var(--danger)",
+                      background: "var(--danger-tint)",
+                      border: "1px solid var(--danger-border)",
                       borderRadius: 6,
                       padding: "6px 10px",
                       marginTop: 8,
@@ -918,7 +919,7 @@ export function StarredView({
                     alignItems: "center",
                     marginTop: 12,
                     paddingTop: 12,
-                    borderTop: "1px solid #EDEAE4",
+                    borderTop: "1px solid var(--border-hairline)",
                   }}
                 >
                   <div style={{ display: "flex", gap: 8 }}>
@@ -929,21 +930,21 @@ export function StarredView({
                         alignItems: "center",
                         gap: 5,
                         fontSize: 12,
-                        color: "#7B7775",
+                        color: "var(--text-secondary)",
                         background: "transparent",
-                        border: "1px solid #E4E0D8",
+                        border: "1px solid var(--border-hairline)",
                         borderRadius: 7,
                         padding: "5px 11px",
                         cursor: "pointer",
                         transition: "all 0.12s",
                       }}
                       onMouseEnter={(e) => {
-                        e.currentTarget.style.background = "#F5F2EC";
-                        e.currentTarget.style.color = "#1A1917";
+                        e.currentTarget.style.background = "var(--hover)";
+                        e.currentTarget.style.color = "var(--text-primary)";
                       }}
                       onMouseLeave={(e) => {
                         e.currentTarget.style.background = "transparent";
-                        e.currentTarget.style.color = "#7B7775";
+                        e.currentTarget.style.color = "var(--text-secondary)";
                       }}
                     >
                       <ReplyIcon />
@@ -956,21 +957,21 @@ export function StarredView({
                         alignItems: "center",
                         gap: 5,
                         fontSize: 12,
-                        color: "#7B7775",
+                        color: "var(--text-secondary)",
                         background: "transparent",
-                        border: "1px solid #E4E0D8",
+                        border: "1px solid var(--border-hairline)",
                         borderRadius: 7,
                         padding: "5px 11px",
                         cursor: "pointer",
                         transition: "all 0.12s",
                       }}
                       onMouseEnter={(e) => {
-                        e.currentTarget.style.background = "#F5F2EC";
-                        e.currentTarget.style.color = "#1A1917";
+                        e.currentTarget.style.background = "var(--hover)";
+                        e.currentTarget.style.color = "var(--text-primary)";
                       }}
                       onMouseLeave={(e) => {
                         e.currentTarget.style.background = "transparent";
-                        e.currentTarget.style.color = "#7B7775";
+                        e.currentTarget.style.color = "var(--text-secondary)";
                       }}
                     >
                       <PaperclipIcon />
@@ -984,11 +985,11 @@ export function StarredView({
                     style={{
                       fontSize: 12.5,
                       fontWeight: 500,
-                      color: "#FFF",
+                      color: "var(--on-accent)",
                       background:
                         replyText.trim() && !isSendingReply
-                          ? "#5549C0"
-                          : "#A8A49E",
+                          ? "var(--accent-solid)"
+                          : "var(--text-disabled)",
                       border: "none",
                       borderRadius: 8,
                       padding: "7px 16px",
@@ -1023,12 +1024,13 @@ export function StarredView({
                             cx="8"
                             cy="8"
                             r="6"
-                            stroke="rgba(255,255,255,0.4)"
+                            stroke="currentColor"
+                            strokeOpacity="0.4"
                             strokeWidth="2.5"
                           />
                           <path
                             d="M8 2a6 6 0 016 6"
-                            stroke="#FFF"
+                            stroke="currentColor"
                             strokeWidth="2.5"
                             strokeLinecap="round"
                           />
@@ -1050,7 +1052,7 @@ export function StarredView({
                 flexDirection: "column",
                 alignItems: "center",
                 justifyContent: "center",
-                color: "#A8A49E",
+                color: "var(--text-muted)",
                 textAlign: "center",
               }}
             >
@@ -1059,17 +1061,17 @@ export function StarredView({
                   width: 52,
                   height: 52,
                   borderRadius: "50%",
-                  background: "#EDE8DF",
+                  background: "var(--hover)",
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "center",
-                  color: "#B8B3AB",
+                  color: "var(--text-disabled)",
                   marginBottom: 14,
                 }}
               >
                 <StarIcon size={26} />
               </div>
-              <p style={{ margin: 0, fontSize: 14, color: "#6B6762" }}>
+              <p style={{ margin: 0, fontSize: 14, color: "var(--text-secondary)" }}>
                 Select a starred thread from the list to view its contents
               </p>
             </div>
@@ -1086,11 +1088,11 @@ export function StarredView({
             bottom: 28,
             right: 28,
             zIndex: 200,
-            background: toast.type === "error" ? "#EF4444" : toast.type === "info" ? "#3B82F6" : "#1A1917",
-            color: "#FFFFFF",
+            background: toast.type === "error" ? "var(--danger)" : toast.type === "info" ? "var(--accent-solid)" : "var(--text-primary)",
+            color: "var(--on-accent)",
             padding: "11px 18px",
             borderRadius: 10,
-            boxShadow: "0 10px 25px rgba(0,0,0,0.18)",
+            boxShadow: "0 10px 25px var(--shadow-color)",
             display: "flex",
             alignItems: "center",
             gap: 9,
@@ -1101,8 +1103,8 @@ export function StarredView({
         >
           {toast.type === "error" && (
             <svg width={15} height={15} viewBox="0 0 16 16" fill="none">
-              <circle cx="8" cy="8" r="7" stroke="#FFFFFF" strokeWidth="1.5" />
-              <path d="M8 5v3.5M8 11h.01" stroke="#FFFFFF" strokeWidth="1.5" strokeLinecap="round" />
+              <circle cx="8" cy="8" r="7" stroke="currentColor" strokeWidth="1.5" />
+              <path d="M8 5v3.5M8 11h.01" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
             </svg>
           )}
           <span>{toast.message}</span>

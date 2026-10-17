@@ -37,15 +37,15 @@ export function EmailListItem({
         alignItems: "flex-start",
         gap: 12,
         padding: "16px 20px",
-        background: isSelected ? "#FFFFFF" : "transparent",
-        borderBottom: "1px solid #EDEAE4",
-        borderLeft: isSelected ? "3px solid #5549C0" : "3px solid transparent",
+        background: isSelected ? "var(--surface-card)" : "transparent",
+        borderBottom: "1px solid var(--border-hairline)",
+        borderLeft: isSelected ? "3px solid var(--accent-solid)" : "3px solid transparent",
         cursor: "pointer",
         textAlign: "left",
         transition: "background 0.12s, opacity 0.25s ease, transform 0.25s ease",
         opacity: fadingOut ? 0 : 1,
         transform: fadingOut ? "translateX(-12px)" : "none",
-        boxShadow: isSelected ? "0 2px 8px rgba(0,0,0,0.03)" : "none",
+        boxShadow: isSelected ? "0 2px 8px var(--shadow-color)" : "none",
         userSelect: "none",
       }}
     >
@@ -59,12 +59,12 @@ export function EmailListItem({
             marginBottom: 3,
           }}
         >
-          {email.unread && <Dot color="#5549C0" size={5} />}
+          {email.unread && <Dot color="var(--accent-solid)" size={5} />}
           <span
             style={{
               fontSize: 13,
               fontWeight: email.unread ? 600 : 500,
-              color: isSelected ? "#5549C0" : "#1A1917",
+              color: isSelected ? "var(--accent-text)" : "var(--text-primary)",
               flex: 1,
               overflow: "hidden",
               textOverflow: "ellipsis",
@@ -77,7 +77,7 @@ export function EmailListItem({
             style={{
               fontSize: 10.5,
               fontFamily: "var(--font-mono, 'JetBrains Mono', monospace)",
-              color: "#B8B3AB",
+              color: "var(--text-muted)",
               flexShrink: 0,
             }}
           >
@@ -92,7 +92,7 @@ export function EmailListItem({
               border: "none",
               padding: "0 2px",
               cursor: "pointer",
-              color: email.starred ? "#F59E0B" : "#C5C0B9",
+              color: email.starred ? "var(--warning)" : "var(--text-disabled)",
               display: "flex",
               alignItems: "center",
               flexShrink: 0,
@@ -105,7 +105,7 @@ export function EmailListItem({
           style={{
             fontSize: 12.5,
             fontWeight: email.unread ? 600 : 400,
-            color: "#3D3C3A",
+            color: "var(--text-primary)",
             overflow: "hidden",
             textOverflow: "ellipsis",
             whiteSpace: "nowrap",
@@ -117,7 +117,7 @@ export function EmailListItem({
         <div
           style={{
             fontSize: 12,
-            color: "#9B9691",
+            color: "var(--text-muted)",
             fontFamily: "var(--font-body, 'Inter', system-ui, sans-serif)",
             overflow: "hidden",
             textOverflow: "ellipsis",

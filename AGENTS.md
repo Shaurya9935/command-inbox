@@ -33,3 +33,17 @@ When adding a new integration (e.g., Slack, Notion):
    }
    ```
 
+## Theming & Design Tokens
+All UI colors across `app/`, `components/`, `features/`, and `hooks/` MUST use semantic design tokens defined via CSS variables (`var(--...)`).
+
+### Rules:
+1. **No Hardcoded Color Literals**: Never write hex colors (`#hex`), raw `rgb()`/`rgba()`, `hsl()`/`hsla()`, or arbitrary non-token Tailwind color utility classes (e.g., `text-zinc-500`, `bg-slate-100`). Always reference semantic variables such as `var(--text-primary)`, `var(--bg-page)`, `var(--surface-card)`, `var(--border-hairline)`, `var(--accent-solid)`, etc.
+2. **Warm Charcoal Dark Mode**: Dark mode is activated via the `.dark` class on `<html>` and defined entirely by overriding token values in `app/globals.css`. It uses warm charcoal neutrals (`#121110`, `#151412`, `#171614`, `#1D1C1A`, `#21201D`, `#252421`, `#EEEBE5`, and warm beige hairline borders), avoiding cold blue or pure black tones.
+3. **Allowlisted Exceptions**:
+   - `app/globals.css`: Central source of truth for `:root` and `.dark` token values.
+   - `components/connect/brand-icons.tsx`: Official third-party brand logo SVG vectors (Google, Microsoft, Slack, Notion, Zoom, etc.).
+   - `components/auth/icons.tsx`: Official 4-color Google authentication logo.
+   - `components/inbox/email-body.tsx`: Isolated email paper container that intentionally maintains fixed `#FFFFFF` card background with `#2D2C2A` text so formatted HTML emails render with authentic contrast in both modes.
+4. **Guardrail Linter**: Run `pnpm check:colors` to verify that all code adheres to design tokens. CI and pull requests must pass `pnpm check:colors` with exit code 0.
+
+

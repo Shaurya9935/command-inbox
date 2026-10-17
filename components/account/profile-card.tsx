@@ -4,6 +4,7 @@ import React, { useState } from "react";
 import { authClient } from "@/lib/auth-client";
 import { Avatar } from "@/components/dashboard/avatar";
 import { useTour } from "@/components/onboarding";
+import { ThemeSegmentedControl } from "@/components/theme";
 
 export interface ProfileCardProps {
   user: {
@@ -99,11 +100,11 @@ export function ProfileCard({ user, onUserUpdated }: ProfileCardProps) {
     <div
       id="profile"
       style={{
-        background: "#FFFFFF",
+        background: "var(--surface-card)",
         borderRadius: 14,
-        border: "1px solid #E8E4DC",
+        border: "1px solid var(--border-hairline)",
         padding: "24px 28px",
-        boxShadow: "0 1px 3px rgba(0,0,0,0.03)",
+        boxShadow: "0 1px 3px var(--shadow-color)",
         scrollMarginTop: 80,
       }}
     >
@@ -122,7 +123,7 @@ export function ProfileCard({ user, onUserUpdated }: ProfileCardProps) {
               margin: 0,
               fontSize: 18,
               fontWeight: 600,
-              color: "#1A1917",
+              color: "var(--text-primary)",
               letterSpacing: "-0.01em",
             }}
           >
@@ -132,7 +133,7 @@ export function ProfileCard({ user, onUserUpdated }: ProfileCardProps) {
             style={{
               margin: "4px 0 0",
               fontSize: 13,
-              color: "#6B6762",
+              color: "var(--text-secondary)",
             }}
           >
             Manage your personal details and verified email address
@@ -148,16 +149,16 @@ export function ProfileCard({ user, onUserUpdated }: ProfileCardProps) {
             gap: 6,
             padding: "6px 12px",
             borderRadius: 8,
-            background: "#F5F2EC",
-            border: "1px solid #E8E4DC",
-            color: "#5046B8",
+            background: "var(--hover-subtle)",
+            border: "1px solid var(--border-hairline)",
+            color: "var(--accent-solid)",
             fontSize: 12.5,
             fontWeight: 600,
             cursor: "pointer",
             transition: "background 0.12s",
           }}
-          onMouseEnter={(e) => (e.currentTarget.style.background = "#EDE8DF")}
-          onMouseLeave={(e) => (e.currentTarget.style.background = "#F5F2EC")}
+          onMouseEnter={(e) => (e.currentTarget.style.background = "var(--hover)")}
+          onMouseLeave={(e) => (e.currentTarget.style.background = "var(--hover-subtle)")}
         >
           <span style={{ fontSize: 13 }}>🧭</span>
           <span>Replay tour</span>
@@ -172,18 +173,18 @@ export function ProfileCard({ user, onUserUpdated }: ProfileCardProps) {
           gap: 16,
           padding: "16px 18px",
           borderRadius: 10,
-          background: "#FBF9F5",
-          border: "1px solid #EFECE6",
+          background: "var(--surface-raised)",
+          border: "1px solid var(--border-hairline)",
           marginBottom: 24,
         }}
       >
-        <Avatar initials={initials} color="#5549C0" size={48} />
+        <Avatar initials={initials} color="var(--accent-text)" size={48} />
         <div style={{ flex: 1, minWidth: 0 }}>
           <div
             style={{
               fontSize: 15,
               fontWeight: 600,
-              color: "#1A1917",
+              color: "var(--text-primary)",
             }}
           >
             {name || "User"}
@@ -191,7 +192,7 @@ export function ProfileCard({ user, onUserUpdated }: ProfileCardProps) {
           <div
             style={{
               fontSize: 12.5,
-              color: "#858079",
+              color: "var(--text-muted)",
               marginTop: 2,
             }}
           >
@@ -210,7 +211,7 @@ export function ProfileCard({ user, onUserUpdated }: ProfileCardProps) {
                 display: "block",
                 fontSize: 12.5,
                 fontWeight: 600,
-                color: "#1A1917",
+                color: "var(--text-primary)",
                 marginBottom: 6,
               }}
             >
@@ -228,15 +229,15 @@ export function ProfileCard({ user, onUserUpdated }: ProfileCardProps) {
                   maxWidth: 400,
                   padding: "9px 12px",
                   borderRadius: 8,
-                  border: "1px solid #DED8CE",
+                  border: "1px solid var(--border-strong)",
                   fontSize: 13.5,
-                  color: "#1A1917",
+                  color: "var(--text-primary)",
                   outline: "none",
                   boxSizing: "border-box",
-                  background: "#FFFFFF",
+                  background: "var(--surface-card)",
                 }}
-                onFocus={(e) => (e.target.style.borderColor = "#5549C0")}
-                onBlur={(e) => (e.target.style.borderColor = "#DED8CE")}
+                onFocus={(e) => (e.target.style.borderColor = "var(--accent-text)")}
+                onBlur={(e) => (e.target.style.borderColor = "var(--border-strong)")}
               />
               <button
                 type="submit"
@@ -244,10 +245,10 @@ export function ProfileCard({ user, onUserUpdated }: ProfileCardProps) {
                 style={{
                   padding: "8px 16px",
                   borderRadius: 8,
-                  border: "1px solid #1A1917",
+                  border: "1px solid var(--border-hairline)",
                   background:
-                    name.trim() === user.name || isSavingName ? "#EAE5DB" : "#1A1917",
-                  color: name.trim() === user.name || isSavingName ? "#858079" : "#FDFCF8",
+                    name.trim() === user.name || isSavingName ? "var(--hover-subtle)" : "var(--text-primary)",
+                  color: name.trim() === user.name || isSavingName ? "var(--text-muted)" : "var(--bg-page)",
                   fontSize: 13,
                   fontWeight: 500,
                   cursor:
@@ -265,7 +266,7 @@ export function ProfileCard({ user, onUserUpdated }: ProfileCardProps) {
               style={{
                 marginTop: 6,
                 fontSize: 12.5,
-                color: nameStatus.type === "success" ? "#16A34A" : "#DC2626",
+                color: nameStatus.type === "success" ? "var(--success)" : "var(--danger)",
                 fontWeight: 500,
               }}
             >
@@ -274,7 +275,7 @@ export function ProfileCard({ user, onUserUpdated }: ProfileCardProps) {
           )}
         </form>
 
-        <div style={{ height: 1, background: "#F0ECE4" }} />
+        <div style={{ height: 1, background: "var(--border-hairline)" }} />
 
         {/* Email Display & Update */}
         <div>
@@ -283,7 +284,7 @@ export function ProfileCard({ user, onUserUpdated }: ProfileCardProps) {
               display: "block",
               fontSize: 12.5,
               fontWeight: 600,
-              color: "#1A1917",
+              color: "var(--text-primary)",
               marginBottom: 6,
             }}
           >
@@ -297,21 +298,21 @@ export function ProfileCard({ user, onUserUpdated }: ProfileCardProps) {
               maxWidth: 550,
               padding: "10px 14px",
               borderRadius: 8,
-              border: "1px solid #E8E4DC",
-              background: "#FBF9F5",
+              border: "1px solid var(--border-hairline)",
+              background: "var(--surface-raised)",
             }}
           >
             <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-              <span style={{ fontSize: 13.5, color: "#1A1917", fontWeight: 500 }}>
+              <span style={{ fontSize: 13.5, color: "var(--text-primary)", fontWeight: 500 }}>
                 {user.email}
               </span>
               <span
                 style={{
                   fontSize: 11,
                   fontWeight: 600,
-                  color: "#16A34A",
-                  background: "#ECFDF5",
-                  border: "1px solid #BBF7D0",
+                  color: "var(--success)",
+                  background: "var(--success-tint)",
+                  border: "1px solid var(--success-border)",
                   padding: "1px 7px",
                   borderRadius: 12,
                 }}
@@ -329,7 +330,7 @@ export function ProfileCard({ user, onUserUpdated }: ProfileCardProps) {
               style={{
                 background: "transparent",
                 border: "none",
-                color: "#5549C0",
+                color: "var(--accent-text)",
                 fontSize: 12.5,
                 fontWeight: 500,
                 cursor: "pointer",
@@ -355,14 +356,14 @@ export function ProfileCard({ user, onUserUpdated }: ProfileCardProps) {
                     flex: 1,
                     padding: "9px 12px",
                     borderRadius: 8,
-                    border: "1px solid #DED8CE",
+                    border: "1px solid var(--border-strong)",
                     fontSize: 13.5,
-                    color: "#1A1917",
+                    color: "var(--text-primary)",
                     outline: "none",
-                    background: "#FFFFFF",
+                    background: "var(--surface-card)",
                   }}
-                  onFocus={(e) => (e.target.style.borderColor = "#5549C0")}
-                  onBlur={(e) => (e.target.style.borderColor = "#DED8CE")}
+                  onFocus={(e) => (e.target.style.borderColor = "var(--accent-text)")}
+                  onBlur={(e) => (e.target.style.borderColor = "var(--border-strong)")}
                 />
                 <button
                   type="submit"
@@ -370,9 +371,9 @@ export function ProfileCard({ user, onUserUpdated }: ProfileCardProps) {
                   style={{
                     padding: "8px 16px",
                     borderRadius: 8,
-                    border: "1px solid #1A1917",
-                    background: !newEmail.trim() || isSavingEmail ? "#EAE5DB" : "#1A1917",
-                    color: !newEmail.trim() || isSavingEmail ? "#858079" : "#FDFCF8",
+                    border: "1px solid var(--border-hairline)",
+                    background: !newEmail.trim() || isSavingEmail ? "var(--hover-subtle)" : "var(--text-primary)",
+                    color: !newEmail.trim() || isSavingEmail ? "var(--text-muted)" : "var(--bg-page)",
                     fontSize: 13,
                     fontWeight: 500,
                     cursor: !newEmail.trim() || isSavingEmail ? "not-allowed" : "pointer",
@@ -381,7 +382,7 @@ export function ProfileCard({ user, onUserUpdated }: ProfileCardProps) {
                   {isSavingEmail ? "Sending..." : "Update Email"}
                 </button>
               </div>
-              <p style={{ margin: "6px 0 0", fontSize: 11.5, color: "#858079" }}>
+              <p style={{ margin: "6px 0 0", fontSize: 11.5, color: "var(--text-muted)" }}>
                 Better Auth will process your email change and send verification instructions if enabled.
               </p>
             </form>
@@ -392,13 +393,40 @@ export function ProfileCard({ user, onUserUpdated }: ProfileCardProps) {
               style={{
                 marginTop: 8,
                 fontSize: 12.5,
-                color: emailStatus.type === "success" ? "#16A34A" : "#DC2626",
+                color: emailStatus.type === "success" ? "var(--success)" : "var(--danger)",
                 fontWeight: 500,
               }}
             >
               {emailStatus.message}
             </div>
           )}
+        </div>
+
+        <div style={{ height: 1, background: "var(--border-hairline)" }} />
+
+        {/* Appearance / Theme */}
+        <div>
+          <label
+            style={{
+              display: "block",
+              fontSize: 12.5,
+              fontWeight: 600,
+              color: "var(--text-primary)",
+              marginBottom: 4,
+            }}
+          >
+            Appearance
+          </label>
+          <p
+            style={{
+              margin: "0 0 10px",
+              fontSize: 12.5,
+              color: "var(--text-secondary)",
+            }}
+          >
+            Customize your interface theme across light, warm-charcoal dark, or system preference
+          </p>
+          <ThemeSegmentedControl />
         </div>
       </div>
     </div>

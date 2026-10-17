@@ -52,7 +52,7 @@ export default function CalendarPage() {
         display: "flex",
         height: "100vh",
         width: "100%",
-        background: "#F5F2EC",
+        background: "var(--bg-page)",
         fontFamily: "var(--font-ui, 'DM Sans', system-ui, sans-serif)",
         overflow: "hidden",
       }}
@@ -85,7 +85,7 @@ export default function CalendarPage() {
           flexDirection: "column",
           minWidth: 0,
           overflow: "hidden",
-          background: "#FDFCF8",
+          background: "var(--bg-workspace)",
         }}
       >
         {/* ── Top Header Bar ── */}
@@ -95,8 +95,8 @@ export default function CalendarPage() {
             alignItems: "center",
             justifyContent: "space-between",
             padding: "14px 28px",
-            borderBottom: "1px solid #E8E4DC",
-            background: "#FDFCF8",
+            borderBottom: "1px solid var(--border-hairline)",
+            background: "var(--bg-workspace)",
             flexShrink: 0,
             gap: 16,
           }}
@@ -111,34 +111,34 @@ export default function CalendarPage() {
                 alignItems: "center",
                 justifyContent: "center",
                 background: "transparent",
-                border: "1px solid #E4DED4",
+                border: "1px solid var(--border-hairline)",
                 borderRadius: 6,
                 padding: "4px 6px",
                 cursor: "pointer",
-                color: "#6B6762",
+                color: "var(--text-secondary)",
                 transition: "background 0.12s, color 0.12s",
               }}
               onMouseEnter={(e) => {
-                e.currentTarget.style.background = "#EEE9E1";
-                e.currentTarget.style.color = "#1A1917";
+                e.currentTarget.style.background = "var(--hover)";
+                e.currentTarget.style.color = "var(--text-primary)";
               }}
               onMouseLeave={(e) => {
                 e.currentTarget.style.background = "transparent";
-                e.currentTarget.style.color = "#6B6762";
+                e.currentTarget.style.color = "var(--text-secondary)";
               }}
             >
               <SidebarToggleIcon size={14} />
             </button>
-            <div style={{ width: 1, height: 16, background: "#E8E4DC" }} />
+            <div style={{ width: 1, height: 16, background: "var(--border-hairline)" }} />
             <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-              <span style={{ color: "#5549C0", display: "flex" }}>
+              <span style={{ color: "var(--accent-text)", display: "flex" }}>
                 <CalendarIcon size={16} />
               </span>
               <h1
                 style={{
                   fontSize: 16,
                   fontWeight: 600,
-                  color: "#1A1917",
+                  color: "var(--text-primary)",
                   margin: 0,
                   letterSpacing: "-0.02em",
                 }}
@@ -150,8 +150,8 @@ export default function CalendarPage() {
                   style={{
                     fontSize: 11,
                     fontFamily: "var(--font-mono, 'JetBrains Mono', monospace)",
-                    color: "#92400E",
-                    background: "#FEF3C7",
+                    color: "var(--warning)",
+                    background: "var(--warning-tint)",
                     padding: "2px 7px",
                     borderRadius: 12,
                     fontWeight: 500,
@@ -164,8 +164,8 @@ export default function CalendarPage() {
                   style={{
                     fontSize: 11,
                     fontFamily: "var(--font-mono, 'JetBrains Mono', monospace)",
-                    color: "#5549C0",
-                    background: "#EAE8F8",
+                    color: "var(--accent-text)",
+                    background: "var(--accent-tint)",
                     padding: "2px 7px",
                     borderRadius: 12,
                     fontWeight: 500,
@@ -184,14 +184,14 @@ export default function CalendarPage() {
                 display: "flex",
                 alignItems: "center",
                 gap: 8,
-                background: "#F5F2EC",
-                border: "1px solid #E4E0D8",
+                background: "var(--hover-subtle)",
+                border: "1px solid var(--border-hairline)",
                 borderRadius: 8,
                 padding: "6px 12px",
                 width: 240,
               }}
             >
-              <span style={{ color: "#A8A49E", display: "flex" }}>
+              <span style={{ color: "var(--text-muted)", display: "flex" }}>
                 <SearchIcon size={13} />
               </span>
               <input
@@ -206,7 +206,7 @@ export default function CalendarPage() {
                   outline: "none",
                   fontSize: 13,
                   fontFamily: "var(--font-body, 'Inter', system-ui, sans-serif)",
-                  color: "#1A1917",
+                  color: "var(--text-primary)",
                   width: "100%",
                 }}
               />
@@ -217,7 +217,7 @@ export default function CalendarPage() {
               <span
                 style={{
                   fontSize: 11.5,
-                  color: "#B8B3AB",
+                  color: "var(--text-muted)",
                   fontFamily: "var(--font-ui, 'DM Sans', system-ui, sans-serif)",
                   whiteSpace: "nowrap",
                 }}
@@ -245,8 +245,8 @@ export default function CalendarPage() {
                   alignItems: "center",
                   gap: 6,
                   padding: "7px 14px",
-                  background: isConnectingCalendar ? "#7B6ED8" : "#5046B8",
-                  color: "#FFFFFF",
+                  background: isConnectingCalendar ? "var(--accent-hover)" : "var(--accent-solid)",
+                  color: "var(--on-accent)",
                   border: "none",
                   borderRadius: 8,
                   fontSize: 12.5,
@@ -270,8 +270,8 @@ export default function CalendarPage() {
                   alignItems: "center",
                   gap: 6,
                   padding: "7px 14px",
-                  background: isSyncing ? "#7B6ED8" : "#5549C0",
-                  color: "#FFFFFF",
+                  background: isSyncing ? "var(--accent-hover)" : "var(--accent-solid)",
+                  color: "var(--on-accent)",
                   border: "none",
                   borderRadius: 8,
                   fontSize: 12.5,
@@ -293,10 +293,10 @@ export default function CalendarPage() {
                   }}
                 >
                   <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
-                  <circle cx="8" cy="8" r="6" stroke="rgba(255,255,255,0.35)" strokeWidth="1.8" />
-                  <path d="M8 2a6 6 0 016 6" stroke="white" strokeWidth="1.8" strokeLinecap="round" />
+                  <circle cx="8" cy="8" r="6" stroke="currentColor" strokeOpacity={0.35} strokeWidth="1.8" />
+                  <path d="M8 2a6 6 0 016 6" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
                 </svg>
-                {isSyncing ? "Syncing…" : "Refresh"}
+                <span>{isSyncing ? "Syncing…" : "Refresh"}</span>
               </button>
             )}
           </div>
@@ -320,10 +320,10 @@ export default function CalendarPage() {
                     justifyContent: "center",
                     gap: 8,
                     padding: "6px 14px",
-                    background: "#F0EEFB",
-                    borderBottom: "1px solid #DDD8F5",
+                    background: "var(--accent-tint)",
+                    borderBottom: "1px solid var(--accent-border)",
                     fontSize: 12,
-                    color: "#5549C0",
+                    color: "var(--accent-text)",
                     fontWeight: 500,
                     fontFamily: "var(--font-ui, 'DM Sans', system-ui, sans-serif)",
                   }}
@@ -335,8 +335,8 @@ export default function CalendarPage() {
                     fill="none"
                     style={{ animation: "spin 0.8s linear infinite" }}
                   >
-                    <circle cx="8" cy="8" r="6" stroke="#DDD8F5" strokeWidth="2.5" />
-                    <path d="M8 2a6 6 0 016 6" stroke="#5549C0" strokeWidth="2.5" strokeLinecap="round" />
+                    <circle cx="8" cy="8" r="6" stroke="var(--accent-border)" strokeWidth="2.5" />
+                    <path d="M8 2a6 6 0 016 6" stroke="var(--accent-text)" strokeWidth="2.5" strokeLinecap="round" />
                   </svg>
                   <span>Syncing latest updates from Google Calendar…</span>
                 </div>

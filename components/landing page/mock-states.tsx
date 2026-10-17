@@ -74,7 +74,7 @@ export function ResultsState({ typed = true }: { typed?: boolean }) {
   return (
     <div className="state-content">
       <p className="mono-label mb-4">Command · Gmail</p>
-      <div className="command-box border-accent/25 shadow-[0_8px_30px_rgba(80,70,184,0.08)]">
+      <div className="command-box border-accent/25 shadow-[0_8px_30px_var(--accent-tint)]">
         <span className="text-accent">⌘</span>
         <span>
           {typed
@@ -104,7 +104,7 @@ export function ResultsState({ typed = true }: { typed?: boolean }) {
               index ? "border-t border-line" : ""
             }`}
           >
-            <span className="grid size-7 place-items-center rounded-full bg-[#F1EFEA] text-[9px] font-semibold">
+            <span className="grid size-7 place-items-center rounded-full bg-[var(--surface-raised)] text-[9px] font-semibold">
               {sender
                 .split(" ")
                 .map((n) => n[0])

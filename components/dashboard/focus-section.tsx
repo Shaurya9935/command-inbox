@@ -22,7 +22,7 @@ export function FocusSection({
           fontSize: 10.5,
           fontWeight: 600,
           letterSpacing: "0.09em",
-          color: "#B8B3AB",
+          color: "var(--text-muted)",
           textTransform: "uppercase",
           marginBottom: 18,
         }}
@@ -50,21 +50,21 @@ export function FocusSection({
               cursor: "pointer",
               padding: "10px 0",
               textAlign: "left",
-              borderBottom: "1px solid #EDEAE4",
+              borderBottom: "1px solid var(--border-hairline)",
               transition: "border-color 0.15s",
             }}
             onMouseEnter={(e) =>
-              (e.currentTarget.style.borderColor = "#C4BFF0")
+              (e.currentTarget.style.borderColor = "var(--accent-border)")
             }
             onMouseLeave={(e) =>
-              (e.currentTarget.style.borderColor = "#EDEAE4")
+              (e.currentTarget.style.borderColor = "var(--border-hairline)")
             }
           >
             <span
               style={{
                 fontSize: 18,
                 fontWeight: 700,
-                color: "#1A1917",
+                color: "var(--text-primary)",
                 letterSpacing: "-0.04em",
                 fontFamily: "var(--font-ui, 'DM Sans', system-ui, sans-serif)",
                 lineHeight: 1,
@@ -75,7 +75,7 @@ export function FocusSection({
             <span
               style={{
                 fontSize: 13,
-                color: "#7B7775",
+                color: "var(--text-secondary)",
                 fontFamily: "var(--font-body, 'Inter', system-ui, sans-serif)",
               }}
             >

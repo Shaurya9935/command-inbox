@@ -25,10 +25,10 @@ export default async function ConnectPage({
       return (
         <AuthLayout>
           <div className="flex flex-col items-center text-center">
-            <div className="w-full p-3 rounded-[7px] bg-[#FEF2F2] border border-[#FCA5A5] text-[12px] text-[#B91C1C] mb-4">
+            <div className="w-full p-3 rounded-[7px] bg-[var(--status-error-bg)] border border-[var(--status-error-border)] text-[12px] text-[var(--status-error-text)] mb-4">
               Failed to resolve OAuth: {message}
             </div>
-            <a href="/connect" className="text-[13px] text-[#5549C0] underline">
+            <a href="/connect" className="text-[13px] text-[var(--brand-accent)] underline">
               Back to connect
             </a>
           </div>

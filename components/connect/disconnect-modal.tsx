@@ -34,7 +34,7 @@ export function DisconnectModal({
         style={{
           position: "fixed",
           inset: 0,
-          background: "rgba(0, 0, 0, 0.4)",
+          background: "var(--bg-overlay)",
           backdropFilter: "blur(2px)",
           animation: "fadeIn 0.15s ease",
         }}
@@ -47,11 +47,11 @@ export function DisconnectModal({
           zIndex: 101,
           width: "100%",
           maxWidth: 420,
-          background: "#FFFFFF",
-          border: "1px solid #E8E4DC",
+          background: "var(--bg-card)",
+          border: "1px solid var(--border-subtle)",
           borderRadius: 14,
           padding: "24px 26px",
-          boxShadow: "0 20px 35px -8px rgba(0, 0, 0, 0.18), 0 4px 10px rgba(0, 0, 0, 0.05)",
+          boxShadow: "var(--shadow-modal)",
           animation: "scaleIn 0.15s cubic-bezier(0.16, 1, 0.3, 1)",
           fontFamily: "var(--font-ui, 'DM Sans', system-ui, sans-serif)",
         }}
@@ -62,8 +62,8 @@ export function DisconnectModal({
               width: 38,
               height: 38,
               borderRadius: "50%",
-              background: "#FEE2E2",
-              color: "#DC2626",
+              background: "var(--status-error-bg)",
+              color: "var(--status-error-text)",
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
@@ -81,16 +81,16 @@ export function DisconnectModal({
             </svg>
           </div>
           <div>
-            <h3 style={{ margin: 0, fontSize: 16, fontWeight: 600, color: "#1A1917" }}>
+            <h3 style={{ margin: 0, fontSize: 16, fontWeight: 600, color: "var(--text-primary)" }}>
               Disconnect {app.name}?
             </h3>
-            <p style={{ margin: "2px 0 0", fontSize: 12.5, color: "#78716C" }}>
+            <p style={{ margin: "2px 0 0", fontSize: 12.5, color: "var(--text-tertiary)" }}>
               {app.connectedEmail || "Authorized Account"}
             </p>
           </div>
         </div>
 
-        <p style={{ margin: "0 0 20px", fontSize: 13, lineHeight: 1.5, color: "#57534E" }}>
+        <p style={{ margin: "0 0 20px", fontSize: 13, lineHeight: 1.5, color: "var(--text-secondary)" }}>
           Disconnecting <strong>{app.name}</strong> will revoke access and stop automatic synchronization
           with your Nexus. You can re-authorize this connection at any time.
         </p>
@@ -102,9 +102,9 @@ export function DisconnectModal({
             style={{
               padding: "8px 16px",
               borderRadius: 8,
-              border: "1px solid #D6D3CD",
-              background: "#FFFFFF",
-              color: "#44403C",
+              border: "1px solid var(--border-subtle)",
+              background: "var(--bg-card)",
+              color: "var(--text-secondary)",
               fontSize: 13,
               fontWeight: 500,
               cursor: "pointer",
@@ -118,9 +118,9 @@ export function DisconnectModal({
             style={{
               padding: "8px 18px",
               borderRadius: 8,
-              border: "1px solid #DC2626",
-              background: "#DC2626",
-              color: "#FFFFFF",
+              border: "1px solid var(--status-error-text)",
+              background: "var(--status-error-text)",
+              color: "var(--text-inverse)",
               fontSize: 13,
               fontWeight: 600,
               cursor: isSubmitting ? "not-allowed" : "pointer",

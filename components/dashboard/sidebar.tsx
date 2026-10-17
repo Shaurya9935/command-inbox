@@ -60,7 +60,7 @@ function SectionLabel({ label, collapsed }: { label: string; collapsed: boolean 
         fontSize: 9.5,
         fontWeight: 600,
         letterSpacing: "0.1em",
-        color: "#B8B3AB",
+        color: "var(--text-disabled)",
         textTransform: "uppercase",
         padding: "0 10px",
         marginBottom: 3,
@@ -112,8 +112,8 @@ function NavBtn({
         fontSize: muted ? 12.5 : 13,
         fontWeight: active ? 500 : 400,
         fontFamily: "var(--font-ui, 'DM Sans', system-ui, sans-serif)",
-        color: active ? "#5549C0" : hov ? "#1A1917" : muted ? "#9B9691" : "#6B6762",
-        background: active ? "#EAE8F8" : hov ? "#EEEBE4" : "transparent",
+        color: active ? "var(--accent-text)" : hov ? "var(--text-primary)" : muted ? "var(--text-muted)" : "var(--text-secondary)",
+        background: active ? "var(--accent-tint)" : hov ? "var(--hover)" : "transparent",
         transition: "background 0.12s, color 0.12s",
         textAlign: "left",
         position: "relative",
@@ -139,8 +139,8 @@ function NavBtn({
               width: 7,
               height: 7,
               borderRadius: "50%",
-              background: "#5549C0",
-              border: "1.5px solid #EEE9E1",
+              background: "var(--accent-solid)",
+              border: "1.5px solid var(--bg-sidebar)",
             }}
           />
         )}
@@ -153,8 +153,8 @@ function NavBtn({
           style={{
             fontSize: 10.5,
             fontFamily: "var(--font-mono, 'JetBrains Mono', monospace)",
-            color: active ? "#5549C0" : "#A8A49E",
-            background: active ? "#D8D5F5" : "#E8E4DC",
+            color: active ? "var(--accent-text)" : "var(--text-muted)",
+            background: active ? "var(--accent-border)" : "var(--border-hairline)",
             padding: "1px 6px",
             borderRadius: 20,
             lineHeight: "16px",
@@ -200,11 +200,11 @@ function PrimaryActionBtn({
         fontSize: 13.5,
         fontWeight: 500,
         fontFamily: "var(--font-ui, 'DM Sans', system-ui, sans-serif)",
-        color: "#FFFFFF",
-        background: hov ? "#463AA3" : "#5549C0",
+        color: "var(--on-accent)",
+        background: hov ? "var(--accent-hover)" : "var(--accent-solid)",
         transition: "background 0.15s, transform 0.1s",
         transform: hov ? "scale(1.02)" : "scale(1)",
-        boxShadow: "0 2px 4px rgba(85, 73, 192, 0.2)",
+        boxShadow: "0 2px 4px var(--shadow-color)",
       }}
     >
       <span style={{ display: "flex", flexShrink: 0 }}>
@@ -251,7 +251,7 @@ function WorkspaceRow({
         border: "none",
         cursor: "pointer",
         fontFamily: "var(--font-ui, 'DM Sans', system-ui, sans-serif)",
-        background: active ? "#EAE8F8" : hov ? "#EEEBE4" : "transparent",
+        background: active ? "var(--accent-tint)" : hov ? "var(--hover)" : "transparent",
         transition: "background 0.12s",
         textAlign: "left",
       }}
@@ -261,7 +261,7 @@ function WorkspaceRow({
         style={{
           display: "flex",
           flexShrink: 0,
-          color: active ? "#5549C0" : hov ? "#3E3A36" : "#6B6762",
+          color: active ? "var(--accent-text)" : hov ? "var(--text-primary)" : "var(--text-secondary)",
           opacity: active ? 1 : 0.7,
           transition: "color 0.12s, opacity 0.12s",
         }}
@@ -276,7 +276,7 @@ function WorkspaceRow({
               flex: 1,
               fontSize: 13,
               fontWeight: active ? 500 : 400,
-              color: active ? "#5549C0" : hov ? "#1A1917" : "#4A4643",
+              color: active ? "var(--accent-text)" : hov ? "var(--text-primary)" : "var(--text-secondary)",
               transition: "color 0.12s",
               whiteSpace: "nowrap",
             }}
@@ -285,7 +285,7 @@ function WorkspaceRow({
           </span>
           <span
             style={{
-              color: hov ? "#9B9691" : "#C5C0B9",
+              color: hov ? "var(--text-muted)" : "var(--text-disabled)",
               display: "flex",
               transition: "color 0.12s, transform 0.15s",
               transform: hov ? "translateX(1px)" : "none",
@@ -302,7 +302,7 @@ function WorkspaceRow({
 
 /** Thin divider between sections */
 function Divider() {
-  return <div style={{ height: 1, background: "#E4DED4", margin: "8px 10px" }} />;
+  return <div style={{ height: 1, background: "var(--border-hairline)", margin: "8px 10px" }} />;
 }
 
 // ─── Footer (shared) ──────────────────────────────────────────────────────────
@@ -339,7 +339,7 @@ function SidebarFooter({
   }, [helpOpen]);
 
   return (
-    <div style={{ borderTop: "1px solid #E4DED4", paddingTop: 8 }}>
+    <div style={{ borderTop: "1px solid var(--border-hairline)", paddingTop: 8 }}>
       {/* Collapse/Expand toggle */}
       <NavBtn
         icon={SidebarToggleIcon}
@@ -372,11 +372,11 @@ function SidebarFooter({
               bottom: "100%",
               left: 0,
               marginBottom: 6,
-              background: "#FFFFFF",
-              border: "1px solid #E8E4DC",
+              background: "var(--surface-card)",
+              border: "1px solid var(--border-hairline)",
               borderRadius: 10,
               padding: "6px",
-              boxShadow: "0 10px 28px rgba(0,0,0,0.12)",
+              boxShadow: "0 10px 28px var(--shadow-color)",
               zIndex: 100,
               minWidth: 175,
             }}
@@ -391,7 +391,7 @@ function SidebarFooter({
                 padding: "8px 10px",
                 border: "none",
                 background: "transparent",
-                color: "#1A1917",
+                color: "var(--text-primary)",
                 fontSize: 12.5,
                 fontWeight: 500,
                 textAlign: "left",
@@ -401,7 +401,7 @@ function SidebarFooter({
                 alignItems: "center",
                 gap: 8,
               }}
-              onMouseEnter={(e) => (e.currentTarget.style.background = "#F5F2EC")}
+              onMouseEnter={(e) => (e.currentTarget.style.background = "var(--hover)")}
               onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
             >
               <span style={{ fontSize: 14 }}>🧭</span>
@@ -425,11 +425,11 @@ function SidebarFooter({
           marginTop: 4,
           borderRadius: 8,
           cursor: "pointer",
-          background: isAccountActive ? "#EAE5DB" : "transparent",
+          background: isAccountActive ? "var(--hover-subtle)" : "transparent",
           transition: "background 0.12s",
         }}
         onMouseEnter={(e) => {
-          if (!isAccountActive) e.currentTarget.style.background = "#EFECE6";
+          if (!isAccountActive) e.currentTarget.style.background = "var(--hover)";
         }}
         onMouseLeave={(e) => {
           if (!isAccountActive) e.currentTarget.style.background = "transparent";
@@ -442,7 +442,7 @@ function SidebarFooter({
               style={{
                 fontSize: 12.5,
                 fontWeight: 500,
-                color: "#1A1917",
+                color: "var(--text-primary)",
                 overflow: "hidden",
                 textOverflow: "ellipsis",
                 whiteSpace: "nowrap",
@@ -453,7 +453,7 @@ function SidebarFooter({
             <div
               style={{
                 fontSize: 10.5,
-                color: "#B8B3AB",
+                color: "var(--text-muted)",
                 overflow: "hidden",
                 textOverflow: "ellipsis",
                 whiteSpace: "nowrap",
@@ -474,11 +474,11 @@ function SidebarFooter({
           marginTop: 8,
           padding: collapsed ? "6px 0" : "6px 10px",
           borderRadius: 7,
-          border: "1px solid #E4DED4",
-          background: "#FDFCF8",
+          border: "1px solid var(--border-hairline)",
+          background: "var(--surface-card)",
           fontSize: 12.5,
           fontWeight: 500,
-          color: "#6B6762",
+          color: "var(--text-secondary)",
           cursor: "pointer",
           display: "flex",
           alignItems: "center",
@@ -488,12 +488,12 @@ function SidebarFooter({
           transition: "background 0.12s, color 0.12s",
         }}
         onMouseEnter={(e) => {
-          e.currentTarget.style.background = "#F9EEE9";
-          e.currentTarget.style.color = "#C53030";
+          e.currentTarget.style.background = "var(--danger-tint)";
+          e.currentTarget.style.color = "var(--danger)";
         }}
         onMouseLeave={(e) => {
-          e.currentTarget.style.background = "#FDFCF8";
-          e.currentTarget.style.color = "#6B6762";
+          e.currentTarget.style.background = "var(--surface-card)";
+          e.currentTarget.style.color = "var(--text-secondary)";
         }}
       >
         <LogoutIcon size={14} />
@@ -525,7 +525,7 @@ function SecondaryHeader({
         alignItems: "center",
         justifyContent: "space-between",
         padding: "16px 8px 12px",
-        borderBottom: "1px solid #E4DED4",
+        borderBottom: "1px solid var(--border-hairline)",
         marginBottom: 12,
         flexShrink: 0,
       }}
@@ -536,8 +536,8 @@ function SecondaryHeader({
             width: 24,
             height: 24,
             borderRadius: 6,
-            background: "#EAE8F8",
-            color: "#5549C0",
+            background: "var(--accent-tint)",
+            color: "var(--accent-text)",
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
@@ -551,7 +551,7 @@ function SecondaryHeader({
             style={{
               fontSize: 13.5,
               fontWeight: 600,
-              color: "#1A1917",
+              color: "var(--text-primary)",
               letterSpacing: "-0.015em",
               lineHeight: 1.2,
             }}
@@ -562,7 +562,7 @@ function SecondaryHeader({
             <div
               style={{
                 fontSize: 10.5,
-                color: "#9B9691",
+                color: "var(--text-muted)",
                 overflow: "hidden",
                 textOverflow: "ellipsis",
                 whiteSpace: "nowrap",
@@ -582,12 +582,12 @@ function SecondaryHeader({
           onMouseLeave={() => setHov(false)}
           title="Hide panel"
           style={{
-            background: hov ? "#EAE5DB" : "transparent",
+            background: hov ? "var(--hover)" : "transparent",
             border: "none",
             borderRadius: 5,
             padding: "4px 5px",
             cursor: "pointer",
-            color: hov ? "#1A1917" : "#9B9691",
+            color: hov ? "var(--text-primary)" : "var(--text-muted)",
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
@@ -964,9 +964,9 @@ function ChatSecondaryPanel({
           style={{
             width: "100%",
             padding: "8px",
-            background: "#EAE8F8",
-            color: "#5549C0",
-            border: "1px dashed #C3BCEB",
+            background: "var(--accent-tint)",
+            color: "var(--accent-text)",
+            border: "1px dashed var(--accent-border)",
             borderRadius: 6,
             cursor: "pointer",
             fontWeight: 500,
@@ -977,8 +977,8 @@ function ChatSecondaryPanel({
             gap: 6,
             transition: "background 0.15s"
           }}
-          onMouseEnter={(e) => (e.currentTarget.style.background = "#DFDbf1")}
-          onMouseLeave={(e) => (e.currentTarget.style.background = "#EAE8F8")}
+          onMouseEnter={(e) => (e.currentTarget.style.background = "var(--accent-tint-hover)")}
+          onMouseLeave={(e) => (e.currentTarget.style.background = "var(--accent-tint)")}
         >
           <span style={{ fontSize: 16 }}>+</span> New chat
         </button>
@@ -1178,7 +1178,7 @@ function PrimaryNav({
             <div
               style={{
                 fontSize: 12,
-                color: "#9B9691",
+                color: "var(--text-muted)",
                 padding: "8px 12px",
                 fontFamily: "var(--font-body, 'Inter', system-ui, sans-serif)",
                 fontStyle: "italic",
@@ -1333,7 +1333,7 @@ export function Sidebar({
           .join("")
           .slice(0, 2)
           .toUpperCase(),
-        color: "#5549C0",
+        color: "var(--accent-text)",
       }
     : user;
 
@@ -1366,8 +1366,8 @@ export function Sidebar({
         style={{
           width: isPrimaryCollapsed ? 60 : 210,
           flexShrink: 0,
-          background: "#EEE9E1",
-          borderRight: "1px solid #E4DED4",
+          background: "var(--bg-sidebar)",
+          borderRight: "1px solid var(--border-hairline)",
           display: "flex",
           flexDirection: "column",
           padding: isPrimaryCollapsed ? "0 6px 14px" : "0 10px 14px",
@@ -1401,11 +1401,11 @@ export function Sidebar({
                 width: 26,
                 height: 26,
                 borderRadius: 7,
-                background: "linear-gradient(140deg, #5549C0 0%, #7B6ED8 100%)",
+                background: "linear-gradient(140deg, var(--accent-solid) 0%, var(--accent-hover) 100%)",
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
-                boxShadow: "0 2px 8px rgba(85,73,192,0.3)",
+                boxShadow: "0 2px 8px var(--shadow-color)",
                 flexShrink: 0,
               }}
             >
@@ -1416,7 +1416,7 @@ export function Sidebar({
                 style={{
                   fontSize: 13,
                   fontWeight: 600,
-                  color: "#1A1917",
+                  color: "var(--text-primary)",
                   letterSpacing: "-0.025em",
                   whiteSpace: "nowrap",
                 }}
@@ -1436,19 +1436,19 @@ export function Sidebar({
                 borderRadius: 5,
                 padding: "4px 5px",
                 cursor: "pointer",
-                color: "#9B9691",
+                color: "var(--text-muted)",
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
                 transition: "background 0.12s, color 0.12s",
               }}
               onMouseEnter={(e) => {
-                e.currentTarget.style.background = "#E4DFD6";
-                e.currentTarget.style.color = "#1A1917";
+                e.currentTarget.style.background = "var(--hover)";
+                e.currentTarget.style.color = "var(--text-primary)";
               }}
               onMouseLeave={(e) => {
                 e.currentTarget.style.background = "transparent";
-                e.currentTarget.style.color = "#9B9691";
+                e.currentTarget.style.color = "var(--text-muted)";
               }}
             >
               <SidebarToggleIcon size={14} />
@@ -1487,8 +1487,8 @@ export function Sidebar({
             width: isSecondaryOpen ? 200 : 0,
             opacity: isSecondaryOpen ? 1 : 0,
             flexShrink: 0,
-            background: "#F7F4EE",
-            borderRight: isSecondaryOpen ? "1px solid #E4DED4" : "none",
+            background: "var(--bg-sidebar-secondary)",
+            borderRight: isSecondaryOpen ? "1px solid var(--border-hairline)" : "none",
             display: "flex",
             flexDirection: "column",
             padding: isSecondaryOpen ? "0 10px 14px" : 0,

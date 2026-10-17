@@ -40,7 +40,7 @@ export function NeedsAttention({
             fontSize: 10.5,
             fontWeight: 600,
             letterSpacing: "0.09em",
-            color: "#B8B3AB",
+            color: "var(--text-muted)",
             textTransform: "uppercase",
           }}
         >
@@ -51,7 +51,7 @@ export function NeedsAttention({
           onClick={onViewInbox}
           style={{
             fontSize: 12,
-            color: "#A8A49E",
+            color: "var(--text-muted)",
             background: "none",
             border: "none",
             cursor: "pointer",
@@ -62,8 +62,8 @@ export function NeedsAttention({
             padding: 0,
             transition: "color 0.12s",
           }}
-          onMouseEnter={(e) => (e.currentTarget.style.color = "#5549C0")}
-          onMouseLeave={(e) => (e.currentTarget.style.color = "#A8A49E")}
+          onMouseEnter={(e) => (e.currentTarget.style.color = "var(--accent-text)")}
+          onMouseLeave={(e) => (e.currentTarget.style.color = "var(--text-muted)")}
         >
           <span>View inbox</span>
           <ArrowRightIcon />
@@ -88,13 +88,13 @@ export function NeedsAttention({
                   width: 34,
                   height: 34,
                   borderRadius: 10,
-                  background: "#E8E4DC",
+                  background: "var(--border-hairline)",
                   flexShrink: 0,
                 }}
               />
               <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: 6 }}>
-                <div style={{ width: "40%", height: 12, background: "#E8E4DC", borderRadius: 4 }} />
-                <div style={{ width: "75%", height: 10, background: "#EDEAE4", borderRadius: 4 }} />
+                <div style={{ width: "40%", height: 12, background: "var(--border-hairline)", borderRadius: 4 }} />
+                <div style={{ width: "75%", height: 10, background: "var(--hover)", borderRadius: 4 }} />
               </div>
             </div>
           ))}
@@ -105,8 +105,8 @@ export function NeedsAttention({
             padding: "24px 20px",
             textAlign: "center",
             borderRadius: 12,
-            background: "#FAF8F4",
-            border: "1px dashed #E2DED6",
+            background: "var(--surface-raised)",
+            border: "1px dashed var(--border-dashed)",
             display: "flex",
             flexDirection: "column",
             alignItems: "center",
@@ -118,7 +118,7 @@ export function NeedsAttention({
             style={{
               fontSize: 13,
               fontWeight: 600,
-              color: "#1A1917",
+              color: "var(--text-primary)",
               fontFamily: "var(--font-ui, 'DM Sans', system-ui, sans-serif)",
             }}
           >
@@ -127,7 +127,7 @@ export function NeedsAttention({
           <div
             style={{
               fontSize: 12,
-              color: "#9B9691",
+              color: "var(--text-muted)",
               lineHeight: 1.45,
               fontFamily: "var(--font-body, 'Inter', system-ui, sans-serif)",
               maxWidth: 280,
@@ -145,22 +145,22 @@ export function NeedsAttention({
               gap: 6,
               padding: "7px 14px",
               borderRadius: 8,
-              background: "#5046B8",
-              color: "#FFFFFF",
+              background: "var(--accent-solid)",
+              color: "var(--on-accent)",
               fontSize: 12,
               fontWeight: 600,
               border: "none",
               cursor: "pointer",
               fontFamily: "var(--font-ui, 'DM Sans', system-ui, sans-serif)",
-              boxShadow: "0 1px 3px rgba(80, 70, 184, 0.25)",
+              boxShadow: "0 1px 3px var(--shadow-color)",
               transition: "background 0.15s, transform 0.1s",
             }}
             onMouseEnter={(e) => {
-              e.currentTarget.style.background = "#4339A6";
+              e.currentTarget.style.background = "var(--accent-hover)";
               e.currentTarget.style.transform = "translateY(-1px)";
             }}
             onMouseLeave={(e) => {
-              e.currentTarget.style.background = "#5046B8";
+              e.currentTarget.style.background = "var(--accent-solid)";
               e.currentTarget.style.transform = "translateY(0)";
             }}
           >
@@ -173,9 +173,9 @@ export function NeedsAttention({
             padding: "24px 16px",
             textAlign: "center",
             borderRadius: 10,
-            background: "#FAF8F4",
-            border: "1px dashed #E2DED6",
-            color: "#A8A49E",
+            background: "var(--surface-raised)",
+            border: "1px dashed var(--border-dashed)",
+            color: "var(--text-muted)",
             fontSize: 13,
             fontFamily: "var(--font-body, 'Inter', system-ui, sans-serif)",
           }}
@@ -199,7 +199,7 @@ export function NeedsAttention({
                 cursor: "pointer",
                 textAlign: "left",
                 borderBottom:
-                  i < emails.length - 1 ? "1px solid #F0EDE7" : "none",
+                  i < emails.length - 1 ? "1px solid var(--border-hairline)" : "none",
                 transition: "opacity 0.12s",
               }}
               onMouseEnter={(e) => (e.currentTarget.style.opacity = "0.72")}
@@ -215,12 +215,12 @@ export function NeedsAttention({
                     marginBottom: 3,
                   }}
                 >
-                  {email.unread && <Dot color="#5549C0" size={5} />}
+                  {email.unread && <Dot color="var(--accent-text)" size={5} />}
                   <span
                     style={{
                       fontSize: 13.5,
                       fontWeight: email.unread ? 600 : 400,
-                      color: "#1A1917",
+                      color: "var(--text-primary)",
                       flex: 1,
                       overflow: "hidden",
                       textOverflow: "ellipsis",
@@ -233,7 +233,7 @@ export function NeedsAttention({
                     style={{
                       fontSize: 11,
                       fontFamily: "var(--font-mono, 'JetBrains Mono', monospace)",
-                      color: "#B8B3AB",
+                      color: "var(--text-muted)",
                       flexShrink: 0,
                     }}
                   >
@@ -244,7 +244,7 @@ export function NeedsAttention({
                   style={{
                     fontSize: 13,
                     fontWeight: email.unread ? 500 : 400,
-                    color: "#3D3C3A",
+                    color: "var(--text-secondary)",
                     fontFamily: "var(--font-body, 'Inter', system-ui, sans-serif)",
                     overflow: "hidden",
                     textOverflow: "ellipsis",
@@ -257,7 +257,7 @@ export function NeedsAttention({
                 <div
                   style={{
                     fontSize: 12.5,
-                    color: "#A8A49E",
+                    color: "var(--text-muted)",
                     fontFamily: "var(--font-body, 'Inter', system-ui, sans-serif)",
                     overflow: "hidden",
                     textOverflow: "ellipsis",

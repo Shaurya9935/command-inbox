@@ -89,28 +89,28 @@ export function RegistrationForm() {
       <div className="flex flex-col items-center justify-center text-center px-2">
         <div
           className="w-11 h-11 rounded-full flex items-center justify-center mb-5"
-          style={{ background: "#E5F0EA" }}
+          style={{ background: "var(--brand-accent-subtle)" }}
         >
           <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
             <path
               d="M4 10l4.5 4.5 7.5-8"
-              stroke="#245C4A"
+              stroke="var(--brand-accent)"
               strokeWidth="1.8"
               strokeLinecap="round"
               strokeLinejoin="round"
             />
           </svg>
         </div>
-        <h2 className="text-[19px] font-semibold tracking-[-0.3px] text-[#242424] mb-2">
+        <h2 className="text-[19px] font-semibold tracking-[-0.3px] text-[var(--text-primary)] mb-2">
           Account created!
         </h2>
-        <p className="text-[13.5px] text-[#77736D] leading-relaxed max-w-[260px]">
+        <p className="text-[13.5px] text-[var(--text-secondary)] leading-relaxed max-w-[260px]">
           Welcome aboard! You can now log in with{" "}
-          <span className="font-medium text-[#242424]">{email}</span>.
+          <span className="font-medium text-[var(--text-primary)]">{email}</span>.
         </p>
         <Link
           href="/login"
-          className="mt-7 inline-flex items-center justify-center px-5 h-9 rounded-[7px] text-[13px] font-medium text-white bg-[#245C4A] hover:bg-[#1B493A] transition-colors focus-ring"
+          className="mt-7 inline-flex items-center justify-center px-5 h-9 rounded-[7px] text-[13px] font-medium text-[var(--text-inverse)] bg-[var(--brand-accent)] hover:bg-[var(--brand-accent-hover)] transition-colors focus-ring"
         >
           Proceed to log in
         </Link>
@@ -123,17 +123,17 @@ export function RegistrationForm() {
       {/* Logo */}
       <div className="flex items-center gap-2 mb-8">
         <CommandInboxIcon size={26} />
-        <span className="text-[16px] font-semibold tracking-[-0.3px] text-[#242424]">
+        <span className="text-[16px] font-semibold tracking-[-0.3px] text-[var(--text-primary)]">
           Nexus
         </span>
       </div>
 
       {/* Heading */}
       <div className="mb-6">
-        <h1 className="text-[21px] font-semibold tracking-[-0.4px] text-[#242424] mb-1.5">
+        <h1 className="text-[21px] font-semibold tracking-[-0.4px] text-[var(--text-primary)] mb-1.5">
           Create your account
         </h1>
-        <p className="text-[13.5px] text-[#77736D] leading-snug">
+        <p className="text-[13.5px] text-[var(--text-secondary)] leading-snug">
           Your email and calendar, organized around the way you work.
         </p>
       </div>
@@ -142,7 +142,7 @@ export function RegistrationForm() {
       {formError && (
         <div
           role="alert"
-          className="mb-4 p-2.5 rounded-[7px] bg-[#FEF2F2] border border-[#FCA5A5] flex items-center gap-2 text-[12px] font-medium text-[#B91C1C]"
+          className="mb-4 p-2.5 rounded-[7px] bg-[var(--status-error-bg)] border border-[var(--status-error-border)] flex items-center gap-2 text-[12px] font-medium text-[var(--status-error-text)]"
         >
           <AlertIcon />
           <span>{formError}</span>
@@ -204,17 +204,17 @@ export function RegistrationForm() {
           disabled={loading || googleLoading}
           className={[
             "w-full h-9 mt-0.5 rounded-[7px] text-[13.5px] font-semibold transition-all duration-150",
-            "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#245C4A] focus-visible:ring-offset-2",
+            "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--brand-accent)] focus-visible:ring-offset-2",
             loading || googleLoading
-              ? "cursor-not-allowed text-white"
-              : "active:scale-[0.99] text-white cursor-pointer",
+              ? "cursor-not-allowed text-[var(--text-inverse)]"
+              : "active:scale-[0.99] text-[var(--text-inverse)] cursor-pointer",
           ].join(" ")}
-          style={{ background: loading ? "#3D7A63" : "#245C4A" }}
+          style={{ background: loading ? "var(--brand-accent-hover)" : "var(--brand-accent)" }}
           onMouseEnter={(e) => {
-            if (!loading && !googleLoading) e.currentTarget.style.background = "#1B493A";
+            if (!loading && !googleLoading) e.currentTarget.style.background = "var(--brand-accent-hover)";
           }}
           onMouseLeave={(e) => {
-            if (!loading && !googleLoading) e.currentTarget.style.background = "#245C4A";
+            if (!loading && !googleLoading) e.currentTarget.style.background = "var(--brand-accent)";
           }}
           aria-label={loading ? "Creating account…" : "Create account"}
         >
@@ -232,13 +232,13 @@ export function RegistrationForm() {
                   cx="7"
                   cy="7"
                   r="5.5"
-                  stroke="white"
+                  stroke="currentColor"
                   strokeWidth="2"
                   strokeOpacity="0.3"
                 />
                 <path
                   d="M7 1.5a5.5 5.5 0 015.5 5.5"
-                  stroke="white"
+                  stroke="currentColor"
                   strokeWidth="2"
                   strokeLinecap="round"
                 />
@@ -251,18 +251,18 @@ export function RegistrationForm() {
         </button>
 
         {/* Terms */}
-        <p className="text-center text-[11.5px] text-[#C4BFB8] leading-relaxed">
+        <p className="text-center text-[11.5px] text-[var(--text-muted)] leading-relaxed">
           By continuing, you agree to our{" "}
           <a
             href="#"
-            className="text-[#77736D] underline underline-offset-2 hover:text-[#242424] transition-colors focus-ring rounded-sm"
+            className="text-[var(--text-secondary)] underline underline-offset-2 hover:text-[var(--text-primary)] transition-colors focus-ring rounded-sm"
           >
             Terms of Service
           </a>{" "}
           and{" "}
           <a
             href="#"
-            className="text-[#77736D] underline underline-offset-2 hover:text-[#242424] transition-colors focus-ring rounded-sm"
+            className="text-[var(--text-secondary)] underline underline-offset-2 hover:text-[var(--text-primary)] transition-colors focus-ring rounded-sm"
           >
             Privacy Policy
           </a>
@@ -271,11 +271,11 @@ export function RegistrationForm() {
 
         {/* Divider */}
         <div className="flex items-center gap-3">
-          <div className="flex-1 h-px bg-[#E5E1D8]" />
-          <span className="text-[11px] font-medium text-[#C4BFB8] uppercase tracking-wide">
+          <div className="flex-1 h-px bg-[var(--border-subtle)]" />
+          <span className="text-[11px] font-medium text-[var(--text-muted)] uppercase tracking-wide">
             or
           </span>
-          <div className="flex-1 h-px bg-[#E5E1D8]" />
+          <div className="flex-1 h-px bg-[var(--border-subtle)]" />
         </div>
 
         {/* Google */}
@@ -284,15 +284,15 @@ export function RegistrationForm() {
           onClick={handleGoogle}
           disabled={loading || googleLoading}
           className={[
-            "w-full h-9 flex items-center justify-center gap-2 rounded-[7px] text-[13.5px] font-medium transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#245C4A] focus-visible:ring-offset-2",
+            "w-full h-9 flex items-center justify-center gap-2 rounded-[7px] text-[13.5px] font-medium transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--brand-accent)] focus-visible:ring-offset-2",
             loading || googleLoading
-              ? "opacity-60 cursor-not-allowed bg-white border border-[#E5E1D8] text-[#77736D]"
-              : "text-[#242424] bg-white border border-[#E5E1D8] hover:bg-[#F8F6F0] hover:border-[#C8C3BA] active:scale-[0.99] cursor-pointer",
+              ? "opacity-60 cursor-not-allowed bg-[var(--bg-card)] border border-[var(--border-subtle)] text-[var(--text-secondary)]"
+              : "text-[var(--text-primary)] bg-[var(--bg-card)] border border-[var(--border-subtle)] hover:bg-[var(--bg-hover)] hover:border-[var(--text-muted)] active:scale-[0.99] cursor-pointer",
           ].join(" ")}
           aria-label={googleLoading ? "Connecting to Google…" : "Continue with Google"}
         >
           {googleLoading ? (
-            <span className="flex items-center justify-center gap-2 text-[#77736D]">
+            <span className="flex items-center justify-center gap-2 text-[var(--text-secondary)]">
               <svg
                 className="animate-spin"
                 width="14"
@@ -328,11 +328,11 @@ export function RegistrationForm() {
       </form>
 
       {/* Login link */}
-      <p className="text-center mt-6 text-[13px] text-[#77736D]">
+      <p className="text-center mt-6 text-[13px] text-[var(--text-secondary)]">
         Already have an account?{" "}
         <Link
           href="/login"
-          className="font-medium text-[#245C4A] hover:text-[#1B493A] transition-colors focus-ring rounded-sm"
+          className="font-medium text-[var(--brand-accent)] hover:text-[var(--brand-accent-hover)] transition-colors focus-ring rounded-sm"
         >
           Log in
         </Link>

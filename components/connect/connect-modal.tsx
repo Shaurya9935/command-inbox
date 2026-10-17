@@ -46,7 +46,7 @@ export function ConnectModal({
         style={{
           position: "fixed",
           inset: 0,
-          background: "rgba(0, 0, 0, 0.45)",
+          background: "var(--bg-overlay)",
           backdropFilter: "blur(3px)",
           animation: "fadeIn 0.15s ease",
         }}
@@ -59,11 +59,11 @@ export function ConnectModal({
           zIndex: 101,
           width: "100%",
           maxWidth: 480,
-          background: "#FFFFFF",
-          border: "1px solid #E8E4DC",
+          background: "var(--bg-card)",
+          border: "1px solid var(--border-subtle)",
           borderRadius: 16,
           padding: "26px 28px",
-          boxShadow: "0 20px 40px -10px rgba(0, 0, 0, 0.18), 0 4px 14px rgba(0, 0, 0, 0.06)",
+          boxShadow: "var(--shadow-modal)",
           animation: "scaleIn 0.15s cubic-bezier(0.16, 1, 0.3, 1)",
           fontFamily: "var(--font-ui, 'DM Sans', system-ui, sans-serif)",
         }}
@@ -77,7 +77,7 @@ export function ConnectModal({
                 height: 40,
                 borderRadius: 10,
                 background: app.bgAccent,
-                border: `1px solid ${app.accentColor}25`,
+                border: "1px solid var(--border-subtle)",
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
@@ -101,10 +101,10 @@ export function ConnectModal({
               )}
             </div>
             <div>
-              <h3 style={{ margin: 0, fontSize: 17, fontWeight: 600, color: "#1A1917" }}>
+              <h3 style={{ margin: 0, fontSize: 17, fontWeight: 600, color: "var(--text-primary)" }}>
                 Connect {app.name}
               </h3>
-              <p style={{ margin: "2px 0 0", fontSize: 12.5, color: "#78716C" }}>
+              <p style={{ margin: "2px 0 0", fontSize: 12.5, color: "var(--text-tertiary)" }}>
                 {app.categoryLabel}
               </p>
             </div>
@@ -114,7 +114,7 @@ export function ConnectModal({
             style={{
               background: "transparent",
               border: "none",
-              color: "#9CA3AF",
+              color: "var(--text-muted)",
               cursor: "pointer",
               padding: 6,
               borderRadius: 6,
@@ -131,27 +131,27 @@ export function ConnectModal({
 
         <form onSubmit={handleSubmit}>
           {/* App Summary */}
-          <p style={{ margin: "0 0 16px", fontSize: 13, lineHeight: 1.5, color: "#57534E" }}>
+          <p style={{ margin: "0 0 16px", fontSize: 13, lineHeight: 1.5, color: "var(--text-secondary)" }}>
             {app.description}
           </p>
 
           {/* Scopes Requested */}
           <div
             style={{
-              background: "#F9F8F6",
-              border: "1px solid #ECE8E1",
+              background: "var(--bg-inset)",
+              border: "1px solid var(--border-subtle)",
               borderRadius: 10,
               padding: "12px 14px",
               marginBottom: 18,
             }}
           >
-            <div style={{ fontSize: 11, fontWeight: 600, color: "#858079", textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: 6 }}>
+            <div style={{ fontSize: 11, fontWeight: 600, color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: 6 }}>
               Required Permissions
             </div>
             <div style={{ display: "flex", flexDirection: "column", gap: 5 }}>
               {app.permissions.map((perm, idx) => (
-                <div key={idx} style={{ display: "flex", alignItems: "center", gap: 7, fontSize: 12, color: "#44403C" }}>
-                  <svg width={12} height={12} viewBox="0 0 14 14" fill="none" style={{ color: "#16A34A", flexShrink: 0 }}>
+                <div key={idx} style={{ display: "flex", alignItems: "center", gap: 7, fontSize: 12, color: "var(--text-secondary)" }}>
+                  <svg width={12} height={12} viewBox="0 0 14 14" fill="none" style={{ color: "var(--status-success-text)", flexShrink: 0 }}>
                     <path d="M2.5 7.5L5.5 10.5L11.5 3.5" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
                   </svg>
                   <span>{perm}</span>
@@ -164,7 +164,7 @@ export function ConnectModal({
           <div style={{ marginBottom: 16 }}>
             <label
               htmlFor="connect-account-email"
-              style={{ display: "block", fontSize: 12.5, fontWeight: 500, color: "#292524", marginBottom: 6 }}
+              style={{ display: "block", fontSize: 12.5, fontWeight: 500, color: "var(--text-primary)", marginBottom: 6 }}
             >
               Account Email or Workspace ID
             </label>
@@ -179,14 +179,16 @@ export function ConnectModal({
                 width: "100%",
                 padding: "9px 12px",
                 borderRadius: 8,
-                border: "1px solid #D6D3CD",
+                border: "1px solid var(--border-subtle)",
+                background: "var(--bg-input)",
+                color: "var(--text-primary)",
                 fontSize: 13,
                 outline: "none",
                 fontFamily: "inherit",
                 boxSizing: "border-box",
               }}
               onFocus={(e) => (e.target.style.borderColor = app.accentColor)}
-              onBlur={(e) => (e.target.style.borderColor = "#D6D3CD")}
+              onBlur={(e) => (e.target.style.borderColor = "var(--border-subtle)")}
             />
           </div>
 
@@ -222,7 +224,9 @@ export function ConnectModal({
                     width: "100%",
                     padding: "8px 12px",
                     borderRadius: 8,
-                    border: "1px solid #D6D3CD",
+                    border: "1px solid var(--border-subtle)",
+                    background: "var(--bg-input)",
+                    color: "var(--text-primary)",
                     fontSize: 12.5,
                     outline: "none",
                     fontFamily: "monospace",
@@ -242,9 +246,9 @@ export function ConnectModal({
               style={{
                 padding: "9px 16px",
                 borderRadius: 8,
-                border: "1px solid #D6D3CD",
-                background: "#FFFFFF",
-                color: "#44403C",
+                border: "1px solid var(--border-subtle)",
+                background: "var(--bg-card)",
+                color: "var(--text-secondary)",
                 fontSize: 13,
                 fontWeight: 500,
                 cursor: "pointer",
@@ -260,7 +264,7 @@ export function ConnectModal({
                 borderRadius: 8,
                 border: `1px solid ${app.accentColor}`,
                 background: app.accentColor,
-                color: "#FFFFFF",
+                color: "var(--text-inverse)",
                 fontSize: 13,
                 fontWeight: 600,
                 cursor: isSubmitting ? "not-allowed" : "pointer",
@@ -268,7 +272,7 @@ export function ConnectModal({
                 display: "flex",
                 alignItems: "center",
                 gap: 8,
-                boxShadow: "0 2px 5px rgba(0,0,0,0.1)",
+                boxShadow: "var(--shadow-sm)",
               }}
             >
               {isSubmitting ? (

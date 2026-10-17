@@ -85,7 +85,7 @@ export function DeleteConfirmationModal({
         position: "fixed",
         inset: 0,
         zIndex: 9999,
-        background: "rgba(26, 25, 23, 0.45)",
+        background: "var(--overlay)",
         backdropFilter: "blur(4px)",
         display: "flex",
         alignItems: "center",
@@ -103,10 +103,10 @@ export function DeleteConfirmationModal({
         style={{
           width: "100%",
           maxWidth: 520,
-          background: "#FFFFFF",
+          background: "var(--surface-card)",
           borderRadius: 14,
-          boxShadow: "0 20px 40px rgba(0,0,0,0.18), 0 1px 3px rgba(0,0,0,0.08)",
-          border: "1px solid #E8E4DC",
+          boxShadow: "0 20px 40px var(--shadow-color), 0 1px 3px var(--shadow-color)",
+          border: "1px solid var(--border-hairline)",
           overflow: "hidden",
           animation: "fadeIn 0.15s ease-out",
         }}
@@ -115,7 +115,7 @@ export function DeleteConfirmationModal({
         <div
           style={{
             padding: "20px 24px 16px",
-            borderBottom: "1px solid #F0ECE4",
+            borderBottom: "1px solid var(--border-hairline)",
             display: "flex",
             alignItems: "flex-start",
             gap: 14,
@@ -126,8 +126,8 @@ export function DeleteConfirmationModal({
               width: 38,
               height: 38,
               borderRadius: 10,
-              background: "#FEE2E2",
-              color: "#DC2626",
+              background: "var(--danger-tint)",
+              color: "var(--danger)",
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
@@ -147,7 +147,7 @@ export function DeleteConfirmationModal({
                 margin: 0,
                 fontSize: 17,
                 fontWeight: 600,
-                color: "#1A1917",
+                color: "var(--text-primary)",
                 letterSpacing: "-0.01em",
               }}
             >
@@ -157,7 +157,7 @@ export function DeleteConfirmationModal({
               style={{
                 margin: "4px 0 0",
                 fontSize: 13,
-                color: "#6B6762",
+                color: "var(--text-secondary)",
                 lineHeight: 1.45,
               }}
             >
@@ -173,8 +173,8 @@ export function DeleteConfirmationModal({
           {/* Items that will be deleted */}
           <div
             style={{
-              background: "#FFF8F6",
-              border: "1px solid #FEE2E2",
+              background: "var(--danger-tint)",
+              border: "1px solid var(--danger-border)",
               borderRadius: 9,
               padding: "12px 14px",
               marginBottom: 18,
@@ -184,7 +184,7 @@ export function DeleteConfirmationModal({
               style={{
                 fontSize: 12,
                 fontWeight: 600,
-                color: "#991B1B",
+                color: "var(--danger-hover)",
                 textTransform: "uppercase",
                 letterSpacing: "0.04em",
                 marginBottom: 8,
@@ -197,7 +197,7 @@ export function DeleteConfirmationModal({
                 margin: 0,
                 paddingLeft: 18,
                 fontSize: 12.5,
-                color: "#7F1D1D",
+                color: "var(--danger-hover)",
                 lineHeight: 1.5,
               }}
             >
@@ -218,20 +218,20 @@ export function DeleteConfirmationModal({
           {errorMessage && (
             <div
               style={{
-                background: "#FEF2F2",
-                border: "1px solid #FCA5A5",
+                background: "var(--danger-tint)",
+                border: "1px solid var(--danger-border)",
                 borderRadius: 8,
                 padding: "10px 12px",
                 marginBottom: 16,
                 fontSize: 13,
-                color: "#991B1B",
+                color: "var(--danger-hover)",
                 display: "flex",
                 alignItems: "center",
                 gap: 8,
               }}
             >
               <svg width={16} height={16} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
-                <circle cx="12" cy="12" r="10" />
+                <circle cx="12" cy="10" r="10" />
                 <line x1="12" y1="8" x2="12" y2="12" />
                 <line x1="12" y1="16" x2="12.01" y2="16" />
               </svg>
@@ -247,7 +247,7 @@ export function DeleteConfirmationModal({
                   display: "block",
                   fontSize: 12.5,
                   fontWeight: 600,
-                  color: "#1A1917",
+                  color: "var(--text-primary)",
                   marginBottom: 6,
                 }}
               >
@@ -263,15 +263,16 @@ export function DeleteConfirmationModal({
                   width: "100%",
                   padding: "9px 12px",
                   borderRadius: 8,
-                  border: "1px solid #DED8CE",
+                  border: "1px solid var(--border-strong)",
                   fontSize: 13.5,
-                  color: "#1A1917",
+                  color: "var(--text-primary)",
                   outline: "none",
                   boxSizing: "border-box",
+                  background: "var(--surface-card)",
                   transition: "border-color 0.12s",
                 }}
-                onFocus={(e) => (e.target.style.borderColor = "#DC2626")}
-                onBlur={(e) => (e.target.style.borderColor = "#DED8CE")}
+                onFocus={(e) => (e.target.style.borderColor = "var(--danger)")}
+                onBlur={(e) => (e.target.style.borderColor = "var(--border-strong)")}
               />
             </div>
           ) : (
@@ -280,9 +281,9 @@ export function DeleteConfirmationModal({
                 marginBottom: 16,
                 padding: "8px 12px",
                 borderRadius: 8,
-                background: "#F5F2EC",
+                background: "var(--surface-raised)",
                 fontSize: 12.5,
-                color: "#5C564E",
+                color: "var(--text-secondary)",
               }}
             >
               Signed in via Google Social Login. Identity confirmed via active session.
@@ -296,11 +297,11 @@ export function DeleteConfirmationModal({
                 display: "block",
                 fontSize: 12.5,
                 fontWeight: 600,
-                color: "#1A1917",
+                color: "var(--text-primary)",
                 marginBottom: 6,
               }}
             >
-              To confirm, type <span style={{ color: "#DC2626", fontWeight: 700 }}>DELETE</span> below:
+              To confirm, type <span style={{ color: "var(--danger)", fontWeight: 700 }}>DELETE</span> below:
             </label>
             <input
               type="text"
@@ -313,15 +314,16 @@ export function DeleteConfirmationModal({
                 width: "100%",
                 padding: "9px 12px",
                 borderRadius: 8,
-                border: "1px solid #DED8CE",
+                border: "1px solid var(--border-strong)",
                 fontSize: 13.5,
-                color: "#1A1917",
+                color: "var(--text-primary)",
                 outline: "none",
                 boxSizing: "border-box",
+                background: "var(--surface-card)",
                 transition: "border-color 0.12s",
               }}
-              onFocus={(e) => (e.target.style.borderColor = "#DC2626")}
-              onBlur={(e) => (e.target.style.borderColor = "#DED8CE")}
+              onFocus={(e) => (e.target.style.borderColor = "var(--danger)")}
+              onBlur={(e) => (e.target.style.borderColor = "var(--border-strong)")}
             />
           </div>
 
@@ -333,7 +335,7 @@ export function DeleteConfirmationModal({
               justifyContent: "flex-end",
               gap: 10,
               paddingTop: 8,
-              borderTop: "1px solid #F0ECE4",
+              borderTop: "1px solid var(--border-hairline)",
             }}
           >
             <button
@@ -343,11 +345,11 @@ export function DeleteConfirmationModal({
               style={{
                 padding: "8px 16px",
                 borderRadius: 7,
-                border: "1px solid #E4DED4",
-                background: "#FFFFFF",
+                border: "1px solid var(--border-hairline)",
+                background: "var(--surface-card)",
                 fontSize: 13,
                 fontWeight: 500,
-                color: "#5C564E",
+                color: "var(--text-secondary)",
                 cursor: isSubmitting ? "not-allowed" : "pointer",
               }}
             >
@@ -361,8 +363,8 @@ export function DeleteConfirmationModal({
                 padding: "8px 18px",
                 borderRadius: 7,
                 border: "none",
-                background: isDeleteValid && !isSubmitting ? "#DC2626" : "#FCA5A5",
-                color: "#FFFFFF",
+                background: isDeleteValid && !isSubmitting ? "var(--danger)" : "var(--danger-border)",
+                color: "var(--on-accent)",
                 fontSize: 13,
                 fontWeight: 600,
                 cursor: isDeleteValid && !isSubmitting ? "pointer" : "not-allowed",
@@ -378,8 +380,8 @@ export function DeleteConfirmationModal({
                     style={{
                       width: 13,
                       height: 13,
-                      border: "2px solid rgba(255,255,255,0.4)",
-                      borderTopColor: "#FFFFFF",
+                      border: "2px solid color-mix(in srgb, currentColor 35%, transparent)",
+                      borderTopColor: "currentColor",
                       borderRadius: "50%",
                       animation: "spin 0.6s linear infinite",
                       display: "inline-block",

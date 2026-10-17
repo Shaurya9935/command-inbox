@@ -121,14 +121,14 @@ export function Hero() {
       >
         <defs>
           <linearGradient id="signal-left-fade" x1="0" x2="1">
-            <stop offset="0" stopColor="#E0DCD0" stopOpacity=".5" />
-            <stop offset=".76" stopColor="#E0DCD0" stopOpacity=".35" />
-            <stop offset="1" stopColor="#E0DCD0" stopOpacity="0" />
+            <stop offset="0" stopColor="var(--border-hairline)" stopOpacity=".5" />
+            <stop offset=".76" stopColor="var(--border-hairline)" stopOpacity=".35" />
+            <stop offset="1" stopColor="var(--border-hairline)" stopOpacity="0" />
           </linearGradient>
           <linearGradient id="signal-right-fade" x1="1" x2="0">
-            <stop offset="0" stopColor="#E0DCD0" stopOpacity=".5" />
-            <stop offset=".76" stopColor="#E0DCD0" stopOpacity=".35" />
-            <stop offset="1" stopColor="#E0DCD0" stopOpacity="0" />
+            <stop offset="0" stopColor="var(--border-hairline)" stopOpacity=".5" />
+            <stop offset=".76" stopColor="var(--border-hairline)" stopOpacity=".35" />
+            <stop offset="1" stopColor="var(--border-hairline)" stopOpacity="0" />
           </linearGradient>
           <filter id="signal-dot-glow" x="-200%" y="-200%" width="500%" height="500%">
             <feGaussianBlur stdDeviation="3" result="blur" />
@@ -176,7 +176,7 @@ export function Hero() {
             {!reducedMotion && heroInView && (
               <circle
                 r="4"
-                fill="#5046B8"
+                fill="var(--accent-solid)"
                 fillOpacity=".45"
                 filter="url(#signal-dot-glow)"
               >

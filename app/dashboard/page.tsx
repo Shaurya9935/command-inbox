@@ -22,7 +22,7 @@ export default async function DashboardPage() {
           .join("")
           .slice(0, 2)
           .toUpperCase(),
-        color: "#5549C0",
+        color: "var(--brand-accent)",
       }
     : undefined;
 

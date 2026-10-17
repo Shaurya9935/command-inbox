@@ -11,7 +11,7 @@ export const CURRENT_USER: UserProfile = {
   name: "Shaurya G.",
   email: "shaurya@work.io",
   initials: "SG",
-  color: "#5549C0",
+  color: "var(--accent-text)",
 };
 
 export const EVENTS: CalendarEvent[] = [
@@ -48,22 +48,25 @@ export const EVENTS: CalendarEvent[] = [
 
 export const EVENT_COLORS: Record<EventType, EventColorSpec> = {
   focus: {
-    line: "#8BAE92",
-    dot: "#8BAE92",
-    text: "#3E7868",
-    bg: "#EEF4F0",
+    line: "var(--event-focus-bar)",
+    dot: "var(--event-focus-bar)",
+    text: "var(--event-focus-text)",
+    bg: "var(--event-focus-bg)",
+    border: "var(--event-focus-border)",
   },
   meeting: {
-    line: "#7B72D4",
-    dot: "#7B72D4",
-    text: "#5549C0",
-    bg: "#EDEAFB",
+    line: "var(--event-meeting-bar)",
+    dot: "var(--event-meeting-bar)",
+    text: "var(--event-meeting-text)",
+    bg: "var(--event-meeting-bg)",
+    border: "var(--event-meeting-border)",
   },
   personal: {
-    line: "#C5B49A",
-    dot: "#C5B49A",
-    text: "#7A6A50",
-    bg: "#F7F2EB",
+    line: "var(--event-personal-bar)",
+    dot: "var(--event-personal-bar)",
+    text: "var(--event-personal-text)",
+    bg: "var(--event-personal-bg)",
+    border: "var(--event-personal-border)",
   },
 };
 

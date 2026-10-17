@@ -2,12 +2,12 @@ import { GmailThread } from "@/hooks/use-gmail";
 import { Email } from "@/components/dashboard/types";
 
 export const PALETTE_COLORS = [
-  "#8B72BE",
-  "#5B8FAB",
-  "#B07D4E",
-  "#5549C0",
-  "#3E7868",
-  "#C5B49A",
+  "var(--avatar-1)",
+  "var(--avatar-2)",
+  "var(--avatar-3)",
+  "var(--avatar-4)",
+  "var(--avatar-5)",
+  "var(--avatar-6)",
 ];
 
 export function formatSenderName(fromRaw: string): string {

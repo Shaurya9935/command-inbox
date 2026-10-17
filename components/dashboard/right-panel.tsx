@@ -68,8 +68,8 @@ export function RightPanel({
       style={{
         width: 252,
         flexShrink: 0,
-        borderLeft: "1px solid #E8E4DC",
-        background: "#FDFCF9",
+        borderLeft: "1px solid var(--border-hairline)",
+        background: "var(--bg-panel)",
         display: "flex",
         flexDirection: "column",
         overflowY: "auto",
@@ -88,7 +88,7 @@ export function RightPanel({
             style={{
               fontSize: 13.5,
               fontWeight: 600,
-              color: "#1A1917",
+              color: "var(--text-primary)",
               letterSpacing: "-0.02em",
               fontFamily: "var(--font-ui, 'DM Sans', system-ui, sans-serif)",
             }}
@@ -100,7 +100,7 @@ export function RightPanel({
             onClick={onOpenCalendar}
             style={{
               fontSize: 11.5,
-              color: "#B8B3AB",
+              color: "var(--text-muted)",
               background: "none",
               border: "none",
               cursor: "pointer",
@@ -108,8 +108,8 @@ export function RightPanel({
               padding: 0,
               transition: "color 0.12s",
             }}
-            onMouseEnter={(e) => (e.currentTarget.style.color = "#5549C0")}
-            onMouseLeave={(e) => (e.currentTarget.style.color = "#B8B3AB")}
+            onMouseEnter={(e) => (e.currentTarget.style.color = "var(--accent-text)")}
+            onMouseLeave={(e) => (e.currentTarget.style.color = "var(--text-muted)")}
           >
             Open →
           </button>
@@ -117,7 +117,7 @@ export function RightPanel({
         <div
           style={{
             fontSize: 11.5,
-            color: "#B8B3AB",
+            color: "var(--text-muted)",
             fontFamily: "var(--font-mono, 'JetBrains Mono', monospace)",
             marginTop: 2,
           }}
@@ -145,12 +145,12 @@ export function RightPanel({
               width: 40,
               height: 40,
               borderRadius: 11,
-              background: "#F2EFE9",
-              border: "1px solid #E8E4DC",
+              background: "var(--surface-raised)",
+              border: "1px solid var(--border-hairline)",
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
-              color: "#5046B8",
+              color: "var(--accent-solid)",
             }}
           >
             <CalendarIcon size={20} />
@@ -159,7 +159,7 @@ export function RightPanel({
             style={{
               fontSize: 13,
               fontWeight: 600,
-              color: "#1A1917",
+              color: "var(--text-primary)",
               fontFamily: "var(--font-ui, 'DM Sans', system-ui, sans-serif)",
             }}
           >
@@ -168,7 +168,7 @@ export function RightPanel({
           <div
             style={{
               fontSize: 11.5,
-              color: "#9B9691",
+              color: "var(--text-muted)",
               lineHeight: 1.45,
               fontFamily: "var(--font-body, 'Inter', system-ui, sans-serif)",
               maxWidth: 190,
@@ -186,22 +186,22 @@ export function RightPanel({
               gap: 6,
               padding: "7px 14px",
               borderRadius: 8,
-              background: "#5046B8",
-              color: "#FFFFFF",
+              background: "var(--accent-solid)",
+              color: "var(--on-accent)",
               fontSize: 11.5,
               fontWeight: 600,
               border: "none",
               cursor: "pointer",
               fontFamily: "var(--font-ui, 'DM Sans', system-ui, sans-serif)",
-              boxShadow: "0 1px 3px rgba(80, 70, 184, 0.25)",
+              boxShadow: "0 1px 3px var(--shadow-color)",
               transition: "background 0.15s, transform 0.1s",
             }}
             onMouseEnter={(e) => {
-              e.currentTarget.style.background = "#4339A6";
+              e.currentTarget.style.background = "var(--accent-hover)";
               e.currentTarget.style.transform = "translateY(-1px)";
             }}
             onMouseLeave={(e) => {
-              e.currentTarget.style.background = "#5046B8";
+              e.currentTarget.style.background = "var(--accent-solid)";
               e.currentTarget.style.transform = "translateY(0)";
             }}
           >
@@ -213,7 +213,7 @@ export function RightPanel({
           style={{
             padding: "24px 20px",
             fontSize: 12,
-            color: "#B8B3AB",
+            color: "var(--text-muted)",
             textAlign: "center",
             fontFamily: "var(--font-ui, 'DM Sans', system-ui, sans-serif)",
           }}
@@ -239,11 +239,11 @@ export function RightPanel({
               width: 38,
               height: 38,
               borderRadius: 10,
-              background: "#F2EFE9",
+              background: "var(--hover)",
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
-              color: "#9B9691",
+              color: "var(--text-muted)",
             }}
           >
             <CalendarIcon size={18} />
@@ -252,7 +252,7 @@ export function RightPanel({
             style={{
               fontSize: 13,
               fontWeight: 600,
-              color: "#1A1917",
+              color: "var(--text-primary)",
               fontFamily: "var(--font-ui, 'DM Sans', system-ui, sans-serif)",
             }}
           >
@@ -261,7 +261,7 @@ export function RightPanel({
           <div
             style={{
               fontSize: 11.5,
-              color: "#9B9691",
+              color: "var(--text-muted)",
               lineHeight: 1.4,
               fontFamily: "var(--font-body, 'Inter', system-ui, sans-serif)",
             }}
@@ -279,8 +279,8 @@ export function RightPanel({
                   position: "relative",
                   overflow: "hidden",
                   borderRadius: 11,
-                  background: "linear-gradient(145deg, #EDEAFB 0%, #F5EFE8 100%)",
-                  border: "1px solid #D8D5F0",
+                  background: "var(--next-up-bg)",
+                  border: "1px solid var(--next-up-border)",
                   padding: "16px 18px",
                 }}
               >
@@ -293,7 +293,7 @@ export function RightPanel({
                     width: 80,
                     height: 80,
                     borderRadius: "50%",
-                    background: "rgba(85,73,192,0.08)",
+                    background: "var(--accent-tint)",
                     pointerEvents: "none",
                   }}
                 />
@@ -303,7 +303,7 @@ export function RightPanel({
                     fontSize: 9.5,
                     fontWeight: 600,
                     letterSpacing: "0.1em",
-                    color: "#9B9691",
+                    color: "var(--accent-text)",
                     textTransform: "uppercase",
                     marginBottom: 10,
                     fontFamily: "var(--font-ui, 'DM Sans', system-ui, sans-serif)",
@@ -315,7 +315,7 @@ export function RightPanel({
                   style={{
                     fontSize: 22,
                     fontWeight: 700,
-                    color: "#1A1917",
+                    color: "var(--text-primary)",
                     letterSpacing: "-0.045em",
                     fontFamily: "var(--font-ui, 'DM Sans', system-ui, sans-serif)",
                     lineHeight: 1,
@@ -327,7 +327,7 @@ export function RightPanel({
                   style={{
                     fontSize: 14,
                     fontWeight: 600,
-                    color: "#1A1917",
+                    color: "var(--text-primary)",
                     margin: "5px 0 2px",
                     fontFamily: "var(--font-ui, 'DM Sans', system-ui, sans-serif)",
                   }}
@@ -338,7 +338,7 @@ export function RightPanel({
                   <div
                     style={{
                       fontSize: 12,
-                      color: "#7B72D4",
+                      color: "var(--accent-text)",
                       fontFamily: "var(--font-body, 'Inter', system-ui, sans-serif)",
                       marginBottom: 2,
                     }}
@@ -349,7 +349,7 @@ export function RightPanel({
                 <div
                   style={{
                     fontSize: 11.5,
-                    color: "#9B9691",
+                    color: "var(--text-muted)",
                     fontFamily: "var(--font-body, 'Inter', system-ui, sans-serif)",
                     marginBottom: 14,
                   }}
@@ -365,21 +365,20 @@ export function RightPanel({
                   style={{
                     fontSize: 12,
                     fontWeight: 500,
-                    color: "#5549C0",
-                    background: "rgba(255,255,255,0.6)",
-                    border: "1px solid rgba(85,73,192,0.18)",
+                    color: "var(--accent-text)",
+                    background: "var(--surface-card)",
+                    border: "1px solid var(--border-hairline)",
                     borderRadius: 7,
                     padding: "5px 12px",
                     cursor: "pointer",
                     fontFamily: "var(--font-ui, 'DM Sans', system-ui, sans-serif)",
-                    backdropFilter: "blur(4px)",
                     transition: "background 0.15s",
                   }}
                   onMouseEnter={(e) =>
-                    (e.currentTarget.style.background = "rgba(255,255,255,0.9)")
+                    (e.currentTarget.style.background = "var(--hover)")
                   }
                   onMouseLeave={(e) =>
-                    (e.currentTarget.style.background = "rgba(255,255,255,0.6)")
+                    (e.currentTarget.style.background = "var(--surface-card)")
                   }
                 >
                   Open event
@@ -392,7 +391,7 @@ export function RightPanel({
           <div
             style={{
               height: 1,
-              background: "#EDEAE4",
+              background: "var(--border-hairline)",
               margin: "0 16px 20px",
             }}
           />
@@ -417,7 +416,7 @@ export function RightPanel({
                       style={{
                         fontSize: 10.5,
                         fontFamily: "var(--font-mono, 'JetBrains Mono', monospace)",
-                        color: ev.isNext ? "#5549C0" : "#C0BCB5",
+                        color: ev.isNext ? "var(--accent-text)" : "var(--text-disabled)",
                         fontWeight: ev.isNext ? 600 : 400,
                       }}
                     >
@@ -430,7 +429,7 @@ export function RightPanel({
                       style={{
                         width: 2.5,
                         borderRadius: 4,
-                        background: ev.isNext ? c.line : "#E4E0D8",
+                        background: ev.isNext ? c.line : "var(--border-hairline)",
                         flexShrink: 0,
                         minHeight: 36,
                         alignSelf: "stretch",
@@ -441,7 +440,7 @@ export function RightPanel({
                         style={{
                           fontSize: 12.5,
                           fontWeight: ev.isNext ? 600 : 400,
-                          color: ev.isNext ? c.text : "#3D3C3A",
+                          color: ev.isNext ? c.text : "var(--text-secondary)",
                           fontFamily: "var(--font-ui, 'DM Sans', system-ui, sans-serif)",
                         }}
                       >
@@ -451,7 +450,7 @@ export function RightPanel({
                         <div
                           style={{
                             fontSize: 11,
-                            color: "#B8B3AB",
+                            color: "var(--text-muted)",
                             fontFamily: "var(--font-body, 'Inter', system-ui, sans-serif)",
                             marginTop: 2,
                           }}

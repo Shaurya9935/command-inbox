@@ -37,8 +37,8 @@ export function CalendarHeader({
         alignItems: "center",
         gap: 10,
         padding: "12px 20px",
-        borderBottom: "1px solid #EDEAE4",
-        background: "#FDFCF8",
+        borderBottom: "1px solid var(--border-hairline)",
+        background: "var(--surface-card)",
         flexShrink: 0,
       }}
     >
@@ -51,17 +51,17 @@ export function CalendarHeader({
           width: 28,
           height: 28,
           borderRadius: 7,
-          border: "1px solid #E4E0D8",
+          border: "1px solid var(--border-hairline)",
           background: "transparent",
           cursor: "pointer",
           fontSize: 16,
-          color: "#7B7775",
+          color: "var(--text-secondary)",
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
           transition: "background 0.12s",
         }}
-        onMouseEnter={(e) => (e.currentTarget.style.background = "#F0EDE7")}
+        onMouseEnter={(e) => (e.currentTarget.style.background = "var(--hover)")}
         onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
       >
         ‹
@@ -75,17 +75,17 @@ export function CalendarHeader({
           width: 28,
           height: 28,
           borderRadius: 7,
-          border: "1px solid #E4E0D8",
+          border: "1px solid var(--border-hairline)",
           background: "transparent",
           cursor: "pointer",
           fontSize: 16,
-          color: "#7B7775",
+          color: "var(--text-secondary)",
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
           transition: "background 0.12s",
         }}
-        onMouseEnter={(e) => (e.currentTarget.style.background = "#F0EDE7")}
+        onMouseEnter={(e) => (e.currentTarget.style.background = "var(--hover)")}
         onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
       >
         ›
@@ -96,7 +96,7 @@ export function CalendarHeader({
         style={{
           fontSize: 14,
           fontWeight: 600,
-          color: "#1A1917",
+          color: "var(--text-primary)",
           letterSpacing: "-0.025em",
           minWidth: 180,
           fontFamily: "var(--font-ui, 'DM Sans', system-ui, sans-serif)",
@@ -112,17 +112,17 @@ export function CalendarHeader({
         style={{
           fontSize: 12,
           fontWeight: 500,
-          color: "#5549C0",
-          background: "#EAE8F8",
-          border: "1px solid #D4D0F0",
+          color: "var(--accent-text)",
+          background: "var(--accent-tint)",
+          border: "1px solid var(--accent-border)",
           borderRadius: 7,
           padding: "4px 11px",
           cursor: "pointer",
           fontFamily: "var(--font-ui, 'DM Sans', system-ui, sans-serif)",
           transition: "background 0.12s",
         }}
-        onMouseEnter={(e) => (e.currentTarget.style.background = "#DDD9F5")}
-        onMouseLeave={(e) => (e.currentTarget.style.background = "#EAE8F8")}
+        onMouseEnter={(e) => (e.currentTarget.style.background = "var(--accent-tint-hover)")}
+        onMouseLeave={(e) => (e.currentTarget.style.background = "var(--accent-tint)")}
       >
         Today
       </button>
@@ -134,7 +134,7 @@ export function CalendarHeader({
         style={{
           display: "flex",
           gap: 1,
-          background: "#F0EDE7",
+          background: "var(--surface-raised)",
           borderRadius: 8,
           padding: 3,
         }}
@@ -148,13 +148,13 @@ export function CalendarHeader({
               fontSize: 12,
               fontWeight: 500,
               fontFamily: "var(--font-ui, 'DM Sans', system-ui, sans-serif)",
-              color: calView === v ? "#5549C0" : "#7B7775",
-              background: calView === v ? "#FFFFFF" : "transparent",
+              color: calView === v ? "var(--accent-text)" : "var(--text-secondary)",
+              background: calView === v ? "var(--surface-card)" : "transparent",
               border: "none",
               borderRadius: 5,
               padding: "4px 11px",
               cursor: "pointer",
-              boxShadow: calView === v ? "0 1px 3px rgba(0,0,0,0.07)" : "none",
+              boxShadow: calView === v ? "0 1px 3px var(--shadow-color)" : "none",
               transition: "all 0.12s",
               textTransform: "capitalize",
             }}
@@ -174,8 +174,8 @@ export function CalendarHeader({
           gap: 5,
           fontSize: 12.5,
           fontWeight: 500,
-          color: "#FFF",
-          background: "#5549C0",
+          color: "var(--on-accent)",
+          background: "var(--accent-solid)",
           border: "none",
           borderRadius: 8,
           padding: "7px 14px",

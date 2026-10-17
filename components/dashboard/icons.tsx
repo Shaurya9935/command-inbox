@@ -3,7 +3,7 @@ import React from "react";
 export function LogoIcon({ className = "", size = 13 }: { className?: string; size?: number }) {
   return (
     <svg width={size} height={size} viewBox="0 0 14 14" fill="none" className={className}>
-      <path d="M2 2l10 5-10 5V9l6-2-6-2V2z" fill="white" />
+      <path d="M2 2l10 5-10 5V9l6-2-6-2V2z" fill="currentColor" />
     </svg>
   );
 }

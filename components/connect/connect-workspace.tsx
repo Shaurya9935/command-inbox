@@ -310,7 +310,7 @@ export function ConnectWorkspace({
         flexDirection: "column",
         height: "100%",
         overflowY: "auto",
-        background: "#FDFCF8",
+        background: "var(--bg-main)",
         fontFamily: "var(--font-ui, 'DM Sans', system-ui, sans-serif)",
       }}
     >
@@ -318,8 +318,8 @@ export function ConnectWorkspace({
       <div
         style={{
           padding: "32px 36px 24px",
-          borderBottom: "1px solid #EAE6DF",
-          background: "linear-gradient(180deg, #FFFFFF 0%, #FAF8F4 100%)",
+          borderBottom: "1px solid var(--border-subtle)",
+          background: "linear-gradient(180deg, var(--bg-card) 0%, var(--bg-main) 100%)",
         }}
       >
         <div
@@ -350,8 +350,8 @@ export function ConnectWorkspace({
                     gap: 6,
                     fontSize: 12,
                     fontWeight: 600,
-                    color: "#5549C0",
-                    background: "#EEEDF9",
+                    color: "var(--brand-accent)",
+                    background: "var(--brand-accent-subtle)",
                     padding: "3px 10px",
                     borderRadius: 20,
                     letterSpacing: "0.02em",
@@ -366,14 +366,14 @@ export function ConnectWorkspace({
                   </svg>
                   App Connections
                 </span>
-                <span style={{ fontSize: 12, color: "#8E8880" }}>• Unified Workspace</span>
+                <span style={{ fontSize: 12, color: "var(--text-muted)" }}>• Unified Workspace</span>
               </div>
               <h1
                 style={{
                   margin: 0,
                   fontSize: 26,
                   fontWeight: 700,
-                  color: "#1A1917",
+                  color: "var(--text-primary)",
                   letterSpacing: "-0.02em",
                 }}
               >
@@ -383,7 +383,7 @@ export function ConnectWorkspace({
                 style={{
                   margin: "6px 0 0",
                   fontSize: 13.5,
-                  color: "#6B655D",
+                  color: "var(--text-secondary)",
                   maxWidth: 680,
                   lineHeight: 1.5,
                 }}
@@ -399,11 +399,11 @@ export function ConnectWorkspace({
                 display: "flex",
                 alignItems: "center",
                 gap: 12,
-                background: "#FFFFFF",
+                background: "var(--bg-card)",
                 padding: "8px 14px",
                 borderRadius: 12,
-                border: "1px solid #E5E0D8",
-                boxShadow: "0 2px 6px rgba(0,0,0,0.03)",
+                border: "1px solid var(--border-subtle)",
+                boxShadow: "var(--shadow-sm)",
               }}
             >
               <div style={{ display: "flex", alignItems: "center", gap: 7 }}>
@@ -412,16 +412,16 @@ export function ConnectWorkspace({
                     width: 8,
                     height: 8,
                     borderRadius: "50%",
-                    background: "#16A34A",
-                    boxShadow: "0 0 0 2px rgba(22, 163, 74, 0.2)",
+                    background: "var(--status-success-text)",
+                    boxShadow: "0 0 0 2px var(--status-success-border)",
                   }}
                 />
-                <span style={{ fontSize: 13, fontWeight: 600, color: "#1A1917" }}>
+                <span style={{ fontSize: 13, fontWeight: 600, color: "var(--text-primary)" }}>
                   {connectedCount} Connected
                 </span>
               </div>
-              <span style={{ color: "#D1CBC1" }}>|</span>
-              <span style={{ fontSize: 12.5, color: "#6B655D" }}>
+              <span style={{ color: "var(--border-subtle)" }}>|</span>
+              <span style={{ fontSize: 12.5, color: "var(--text-secondary)" }}>
                 {totalCount} Total Available
               </span>
               <button
@@ -429,12 +429,12 @@ export function ConnectWorkspace({
                 title="Refresh all integration statuses"
                 style={{
                   background: "transparent",
-                  border: "1px solid #E5E0D8",
+                  border: "1px solid var(--border-subtle)",
                   borderRadius: 6,
                   padding: "4px 8px",
                   fontSize: 11.5,
                   fontWeight: 500,
-                  color: "#4A4642",
+                  color: "var(--text-secondary)",
                   cursor: "pointer",
                   display: "flex",
                   alignItems: "center",
@@ -468,7 +468,7 @@ export function ConnectWorkspace({
                 display: "flex",
                 alignItems: "center",
                 gap: 4,
-                background: "#EFECE6",
+                background: "var(--bg-inset)",
                 padding: "3px",
                 borderRadius: 9,
               }}
@@ -489,12 +489,12 @@ export function ConnectWorkspace({
                       padding: "6px 13px",
                       borderRadius: 7,
                       border: "none",
-                      background: isActive ? "#FFFFFF" : "transparent",
-                      color: isActive ? "#1A1917" : "#6E6860",
+                      background: isActive ? "var(--bg-card)" : "transparent",
+                      color: isActive ? "var(--text-primary)" : "var(--text-secondary)",
                       fontWeight: isActive ? 600 : 500,
                       fontSize: 12.5,
                       cursor: "pointer",
-                      boxShadow: isActive ? "0 1px 3px rgba(0,0,0,0.06)" : "none",
+                      boxShadow: isActive ? "var(--shadow-sm)" : "none",
                       transition: "all 0.12s",
                     }}
                   >
@@ -512,7 +512,7 @@ export function ConnectWorkspace({
                   display: "flex",
                   alignItems: "center",
                   gap: 4,
-                  background: "#EFECE6",
+                  background: "var(--bg-inset)",
                   padding: "3px",
                   borderRadius: 9,
                 }}
@@ -531,12 +531,12 @@ export function ConnectWorkspace({
                         padding: "6px 11px",
                         borderRadius: 7,
                         border: "none",
-                        background: isSel ? "#FFFFFF" : "transparent",
-                        color: isSel ? "#1A1917" : "#6E6860",
+                        background: isSel ? "var(--bg-card)" : "transparent",
+                        color: isSel ? "var(--text-primary)" : "var(--text-secondary)",
                         fontWeight: isSel ? 600 : 500,
                         fontSize: 12,
                         cursor: "pointer",
-                        boxShadow: isSel ? "0 1px 3px rgba(0,0,0,0.06)" : "none",
+                        boxShadow: isSel ? "var(--shadow-sm)" : "none",
                         transition: "all 0.12s",
                       }}
                     >
@@ -563,7 +563,7 @@ export function ConnectWorkspace({
                     left: 10,
                     top: "50%",
                     transform: "translateY(-50%)",
-                    color: "#9E9890",
+                    color: "var(--text-muted)",
                   }}
                 >
                   <circle cx="7" cy="7" r="5" stroke="currentColor" strokeWidth="1.3" />
@@ -578,8 +578,9 @@ export function ConnectWorkspace({
                     width: "100%",
                     padding: "7px 10px 7px 32px",
                     borderRadius: 8,
-                    border: "1px solid #DED8CE",
-                    background: "#FFFFFF",
+                    border: "1px solid var(--border-subtle)",
+                    background: "var(--bg-card)",
+                    color: "var(--text-primary)",
                     fontSize: 12.5,
                     outline: "none",
                     fontFamily: "inherit",
@@ -596,7 +597,7 @@ export function ConnectWorkspace({
                       transform: "translateY(-50%)",
                       background: "transparent",
                       border: "none",
-                      color: "#9E9890",
+                      color: "var(--text-muted)",
                       cursor: "pointer",
                       padding: 2,
                       fontSize: 11,
@@ -646,8 +647,8 @@ export function ConnectWorkspace({
             style={{
               textAlign: "center",
               padding: "60px 20px",
-              background: "#FFFFFF",
-              border: "1px dashed #E5E0D8",
+              background: "var(--bg-card)",
+              border: "1px dashed var(--border-subtle)",
               borderRadius: 14,
             }}
           >
@@ -656,11 +657,11 @@ export function ConnectWorkspace({
                 width: 44,
                 height: 44,
                 borderRadius: "50%",
-                background: "#F5F2EB",
+                background: "var(--bg-inset)",
                 display: "inline-flex",
                 alignItems: "center",
                 justifyContent: "center",
-                color: "#858079",
+                color: "var(--text-muted)",
                 marginBottom: 12,
               }}
             >
@@ -669,10 +670,10 @@ export function ConnectWorkspace({
                 <path d="M21 21l-4.35-4.35" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
               </svg>
             </div>
-            <h3 style={{ margin: "0 0 6px", fontSize: 16, fontWeight: 600, color: "#1A1917" }}>
+            <h3 style={{ margin: "0 0 6px", fontSize: 16, fontWeight: 600, color: "var(--text-primary)" }}>
               No integrations match your filter
             </h3>
-            <p style={{ margin: "0 0 16px", fontSize: 13, color: "#78716C" }}>
+            <p style={{ margin: "0 0 16px", fontSize: 13, color: "var(--text-tertiary)" }}>
               Try searching with different keywords or resetting category filters.
             </p>
             <button
@@ -684,11 +685,11 @@ export function ConnectWorkspace({
               style={{
                 padding: "8px 16px",
                 borderRadius: 8,
-                border: "1px solid #D6D3CD",
-                background: "#FFFFFF",
+                border: "1px solid var(--border-subtle)",
+                background: "var(--bg-card)",
                 fontSize: 12.5,
                 fontWeight: 500,
-                color: "#1A1917",
+                color: "var(--text-primary)",
                 cursor: "pointer",
               }}
             >
@@ -726,11 +727,11 @@ export function ConnectWorkspace({
             bottom: 28,
             right: 28,
             zIndex: 200,
-            background: toast.type === "error" ? "#EF4444" : toast.type === "info" ? "#3B82F6" : "#1A1917",
-            color: "#FFFFFF",
+            background: toast.type === "error" ? "var(--status-error-text)" : toast.type === "info" ? "var(--status-info-text)" : "var(--bg-elevated)",
+            color: "var(--text-inverse)",
             padding: "11px 18px",
             borderRadius: 10,
-            boxShadow: "0 10px 25px rgba(0,0,0,0.18)",
+            boxShadow: "var(--shadow-lg)",
             display: "flex",
             alignItems: "center",
             gap: 9,
@@ -741,7 +742,7 @@ export function ConnectWorkspace({
         >
           {toast.type === "success" && (
             <svg width={15} height={15} viewBox="0 0 16 16" fill="none">
-              <path d="M3 8.5l3.5 3.5 6.5-7" stroke="#4ADE80" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+              <path d="M3 8.5l3.5 3.5 6.5-7" stroke="var(--status-success-text)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
             </svg>
           )}
           <span>{toast.message}</span>

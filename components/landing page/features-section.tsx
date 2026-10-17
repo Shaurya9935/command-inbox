@@ -45,7 +45,7 @@ export function MiniCalendar() {
 export function MiniCommand() {
   return (
     <div className="flex h-full items-center justify-center">
-      <div className="w-full rounded-xl border border-accent/20 bg-white p-3 shadow-[0_10px_30px_rgba(80,70,184,.08)]">
+      <div className="w-full rounded-xl border border-accent/20 bg-white p-3 shadow-[0_10px_30px_var(--accent-tint)]">
         <p className="mono-label mb-3">⌘ K · ASK NEXUS</p>
         <p className="text-[11px]">
           What needs my attention today?
@@ -79,7 +79,7 @@ export function FeatureCard({
       viewport={{ once: true, margin: "-10%" }}
       className="feature-card"
     >
-      <div className="mb-7 h-48 overflow-hidden rounded-xl border border-line bg-[#F8F7F4] p-4">
+      <div className="mb-7 h-48 overflow-hidden rounded-xl border border-line bg-[var(--surface-raised)] p-4">
         {children}
       </div>
       <p className="mono-kicker">0{Number(index) + 1}</p>

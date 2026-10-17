@@ -26,7 +26,7 @@ export function SecurityBand() {
                   i > 1 ? "border-t" : ""
                 } ${i % 2 ? "sm:border-l sm:pl-6" : "sm:pr-6"}`}
               >
-                <span className="mb-3 block font-mono text-[10px] text-[#958CE5]">
+                <span className="mb-3 block font-mono text-[10px] text-[var(--accent-text)]">
                   0{i + 1}
                 </span>
                 {point}

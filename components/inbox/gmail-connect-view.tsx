@@ -57,7 +57,7 @@ export function GmailConnectView({
         alignItems: "center",
         justifyContent: "center",
         padding: "48px 24px",
-        background: "#F5F2EC",
+        background: "var(--bg-page)",
         minHeight: "100%",
         fontFamily: "var(--font-ui, 'DM Sans', system-ui, sans-serif)",
         ...style,
@@ -67,11 +67,11 @@ export function GmailConnectView({
         style={{
           width: "100%",
           maxWidth: 440,
-          background: "#FFFFFF",
-          border: "1px solid #E8E4DC",
+          background: "var(--surface-card)",
+          border: "1px solid var(--border-hairline)",
           borderRadius: 20,
           padding: "36px 36px 32px",
-          boxShadow: "0 16px 40px -8px rgba(0, 0, 0, 0.06), 0 2px 6px rgba(0, 0, 0, 0.02)",
+          boxShadow: "0 16px 40px -8px var(--shadow-color), 0 2px 6px var(--shadow-color)",
           display: "flex",
           flexDirection: "column",
           alignItems: "center",
@@ -85,9 +85,9 @@ export function GmailConnectView({
             width: 68,
             height: 68,
             borderRadius: 18,
-            background: "#FEF2F2",
-            border: "1px solid rgba(252, 165, 165, 0.4)",
-            boxShadow: "0 8px 24px rgba(234, 67, 53, 0.12)",
+            background: "var(--danger-tint)",
+            border: "1px solid var(--danger-border)",
+            boxShadow: "0 8px 24px var(--shadow-color)",
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
@@ -102,7 +102,7 @@ export function GmailConnectView({
           style={{
             fontSize: 20,
             fontWeight: 600,
-            color: "#1A1917",
+            color: "var(--text-primary)",
             letterSpacing: "-0.025em",
             margin: "0 0 8px",
           }}
@@ -113,7 +113,7 @@ export function GmailConnectView({
         <p
           style={{
             fontSize: 13.5,
-            color: "#78716C",
+            color: "var(--text-secondary)",
             lineHeight: 1.55,
             margin: "0 0 22px",
             maxWidth: 360,
@@ -126,8 +126,8 @@ export function GmailConnectView({
         <div
           style={{
             width: "100%",
-            background: "#FAF8F4",
-            border: "1px solid #EDE8E0",
+            background: "var(--surface-raised)",
+            border: "1px solid var(--border-hairline)",
             borderRadius: 12,
             padding: "14px 16px",
             marginBottom: 24,
@@ -143,8 +143,8 @@ export function GmailConnectView({
                 width: 18,
                 height: 18,
                 borderRadius: "50%",
-                background: "#EAE8F8",
-                color: "#5549C0",
+                background: "var(--accent-tint)",
+                color: "var(--accent-text)",
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
@@ -155,7 +155,7 @@ export function GmailConnectView({
                 <path d="M2.5 6L5 8.5L9.5 3.5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
               </svg>
             </span>
-            <span style={{ fontSize: 12.5, color: "#44403C" }}>
+            <span style={{ fontSize: 12.5, color: "var(--text-primary)" }}>
               Two-way thread syncing with Inbox &amp; Sent
             </span>
           </div>
@@ -166,8 +166,8 @@ export function GmailConnectView({
                 width: 18,
                 height: 18,
                 borderRadius: "50%",
-                background: "#EAE8F8",
-                color: "#5549C0",
+                background: "var(--accent-tint)",
+                color: "var(--accent-text)",
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
@@ -178,7 +178,7 @@ export function GmailConnectView({
                 <path d="M2.5 6L5 8.5L9.5 3.5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
               </svg>
             </span>
-            <span style={{ fontSize: 12.5, color: "#44403C" }}>
+            <span style={{ fontSize: 12.5, color: "var(--text-primary)" }}>
               Organize with Starred, Drafts &amp; Gmail labels
             </span>
           </div>
@@ -189,8 +189,8 @@ export function GmailConnectView({
                 width: 18,
                 height: 18,
                 borderRadius: "50%",
-                background: "#EAE8F8",
-                color: "#5549C0",
+                background: "var(--accent-tint)",
+                color: "var(--accent-text)",
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
@@ -201,7 +201,7 @@ export function GmailConnectView({
                 <path d="M2.5 6L5 8.5L9.5 3.5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
               </svg>
             </span>
-            <span style={{ fontSize: 12.5, color: "#44403C" }}>
+            <span style={{ fontSize: 12.5, color: "var(--text-primary)" }}>
               AI summaries, smart search &amp; draft replies
             </span>
           </div>
@@ -212,10 +212,10 @@ export function GmailConnectView({
             style={{
               width: "100%",
               padding: "8px 12px",
-              background: "#FEF2F2",
-              border: "1px solid #FCA5A5",
+              background: "var(--danger-tint)",
+              border: "1px solid var(--danger-border)",
               borderRadius: 8,
-              color: "#DC2626",
+              color: "var(--danger)",
               fontSize: 12,
               marginBottom: 16,
             }}
@@ -236,14 +236,14 @@ export function GmailConnectView({
             justifyContent: "center",
             gap: 10,
             padding: "12px 24px",
-            background: isConnecting ? "#7B6ED8" : "#5046B8",
-            color: "#FFFFFF",
+            background: isConnecting ? "var(--accent-tint-hover)" : "var(--accent-solid)",
+            color: "var(--on-accent)",
             border: "none",
             borderRadius: 10,
             fontSize: 14,
             fontWeight: 600,
             cursor: isConnecting ? "default" : "pointer",
-            boxShadow: "0 4px 14px rgba(80, 70, 184, 0.28)",
+            boxShadow: "0 4px 14px var(--shadow-color)",
             transition: "background 0.15s, transform 0.1s",
           }}
           onMouseDown={(e) => {
@@ -253,10 +253,10 @@ export function GmailConnectView({
             e.currentTarget.style.transform = "scale(1)";
           }}
           onMouseEnter={(e) => {
-            if (!isConnecting) e.currentTarget.style.background = "#433A9D";
+            if (!isConnecting) e.currentTarget.style.background = "var(--accent-hover)";
           }}
           onMouseLeave={(e) => {
-            if (!isConnecting) e.currentTarget.style.background = "#5046B8";
+            if (!isConnecting) e.currentTarget.style.background = "var(--accent-solid)";
           }}
         >
           {isConnecting ? (
@@ -269,8 +269,8 @@ export function GmailConnectView({
                 style={{ animation: "spin 0.8s linear infinite" }}
               >
                 <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
-                <circle cx="8" cy="8" r="6" stroke="rgba(255,255,255,0.35)" strokeWidth="2" />
-                <path d="M8 2a6 6 0 016 6" stroke="white" strokeWidth="2" strokeLinecap="round" />
+                <circle cx="8" cy="8" r="6" stroke="currentColor" strokeOpacity={0.35} strokeWidth="2" />
+                <path d="M8 2a6 6 0 016 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
               </svg>
               <span>Connecting to Google…</span>
             </>
@@ -290,7 +290,7 @@ export function GmailConnectView({
             alignItems: "center",
             gap: 6,
             fontSize: 11.5,
-            color: "#A8A29E",
+            color: "var(--text-muted)",
           }}
         >
           <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">

@@ -277,7 +277,7 @@ export function CalendarWorkspace({ initialEvents = [] }: CalendarWorkspaceProps
         flexDirection: "column",
         overflow: "hidden",
         position: "relative",
-        background: "#FDFCF8",
+        background: "var(--bg-workspace)",
         animation: "fadeSlideIn 0.2s ease",
       }}
     >

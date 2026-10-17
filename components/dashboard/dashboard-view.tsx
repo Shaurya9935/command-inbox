@@ -24,7 +24,14 @@ export interface DashboardViewProps {
   connections?: ServiceConnection[];
 }
 
-const PALETTE_COLORS = ["#8B72BE", "#5B8FAB", "#B07D4E", "#5549C0", "#3E7868", "#C5B49A"];
+const PALETTE_COLORS = [
+  "var(--avatar-1)",
+  "var(--avatar-2)",
+  "var(--avatar-3)",
+  "var(--avatar-4)",
+  "var(--avatar-5)",
+  "var(--avatar-6)",
+];
 
 function formatSenderName(fromRaw: string): string {
   if (!fromRaw) return "Unknown sender";
@@ -251,7 +258,7 @@ export function DashboardView({
         display: "flex",
         height: "100vh",
         width: "100%",
-        background: "#F5F2EC",
+        background: "var(--bg-page)",
         fontFamily: "var(--font-ui, 'DM Sans', system-ui, sans-serif)",
         overflow: "hidden",
       }}
@@ -273,7 +280,7 @@ export function DashboardView({
           display: "flex",
           flexDirection: "column",
           overflow: "hidden",
-          background: "#F7F4EE",
+          background: "var(--bg-workspace)",
           minWidth: 0,
         }}
       >

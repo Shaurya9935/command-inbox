@@ -87,17 +87,17 @@ export function LoginForm() {
       {/* Logo */}
       <div className="flex items-center gap-2 mb-8">
         <CommandInboxIcon size={26} />
-        <span className="text-[16px] font-semibold tracking-[-0.3px] text-[#242424]">
+        <span className="text-[16px] font-semibold tracking-[-0.3px] text-[var(--text-primary)]">
           Nexus
         </span>
       </div>
 
       {/* Heading */}
       <div className="mb-6">
-        <h1 className="text-[21px] font-semibold tracking-[-0.4px] text-[#242424] mb-1.5">
+        <h1 className="text-[21px] font-semibold tracking-[-0.4px] text-[var(--text-primary)] mb-1.5">
           Welcome back
         </h1>
-        <p className="text-[13.5px] text-[#77736D] leading-snug">
+        <p className="text-[13.5px] text-[var(--text-secondary)] leading-snug">
           Enter your credentials to access your workspace.
         </p>
       </div>
@@ -106,7 +106,7 @@ export function LoginForm() {
       {formError && (
         <div
           role="alert"
-          className="mb-4 p-2.5 rounded-[7px] bg-[#FEF2F2] border border-[#FCA5A5] flex items-center gap-2 text-[12px] font-medium text-[#B91C1C]"
+          className="mb-4 p-2.5 rounded-[7px] bg-[var(--status-error-bg)] border border-[var(--status-error-border)] flex items-center gap-2 text-[12px] font-medium text-[var(--status-error-text)]"
         >
           <AlertIcon />
           <span>{formError}</span>
@@ -142,17 +142,17 @@ export function LoginForm() {
           disabled={loading || googleLoading}
           className={[
             "w-full h-9 mt-0.5 rounded-[7px] text-[13.5px] font-semibold transition-all duration-150",
-            "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#245C4A] focus-visible:ring-offset-2",
+            "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--brand-accent)] focus-visible:ring-offset-2",
             loading || googleLoading
-              ? "cursor-not-allowed text-white"
-              : "active:scale-[0.99] text-white cursor-pointer",
+              ? "cursor-not-allowed text-[var(--text-inverse)]"
+              : "active:scale-[0.99] text-[var(--text-inverse)] cursor-pointer",
           ].join(" ")}
-          style={{ background: loading ? "#3D7A63" : "#245C4A" }}
+          style={{ background: loading ? "var(--brand-accent-hover)" : "var(--brand-accent)" }}
           onMouseEnter={(e) => {
-            if (!loading && !googleLoading) e.currentTarget.style.background = "#1B493A";
+            if (!loading && !googleLoading) e.currentTarget.style.background = "var(--brand-accent-hover)";
           }}
           onMouseLeave={(e) => {
-            if (!loading && !googleLoading) e.currentTarget.style.background = "#245C4A";
+            if (!loading && !googleLoading) e.currentTarget.style.background = "var(--brand-accent)";
           }}
           aria-label={loading ? "Logging in…" : "Log in"}
         >
@@ -170,13 +170,13 @@ export function LoginForm() {
                   cx="7"
                   cy="7"
                   r="5.5"
-                  stroke="white"
+                  stroke="currentColor"
                   strokeWidth="2"
                   strokeOpacity="0.3"
                 />
                 <path
                   d="M7 1.5a5.5 5.5 0 015.5 5.5"
-                  stroke="white"
+                  stroke="currentColor"
                   strokeWidth="2"
                   strokeLinecap="round"
                 />
@@ -190,11 +190,11 @@ export function LoginForm() {
 
         {/* Divider */}
         <div className="flex items-center gap-3 my-0.5">
-          <div className="flex-1 h-px bg-[#E5E1D8]" />
-          <span className="text-[11px] font-medium text-[#C4BFB8] uppercase tracking-wide">
+          <div className="flex-1 h-px bg-[var(--border-subtle)]" />
+          <span className="text-[11px] font-medium text-[var(--text-muted)] uppercase tracking-wide">
             or
           </span>
-          <div className="flex-1 h-px bg-[#E5E1D8]" />
+          <div className="flex-1 h-px bg-[var(--border-subtle)]" />
         </div>
 
         {/* Google SSO */}
@@ -203,15 +203,15 @@ export function LoginForm() {
           onClick={handleGoogle}
           disabled={loading || googleLoading}
           className={[
-            "w-full h-9 flex items-center justify-center gap-2 rounded-[7px] text-[13.5px] font-medium transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#245C4A] focus-visible:ring-offset-2",
+            "w-full h-9 flex items-center justify-center gap-2 rounded-[7px] text-[13.5px] font-medium transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--brand-accent)] focus-visible:ring-offset-2",
             loading || googleLoading
-              ? "opacity-60 cursor-not-allowed bg-white border border-[#E5E1D8] text-[#77736D]"
-              : "text-[#242424] bg-white border border-[#E5E1D8] hover:bg-[#F8F6F0] hover:border-[#C8C3BA] active:scale-[0.99] cursor-pointer",
+              ? "opacity-60 cursor-not-allowed bg-[var(--bg-card)] border border-[var(--border-subtle)] text-[var(--text-secondary)]"
+              : "text-[var(--text-primary)] bg-[var(--bg-card)] border border-[var(--border-subtle)] hover:bg-[var(--bg-hover)] hover:border-[var(--text-muted)] active:scale-[0.99] cursor-pointer",
           ].join(" ")}
           aria-label={googleLoading ? "Connecting to Google…" : "Continue with Google"}
         >
           {googleLoading ? (
-            <span className="flex items-center justify-center gap-2 text-[#77736D]">
+            <span className="flex items-center justify-center gap-2 text-[var(--text-secondary)]">
               <svg
                 className="animate-spin"
                 width="14"
@@ -247,11 +247,11 @@ export function LoginForm() {
       </form>
 
       {/* Register link */}
-      <p className="text-center mt-6 text-[13px] text-[#77736D]">
+      <p className="text-center mt-6 text-[13px] text-[var(--text-secondary)]">
         Don&apos;t have an account?{" "}
         <Link
           href="/register"
-          className="font-medium text-[#245C4A] hover:text-[#1B493A] transition-colors focus-ring rounded-sm"
+          className="font-medium text-[var(--brand-accent)] hover:text-[var(--brand-accent-hover)] transition-colors focus-ring rounded-sm"
         >
           Sign up
         </Link>

@@ -211,13 +211,13 @@ export function EmailBodyContent({
             style={{ animation: "spin 0.8s linear infinite" }}
           >
             <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
-            <circle cx="8" cy="8" r="6" stroke="#EAE8F8" strokeWidth="2" />
-            <path d="M8 2a6 6 0 016 6" stroke="#5549C0" strokeWidth="2" strokeLinecap="round" />
+            <circle cx="8" cy="8" r="6" stroke="var(--accent-tint)" strokeWidth="2" />
+            <path d="M8 2a6 6 0 016 6" stroke="var(--accent-solid)" strokeWidth="2" strokeLinecap="round" />
           </svg>
           <span
             style={{
               fontSize: 12.5,
-              color: "#9B9691",
+              color: "var(--text-muted)",
               fontFamily: "var(--font-ui, 'DM Sans', system-ui, sans-serif)",
             }}
           >
@@ -227,7 +227,7 @@ export function EmailBodyContent({
         <div
           style={{
             height: 14,
-            background: "#F2EFE9",
+            background: "var(--hover)",
             borderRadius: 4,
             width: "80%",
             animation: "pulse 1.2s infinite ease-in-out",
@@ -236,7 +236,7 @@ export function EmailBodyContent({
         <div
           style={{
             height: 14,
-            background: "#F2EFE9",
+            background: "var(--hover)",
             borderRadius: 4,
             width: "92%",
             animation: "pulse 1.2s infinite ease-in-out",
@@ -245,7 +245,7 @@ export function EmailBodyContent({
         <div
           style={{
             height: 14,
-            background: "#F2EFE9",
+            background: "var(--hover)",
             borderRadius: 4,
             width: "60%",
             animation: "pulse 1.2s infinite ease-in-out",
@@ -266,14 +266,14 @@ export function EmailBodyContent({
             alignItems: "center",
             gap: 4,
             marginBottom: 14,
-            borderBottom: "1px solid #F0ECE4",
+            borderBottom: "1px solid var(--border-hairline)",
             paddingBottom: 8,
           }}
         >
           <span
             style={{
               fontSize: 11,
-              color: "#A8A49E",
+              color: "var(--text-muted)",
               fontFamily: "var(--font-mono, 'JetBrains Mono', monospace)",
               marginRight: 4,
             }}
@@ -290,8 +290,8 @@ export function EmailBodyContent({
               border: "none",
               cursor: "pointer",
               fontFamily: "var(--font-ui, 'DM Sans', system-ui, sans-serif)",
-              background: viewMode === "html" ? "#EAE8F8" : "transparent",
-              color: viewMode === "html" ? "#5549C0" : "#8A857F",
+              background: viewMode === "html" ? "var(--accent-tint)" : "transparent",
+              color: viewMode === "html" ? "var(--accent-text)" : "var(--text-secondary)",
               fontWeight: viewMode === "html" ? 600 : 400,
               transition: "background 0.12s, color 0.12s",
             }}
@@ -308,8 +308,8 @@ export function EmailBodyContent({
               border: "none",
               cursor: "pointer",
               fontFamily: "var(--font-ui, 'DM Sans', system-ui, sans-serif)",
-              background: viewMode === "text" ? "#EAE8F8" : "transparent",
-              color: viewMode === "text" ? "#5549C0" : "#8A857F",
+              background: viewMode === "text" ? "var(--accent-tint)" : "transparent",
+              color: viewMode === "text" ? "var(--accent-text)" : "var(--text-secondary)",
               fontWeight: viewMode === "text" ? 600 : 400,
               transition: "background 0.12s, color 0.12s",
             }}
@@ -319,12 +319,22 @@ export function EmailBodyContent({
         </div>
       )}
 
-      {/* Body content */}
-      {activeContentIsHtml ? (
-        <HtmlEmailIframe html={bodyHtml!} />
-      ) : (
-        <LinkifiedText text={displayText} />
-      )}
+      {/* Isolated paper container with fixed white background and dark text for reliable email body rendering */}
+      <div
+        style={{
+          background: "#FFFFFF",
+          color: "#2D2C2A",
+          borderRadius: 8,
+          padding: "16px 20px",
+          border: "1px solid var(--border-hairline)",
+        }}
+      >
+        {activeContentIsHtml ? (
+          <HtmlEmailIframe html={bodyHtml!} />
+        ) : (
+          <LinkifiedText text={displayText} />
+        )}
+      </div>
     </div>
   );
 }

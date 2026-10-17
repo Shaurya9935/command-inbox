@@ -19,7 +19,7 @@ export function ApprovalCard({
         <dt className="text-muted">Subject</dt>
         <dd>Today at 4 PM</dd>
       </dl>
-      <p className="my-3 rounded-lg bg-[#F8F7F4] p-3 text-[10px] leading-relaxed text-muted">
+      <p className="my-3 rounded-lg bg-[var(--surface-raised)] p-3 text-[10px] leading-relaxed text-muted">
         Hi Priya, I’m free at 4 PM today. I’ve added time to our calendars.
       </p>
       <div className="mb-3 flex items-center gap-2 border-t border-line pt-3 text-[9px]">
@@ -34,7 +34,7 @@ export function ApprovalCard({
       <div className="flex gap-2">
         <button
           className={`flex-1 rounded-lg py-2 text-[10px] font-semibold transition-colors ${
-            approved ? "bg-[#DAF2E4] text-[#17633A]" : "bg-accent text-white"
+            approved ? "bg-[var(--success-tint)] text-[var(--success-hover)]" : "bg-accent text-white"
           }`}
         >
           {approved ? "✓ Sent and scheduled" : "Approve"}

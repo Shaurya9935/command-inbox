@@ -38,13 +38,13 @@ export function Suggestions({
             cursor: "pointer",
             padding: "5px 2px",
             textAlign: "left",
-            color: "#A8A49E",
+            color: "var(--text-muted)",
             fontSize: 13,
             fontFamily: "var(--font-body, 'Inter', system-ui, sans-serif)",
             transition: "color 0.12s",
           }}
-          onMouseEnter={(e) => (e.currentTarget.style.color = "#5549C0")}
-          onMouseLeave={(e) => (e.currentTarget.style.color = "#A8A49E")}
+          onMouseEnter={(e) => (e.currentTarget.style.color = "var(--accent-text)")}
+          onMouseLeave={(e) => (e.currentTarget.style.color = "var(--text-muted)")}
         >
           <span style={{ fontSize: 10, opacity: 0.5 }}>↗</span>
           {suggestion}

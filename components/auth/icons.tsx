@@ -15,7 +15,7 @@ export function CommandInboxIcon({ size = 24 }: { size?: number }) {
         width="22.5"
         height="22.5"
         rx="6.25"
-        fill="#245C4A"
+        fill="var(--brand-accent)"
       />
       <path
         d="M7 10l3.5 2.5L7 15"

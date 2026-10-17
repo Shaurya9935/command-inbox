@@ -17,17 +17,17 @@ export function getPasswordStrength(p: string): {
 }
 
 export const strengthBar = {
-  0: "#E5E1D8",
-  1: "#EF4444",
-  2: "#F59E0B",
-  3: "#245C4A",
+  0: "var(--border-subtle)",
+  1: "var(--status-error-text)",
+  2: "var(--status-warning-text)",
+  3: "var(--status-success-text)",
 };
 
 export const strengthText = {
-  0: "#77736D",
-  1: "#DC2626",
-  2: "#92400E",
-  3: "#1B493A",
+  0: "var(--text-muted)",
+  1: "var(--status-error-text)",
+  2: "var(--status-warning-text)",
+  3: "var(--status-success-text)",
 };
 
 export interface PasswordFieldProps {
@@ -56,10 +56,10 @@ export function PasswordField({
 
   return (
     <div className="flex flex-col gap-1">
-      <label htmlFor={id} className="text-[12.5px] font-medium text-[#242424]">
+      <label htmlFor={id} className="text-[12.5px] font-medium text-[var(--text-primary)]">
         {label}
         {required && (
-          <span className="ml-0.5 text-[#245C4A]" aria-hidden="true">
+          <span className="ml-0.5 text-[var(--brand-accent)]" aria-hidden="true">
             *
           </span>
         )}
@@ -77,18 +77,18 @@ export function PasswordField({
             error ? `${id}-err` : showStrength && value ? `${id}-str` : undefined
           }
           className={[
-            "w-full h-9 px-3 pr-9 text-[13.5px] text-[#242424] bg-white rounded-[7px] border transition-all duration-150",
-            "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#245C4A] focus-visible:ring-offset-0",
+            "w-full h-9 px-3 pr-9 text-[13.5px] text-[var(--text-primary)] bg-[var(--bg-input)] rounded-[7px] border transition-all duration-150",
+            "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--brand-accent)] focus-visible:ring-offset-0",
             error
-              ? "border-[#FCA5A5] bg-[#FEF7F7] focus-visible:ring-[#EF4444]"
-              : "border-[#E5E1D8] hover:border-[#C8C3BA]",
+              ? "border-[var(--status-error-border)] bg-[var(--status-error-bg)] focus-visible:ring-[var(--status-error-text)]"
+              : "border-[var(--border-subtle)] hover:border-[var(--text-muted)]",
           ].join(" ")}
         />
         <button
           type="button"
           onClick={() => setVisible((v) => !v)}
           aria-label={visible ? "Hide password" : "Show password"}
-          className="absolute inset-y-0 right-0 flex items-center px-2.5 text-[#C4BFB8] hover:text-[#77736D] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#245C4A] rounded-r-[7px]"
+          className="absolute inset-y-0 right-0 flex items-center px-2.5 text-[var(--text-muted)] hover:text-[var(--text-secondary)] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--brand-accent)] rounded-r-[7px]"
         >
           <EyeIcon closed={visible} />
         </button>
@@ -105,7 +105,7 @@ export function PasswordField({
                   backgroundColor:
                     bar <= strength.level
                       ? strengthBar[strength.level]
-                      : "#E5E1D8",
+                      : "var(--border-subtle)",
                 }}
               />
             ))}
@@ -125,7 +125,7 @@ export function PasswordField({
         <p
           id={`${id}-err`}
           role="alert"
-          className="flex items-center gap-1.5 text-[11.5px] font-medium text-[#B91C1C]"
+          className="flex items-center gap-1.5 text-[11.5px] font-medium text-[var(--status-error-text)]"
         >
           <AlertIcon />
           {error}

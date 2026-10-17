@@ -60,12 +60,12 @@ export function WeekView({
           padding: "4px 8px",
           cursor: "pointer",
           overflow: "hidden",
-          boxShadow: isSel ? `0 0 0 2.5px ${s.bar}40` : "none",
+          boxShadow: isSel ? `0 0 0 2.5px ${s.border}` : "none",
           transition: "box-shadow 0.12s",
           zIndex: isSel ? 2 : 1,
         }}
         onMouseEnter={(e) => {
-          if (!isSel) (e.currentTarget as HTMLDivElement).style.boxShadow = "0 2px 8px rgba(0,0,0,0.09)";
+          if (!isSel) (e.currentTarget as HTMLDivElement).style.boxShadow = "0 2px 8px var(--shadow-color)";
         }}
         onMouseLeave={(e) => {
           if (!isSel) (e.currentTarget as HTMLDivElement).style.boxShadow = "none";
@@ -85,7 +85,7 @@ export function WeekView({
           {ev.title}
         </div>
         {evH > 32 && (
-          <div style={{ fontSize: 10.5, color: s.text + "99", marginTop: 1 }}>
+          <div style={{ fontSize: 10.5, color: s.text, marginTop: 1, opacity: 0.85 }}>
             {fmtTime(ev.startH)}–{fmtTime(ev.endH)}
           </div>
         )}
@@ -113,8 +113,8 @@ export function WeekView({
       <div
         style={{
           display: "flex",
-          borderBottom: "1px solid #EDEAE4",
-          background: "#FDFCF8",
+          borderBottom: "1px solid var(--border-hairline)",
+          background: "var(--surface-card)",
           flexShrink: 0,
         }}
       >
@@ -126,8 +126,8 @@ export function WeekView({
               flex: 1,
               textAlign: "center",
               padding: "10px 4px 8px",
-              borderLeft: "1px solid #EDEAE4",
-              background: d.isToday ? "rgba(85,73,192,0.025)" : "transparent",
+              borderLeft: "1px solid var(--border-hairline)",
+              background: d.isToday ? "var(--accent-tint)" : "transparent",
             }}
           >
             <div
@@ -135,7 +135,7 @@ export function WeekView({
                 fontSize: 10,
                 fontWeight: 600,
                 letterSpacing: "0.07em",
-                color: d.isToday ? "#5549C0" : "#B8B3AB",
+                color: d.isToday ? "var(--accent-text)" : "var(--text-disabled)",
                 textTransform: "uppercase",
               }}
             >
@@ -146,11 +146,11 @@ export function WeekView({
                 fontSize: 17,
                 fontWeight: d.isToday ? 700 : 400,
                 letterSpacing: "-0.03em",
-                color: d.isToday ? "#FFF" : i >= 5 ? "#B8B3AB" : "#2D2C2A",
+                color: d.isToday ? "var(--on-accent)" : i >= 5 ? "var(--text-muted)" : "var(--text-primary)",
                 width: 32,
                 height: 32,
                 borderRadius: "50%",
-                background: d.isToday ? "#5549C0" : "transparent",
+                background: d.isToday ? "var(--accent-solid)" : "transparent",
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
@@ -176,7 +176,7 @@ export function WeekView({
                   top: (h - GRID_START) * HOUR_PX - 8,
                   right: 10,
                   fontSize: 10,
-                  color: "#C5C0B8",
+                  color: "var(--text-disabled)",
                   fontFamily: "var(--font-mono, 'JetBrains Mono', monospace)",
                   letterSpacing: "-0.01em",
                   lineHeight: 1,
@@ -194,8 +194,8 @@ export function WeekView({
               style={{
                 flex: 1,
                 position: "relative",
-                borderLeft: "1px solid #EDEAE4",
-                background: d.isToday ? "rgba(85,73,192,0.012)" : "transparent",
+                borderLeft: "1px solid var(--border-hairline)",
+                background: d.isToday ? "var(--accent-tint)" : "transparent",
               }}
             >
               {/* Hour lines */}
@@ -207,7 +207,7 @@ export function WeekView({
                     top: (h - GRID_START) * HOUR_PX,
                     left: 0,
                     right: 0,
-                    borderTop: `1px solid ${h % 2 === 0 ? "#EDEAE4" : "#F5F2EC"}`,
+                    borderTop: `1px solid ${h % 2 === 0 ? "var(--border-hairline)" : "var(--border-dashed)"}`,
                     pointerEvents: "none",
                   }}
                 />
@@ -229,7 +229,7 @@ export function WeekView({
                       width: 10,
                       height: 10,
                       borderRadius: "50%",
-                      background: "#5549C0",
+                      background: "var(--accent-solid)",
                       zIndex: 3,
                       pointerEvents: "none",
                     }}
@@ -241,7 +241,7 @@ export function WeekView({
                       left: 0,
                       right: 0,
                       height: 1.5,
-                      background: "rgba(85,73,192,0.45)",
+                      background: "var(--accent-border)",
                       zIndex: 3,
                       pointerEvents: "none",
                     }}

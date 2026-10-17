@@ -160,7 +160,7 @@ export default function AccountPage() {
         display: "flex",
         height: "100vh",
         width: "100%",
-        background: "#F5F2EC",
+        background: "var(--bg-page)",
         fontFamily: "var(--font-ui, 'DM Sans', system-ui, sans-serif)",
         overflow: "hidden",
       }}
@@ -194,7 +194,7 @@ export default function AccountPage() {
           flexDirection: "column",
           minWidth: 0,
           overflow: "hidden",
-          background: "#FDFCF8",
+          background: "var(--bg-workspace)",
         }}
       >
         {/* Top Header Bar */}
@@ -204,8 +204,8 @@ export default function AccountPage() {
             alignItems: "center",
             justifyContent: "space-between",
             padding: "14px 28px",
-            borderBottom: "1px solid #E8E4DC",
-            background: "#FDFCF8",
+            borderBottom: "1px solid var(--border-hairline)",
+            background: "var(--bg-workspace)",
             flexShrink: 0,
             gap: 16,
           }}
@@ -219,20 +219,20 @@ export default function AccountPage() {
                 alignItems: "center",
                 justifyContent: "center",
                 background: "transparent",
-                border: "1px solid #E4DED4",
+                border: "1px solid var(--border-hairline)",
                 borderRadius: 6,
                 padding: "4px 6px",
                 cursor: "pointer",
-                color: "#6B6762",
+                color: "var(--text-secondary)",
                 transition: "background 0.12s, color 0.12s",
               }}
               onMouseEnter={(e) => {
-                e.currentTarget.style.background = "#EEE9E1";
-                e.currentTarget.style.color = "#1A1917";
+                e.currentTarget.style.background = "var(--hover)";
+                e.currentTarget.style.color = "var(--text-primary)";
               }}
               onMouseLeave={(e) => {
                 e.currentTarget.style.background = "transparent";
-                e.currentTarget.style.color = "#6B6762";
+                e.currentTarget.style.color = "var(--text-secondary)";
               }}
             >
               <SidebarToggleIcon size={14} />
@@ -248,26 +248,26 @@ export default function AccountPage() {
                 border: "none",
                 padding: "4px 6px",
                 cursor: "pointer",
-                color: "#858079",
+                color: "var(--text-muted)",
                 fontSize: 12.5,
                 fontWeight: 500,
                 borderRadius: 6,
                 transition: "color 0.12s",
               }}
-              onMouseEnter={(e) => (e.currentTarget.style.color = "#1A1917")}
-              onMouseLeave={(e) => (e.currentTarget.style.color = "#858079")}
+              onMouseEnter={(e) => (e.currentTarget.style.color = "var(--text-primary)")}
+              onMouseLeave={(e) => (e.currentTarget.style.color = "var(--text-muted)")}
             >
               <BackIcon size={12} />
               <span>Dashboard</span>
             </button>
 
-            <span style={{ color: "#D1CBC1", fontSize: 13 }}>/</span>
+            <span style={{ color: "var(--border-strong)", fontSize: 13 }}>/</span>
 
             <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-              <span style={{ color: "#5549C0", display: "flex" }}>
+              <span style={{ color: "var(--accent-text)", display: "flex" }}>
                 <SettingsIcon size={14} />
               </span>
-              <span style={{ fontSize: 13, fontWeight: 600, color: "#1A1917" }}>
+              <span style={{ fontSize: 13, fontWeight: 600, color: "var(--text-primary)" }}>
                 Account & Settings
               </span>
             </div>
@@ -277,9 +277,9 @@ export default function AccountPage() {
             <span
               style={{
                 fontSize: 12,
-                color: "#6B655D",
-                background: "#F5F2EC",
-                border: "1px solid #E8E4DC",
+                color: "var(--text-secondary)",
+                background: "var(--hover-subtle)",
+                border: "1px solid var(--border-hairline)",
                 padding: "3px 10px",
                 borderRadius: 20,
                 fontWeight: 500,
@@ -304,8 +304,8 @@ export default function AccountPage() {
             style={{
               width: 220,
               flexShrink: 0,
-              borderRight: "1px solid #E8E4DC",
-              background: "#FBF9F5",
+              borderRight: "1px solid var(--border-hairline)",
+              background: "var(--bg-sidebar)",
               padding: "24px 12px",
               display: "flex",
               flexDirection: "column",
@@ -316,7 +316,7 @@ export default function AccountPage() {
               style={{
                 fontSize: 10.5,
                 fontWeight: 600,
-                color: "#858079",
+                color: "var(--text-muted)",
                 textTransform: "uppercase",
                 letterSpacing: "0.06em",
                 padding: "0 10px 10px",
@@ -343,26 +343,26 @@ export default function AccountPage() {
                     border: "none",
                     background: isActive
                       ? isDanger
-                        ? "#FEE2E2"
-                        : "#FFFFFF"
+                        ? "var(--danger-tint)"
+                        : "var(--surface-card)"
                       : "transparent",
                     color: isActive
                       ? isDanger
-                        ? "#DC2626"
-                        : "#1A1917"
+                        ? "var(--danger)"
+                        : "var(--text-primary)"
                       : isDanger
-                      ? "#991B1B"
-                      : "#6B6762",
+                      ? "var(--danger-hover)"
+                      : "var(--text-secondary)",
                     fontWeight: isActive ? 600 : 500,
                     fontSize: 13,
                     cursor: "pointer",
                     textAlign: "left",
-                    boxShadow: isActive ? "0 1px 3px rgba(0,0,0,0.04)" : "none",
+                    boxShadow: isActive ? "0 1px 3px var(--shadow-color)" : "none",
                     transition: "all 0.12s",
                   }}
                   onMouseEnter={(e) => {
                     if (!isActive) {
-                      e.currentTarget.style.background = isDanger ? "#FFF5F5" : "#F0ECE4";
+                      e.currentTarget.style.background = isDanger ? "var(--danger-tint)" : "var(--hover)";
                     }
                   }}
                   onMouseLeave={(e) => {
@@ -388,7 +388,7 @@ export default function AccountPage() {
               flex: 1,
               overflowY: "auto",
               padding: "32px 40px 60px",
-              background: "#F5F2EC",
+              background: "var(--bg-page)",
             }}
           >
             <div
@@ -404,11 +404,11 @@ export default function AccountPage() {
               {dataDeletionSummary && (
                 <div
                   style={{
-                    background: "#ECFDF5",
-                    border: "1px solid #BBF7D0",
+                    background: "var(--success-tint)",
+                    border: "1px solid var(--success-border)",
                     borderRadius: 12,
                     padding: "16px 20px",
-                    color: "#166534",
+                    color: "var(--success)",
                   }}
                 >
                   <div style={{ display: "flex", alignItems: "center", gap: 8, fontWeight: 600, fontSize: 14 }}>
@@ -457,11 +457,11 @@ export default function AccountPage() {
               <div
                 id="connected-apps"
                 style={{
-                  background: "#FFFFFF",
+                  background: "var(--surface-card)",
                   borderRadius: 14,
-                  border: "1px solid #E8E4DC",
+                  border: "1px solid var(--border-hairline)",
                   padding: "24px 28px",
-                  boxShadow: "0 1px 3px rgba(0,0,0,0.03)",
+                  boxShadow: "0 1px 3px var(--shadow-color)",
                   scrollMarginTop: 80,
                 }}
               >
@@ -471,7 +471,7 @@ export default function AccountPage() {
                       margin: 0,
                       fontSize: 18,
                       fontWeight: 600,
-                      color: "#1A1917",
+                      color: "var(--text-primary)",
                       letterSpacing: "-0.01em",
                     }}
                   >
@@ -481,7 +481,7 @@ export default function AccountPage() {
                     style={{
                       margin: "4px 0 0",
                       fontSize: 13,
-                      color: "#6B6762",
+                      color: "var(--text-secondary)",
                     }}
                   >
                     Review connected mailboxes and calendars with live status monitoring and disconnect controls.

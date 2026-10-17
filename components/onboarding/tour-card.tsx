@@ -91,11 +91,10 @@ export function TourCard({
           position: "fixed",
           zIndex: 99999,
           width: isMobile ? "calc(100% - 32px)" : step.isWelcome ? 400 : 340,
-          background: "#FFFFFF",
-          border: "1px solid #E8E4DC",
+          background: "var(--bg-card)",
+          border: "1px solid var(--border-subtle)",
           borderRadius: 18,
-          boxShadow:
-            "0 20px 48px -8px rgba(22, 21, 26, 0.16), 0 4px 12px rgba(22, 21, 26, 0.05)",
+          boxShadow: "var(--shadow-modal)",
           padding: 20,
           fontFamily: "var(--font-ui, 'DM Sans', system-ui, sans-serif)",
           boxSizing: "border-box",
@@ -123,7 +122,7 @@ export function TourCard({
               fontFamily: "var(--font-mono, 'JetBrains Mono', monospace)",
               fontSize: 10.5,
               fontWeight: 600,
-              color: "#858079",
+              color: "var(--text-muted)",
               letterSpacing: "0.08em",
               textTransform: "uppercase",
             }}
@@ -138,9 +137,9 @@ export function TourCard({
                 display: "inline-flex",
                 alignItems: "center",
                 gap: 5,
-                background: "#ECFDF5",
-                color: "#166534",
-                border: "1px solid #BBF7D0",
+                background: "var(--status-success-bg)",
+                color: "var(--status-success-text)",
+                border: "1px solid var(--status-success-border)",
                 fontSize: 11,
                 fontWeight: 600,
                 padding: "2px 8px",
@@ -152,7 +151,7 @@ export function TourCard({
                   width: 5,
                   height: 5,
                   borderRadius: "50%",
-                  background: "#16A34A",
+                  background: "var(--status-success-text)",
                 }}
               />
               Connected
@@ -166,14 +165,14 @@ export function TourCard({
                 width: 22,
                 height: 22,
                 borderRadius: "50%",
-                background: "#ECFDF5",
-                color: "#16A34A",
+                background: "var(--status-success-bg)",
+                color: "var(--status-success-text)",
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
               }}
             >
-              <svg width={14} height={14} viewBox="0 0 24 24" fill="none" stroke="#16A34A" strokeWidth={3} strokeLinecap="round" strokeLinejoin="round">
+              <svg width={14} height={14} viewBox="0 0 24 24" fill="none" stroke="var(--status-success-text)" strokeWidth={3} strokeLinecap="round" strokeLinejoin="round">
                 <motion.path
                   d="M20 6L9 17l-5-5"
                   initial={reducedMotion ? false : { pathLength: 0 }}
@@ -192,7 +191,7 @@ export function TourCard({
             margin: "0 0 6px",
             fontSize: 18,
             fontWeight: 600,
-            color: "#1A1917",
+            color: "var(--text-primary)",
             letterSpacing: "-0.01em",
             fontFamily: "var(--font-body, 'Inter', system-ui, sans-serif)",
           }}
@@ -206,7 +205,7 @@ export function TourCard({
           style={{
             margin: "0 0 16px",
             fontSize: 14.5,
-            color: "#6B6762",
+            color: "var(--text-secondary)",
             lineHeight: 1.5,
           }}
         >
@@ -225,25 +224,25 @@ export function TourCard({
                 gap: 6,
                 padding: "6px 12px",
                 borderRadius: 8,
-                background: "#F5F2EC",
-                border: "1px solid #E8E4DC",
+                background: "var(--bg-inset)",
+                border: "1px solid var(--border-subtle)",
                 fontSize: 12.5,
-                color: "#5046B8",
+                color: "var(--brand-accent)",
                 fontWeight: 600,
                 cursor: "pointer",
                 transition: "background 0.12s, border-color 0.12s",
               }}
               onMouseEnter={(e) => {
-                e.currentTarget.style.background = "#EDE8DF";
-                e.currentTarget.style.borderColor = "#D1C9BE";
+                e.currentTarget.style.background = "var(--bg-hover)";
+                e.currentTarget.style.borderColor = "var(--border-subtle)";
               }}
               onMouseLeave={(e) => {
-                e.currentTarget.style.background = "#F5F2EC";
-                e.currentTarget.style.borderColor = "#E8E4DC";
+                e.currentTarget.style.background = "var(--bg-inset)";
+                e.currentTarget.style.borderColor = "var(--border-subtle)";
               }}
             >
               <span>Try:</span>
-              <span style={{ fontWeight: 500, color: "#1A1917" }}>
+              <span style={{ fontWeight: 500, color: "var(--text-primary)" }}>
                 &ldquo;Show my unread emails&rdquo;
               </span>
               <span style={{ fontSize: 13, opacity: 0.7 }}>&rarr;</span>
@@ -270,7 +269,7 @@ export function TourCard({
                     height: 5,
                     width: isCurrent ? 20 : 5,
                     borderRadius: 4,
-                    background: isCurrent ? "#5046B8" : "#E4DED4",
+                    background: isCurrent ? "var(--brand-accent)" : "var(--border-subtle)",
                     transition: "all 0.25s ease",
                   }}
                 />
@@ -300,12 +299,12 @@ export function TourCard({
                   padding: "6px 10px",
                   fontSize: 13,
                   fontWeight: 500,
-                  color: "#858079",
+                  color: "var(--text-muted)",
                   cursor: "pointer",
                   borderRadius: 6,
                 }}
-                onMouseEnter={(e) => (e.currentTarget.style.color = "#1A1917")}
-                onMouseLeave={(e) => (e.currentTarget.style.color = "#858079")}
+                onMouseEnter={(e) => (e.currentTarget.style.color = "var(--text-primary)")}
+                onMouseLeave={(e) => (e.currentTarget.style.color = "var(--text-muted)")}
               >
                 Skip
               </button>
@@ -317,16 +316,16 @@ export function TourCard({
                     onClick={onBack}
                     style={{
                       background: "transparent",
-                      border: "1px solid #E8E4DC",
+                      border: "1px solid var(--border-subtle)",
                       padding: "6px 12px",
                       borderRadius: 8,
                       fontSize: 12.5,
                       fontWeight: 500,
-                      color: "#6B6762",
+                      color: "var(--text-secondary)",
                       cursor: "pointer",
                       transition: "background 0.12s",
                     }}
-                    onMouseEnter={(e) => (e.currentTarget.style.background = "#F7F4EE")}
+                    onMouseEnter={(e) => (e.currentTarget.style.background = "var(--bg-hover)")}
                     onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
                   >
                     Back
@@ -341,12 +340,12 @@ export function TourCard({
                     padding: "4px 6px",
                     fontSize: 12,
                     fontWeight: 500,
-                    color: "#A8A29A",
+                    color: "var(--text-muted)",
                     cursor: "pointer",
                     textDecoration: "underline",
                   }}
-                  onMouseEnter={(e) => (e.currentTarget.style.color = "#6B6762")}
-                  onMouseLeave={(e) => (e.currentTarget.style.color = "#A8A29A")}
+                  onMouseEnter={(e) => (e.currentTarget.style.color = "var(--text-secondary)")}
+                  onMouseLeave={(e) => (e.currentTarget.style.color = "var(--text-muted)")}
                 >
                   Skip tour
                 </button>
@@ -361,19 +360,19 @@ export function TourCard({
                 type="button"
                 onClick={onNext}
                 style={{
-                  background: "#5046B8",
-                  color: "#FFFFFF",
+                  background: "var(--brand-accent)",
+                  color: "var(--text-inverse)",
                   border: "none",
                   padding: "8px 18px",
                   borderRadius: 8,
                   fontSize: 13,
                   fontWeight: 600,
                   cursor: "pointer",
-                  boxShadow: "0 2px 6px rgba(80, 70, 184, 0.25)",
+                  boxShadow: "var(--shadow-sm)",
                   transition: "background 0.12s",
                 }}
-                onMouseEnter={(e) => (e.currentTarget.style.background = "#4339A6")}
-                onMouseLeave={(e) => (e.currentTarget.style.background = "#5046B8")}
+                onMouseEnter={(e) => (e.currentTarget.style.background = "var(--brand-accent-hover)")}
+                onMouseLeave={(e) => (e.currentTarget.style.background = "var(--brand-accent)")}
               >
                 Start tour &rarr;
               </button>
@@ -382,19 +381,19 @@ export function TourCard({
                 type="button"
                 onClick={onFinish}
                 style={{
-                  background: "#5046B8",
-                  color: "#FFFFFF",
+                  background: "var(--brand-accent)",
+                  color: "var(--text-inverse)",
                   border: "none",
                   padding: "8px 18px",
                   borderRadius: 8,
                   fontSize: 13,
                   fontWeight: 600,
                   cursor: "pointer",
-                  boxShadow: "0 2px 6px rgba(80, 70, 184, 0.25)",
+                  boxShadow: "var(--shadow-sm)",
                   transition: "background 0.12s",
                 }}
-                onMouseEnter={(e) => (e.currentTarget.style.background = "#4339A6")}
-                onMouseLeave={(e) => (e.currentTarget.style.background = "#5046B8")}
+                onMouseEnter={(e) => (e.currentTarget.style.background = "var(--brand-accent-hover)")}
+                onMouseLeave={(e) => (e.currentTarget.style.background = "var(--brand-accent)")}
               >
                 Start using Nexus
               </button>
@@ -403,19 +402,19 @@ export function TourCard({
                 type="button"
                 onClick={onNext}
                 style={{
-                  background: "#5046B8",
-                  color: "#FFFFFF",
+                  background: "var(--brand-accent)",
+                  color: "var(--text-inverse)",
                   border: "none",
                   padding: "7px 16px",
                   borderRadius: 8,
                   fontSize: 13,
                   fontWeight: 600,
                   cursor: "pointer",
-                  boxShadow: "0 1px 4px rgba(80, 70, 184, 0.2)",
+                  boxShadow: "var(--shadow-sm)",
                   transition: "background 0.12s",
                 }}
-                onMouseEnter={(e) => (e.currentTarget.style.background = "#4339A6")}
-                onMouseLeave={(e) => (e.currentTarget.style.background = "#5046B8")}
+                onMouseEnter={(e) => (e.currentTarget.style.background = "var(--brand-accent-hover)")}
+                onMouseLeave={(e) => (e.currentTarget.style.background = "var(--brand-accent)")}
               >
                 Next &rarr;
               </button>
@@ -429,10 +428,10 @@ export function TourCard({
             style={{
               marginTop: 14,
               paddingTop: 10,
-              borderTop: "1px solid #F3EFE8",
+              borderTop: "1px solid var(--border-subtle)",
               fontFamily: "var(--font-mono, 'JetBrains Mono', monospace)",
               fontSize: 10,
-              color: "#B4ADA4",
+              color: "var(--text-muted)",
               textAlign: "center",
               letterSpacing: "0.02em",
             }}

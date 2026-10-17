@@ -58,12 +58,12 @@ export function CommandSurface({
       style={{
         borderRadius: 14,
         border: focused
-          ? "1.5px solid rgba(85,73,192,0.5)"
-          : "1.5px solid #E4E0D8",
-        background: "#FFFFFF",
+          ? "1.5px solid var(--accent-solid)"
+          : "1.5px solid var(--border-hairline)",
+        background: "var(--surface-card)",
         boxShadow: focused
-          ? "0 0 0 4px rgba(85,73,192,0.09), 0 4px 24px rgba(0,0,0,0.07)"
-          : "0 2px 12px rgba(0,0,0,0.05)",
+          ? "0 0 0 1px var(--focus-ring), 0 4px 16px var(--shadow-color)"
+          : "0 2px 8px var(--shadow-color)",
         transition: "border-color 0.18s, box-shadow 0.18s",
         marginBottom: 16,
       }}
@@ -79,7 +79,7 @@ export function CommandSurface({
       >
         <div
           style={{
-            color: focused ? "#5549C0" : "#C5C0B8",
+            color: focused ? "var(--accent-text)" : "var(--text-disabled)",
             paddingTop: 3,
             transition: "color 0.18s",
             flexShrink: 0,
@@ -111,7 +111,7 @@ export function CommandSurface({
             resize: "none",
             fontSize: 15,
             fontFamily: "var(--font-body, 'Inter', system-ui, sans-serif)",
-            color: "#1A1917",
+            color: "var(--text-primary)",
             lineHeight: 1.55,
             minHeight: 24,
             maxHeight: 140,
@@ -134,7 +134,7 @@ export function CommandSurface({
           style={{
             fontSize: 11,
             fontFamily: "var(--font-mono, 'JetBrains Mono', monospace)",
-            color: "#C5C0B8",
+            color: "var(--text-disabled)",
             letterSpacing: "0.01em",
           }}
         >
@@ -147,22 +147,22 @@ export function CommandSurface({
               width: 28,
               height: 28,
               borderRadius: 7,
-              border: "1px solid #E8E4DC",
+              border: "1px solid var(--border-hairline)",
               background: "transparent",
               cursor: "pointer",
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
-              color: "#C5C0B8",
+              color: "var(--text-muted)",
               transition: "all 0.12s",
             }}
             onMouseEnter={(e) => {
-              e.currentTarget.style.background = "#F5F2EC";
-              e.currentTarget.style.color = "#7B7775";
+              e.currentTarget.style.background = "var(--hover)";
+              e.currentTarget.style.color = "var(--text-secondary)";
             }}
             onMouseLeave={(e) => {
               e.currentTarget.style.background = "transparent";
-              e.currentTarget.style.color = "#C5C0B8";
+              e.currentTarget.style.color = "var(--text-muted)";
             }}
           >
             <MicIcon />
@@ -175,14 +175,18 @@ export function CommandSurface({
               width: 32,
               height: 32,
               borderRadius: 8,
-              border: "none",
-              background: loading ? "#5549C0" : value.trim() ? "#5549C0" : "#EAE8F8",
+              border: value.trim() || loading ? "none" : "1px solid var(--border-hairline)",
+              background: loading
+                ? "var(--accent-solid)"
+                : value.trim()
+                ? "var(--accent-solid)"
+                : "var(--surface-raised)",
               cursor: value.trim() && !disabled && !loading ? "pointer" : "default",
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
-              color: value.trim() || loading ? "#FFF" : "#9B9691",
-              transition: "background 0.15s, color 0.15s",
+              color: value.trim() || loading ? "var(--on-accent)" : "var(--text-muted)",
+              transition: "background 0.15s, color 0.15s, border-color 0.15s",
             }}
           >
             {loading ? (

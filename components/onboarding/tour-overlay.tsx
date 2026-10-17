@@ -266,7 +266,7 @@ export function TourOverlay({
         <rect
           width="100%"
           height="100%"
-          fill="rgba(22, 21, 26, 0.5)"
+          fill="var(--bg-overlay)"
           mask="url(#nexus-tour-mask)"
           style={{ pointerEvents: "auto" }}
           onClick={(e) => {
@@ -291,7 +291,7 @@ export function TourOverlay({
             transition={springTransition}
             style={{
               position: "absolute",
-              border: "2px solid #5046B8",
+              border: "2px solid var(--brand-accent)",
               borderRadius: 14,
               boxSizing: "border-box",
             }}
@@ -310,7 +310,7 @@ export function TourOverlay({
               style={{
                 position: "absolute",
                 borderRadius: 14,
-                border: "2px solid #5046B8",
+                border: "2px solid var(--brand-accent)",
                 boxSizing: "border-box",
               }}
             >
@@ -328,7 +328,7 @@ export function TourOverlay({
                   width: "100%",
                   height: "100%",
                   borderRadius: 14,
-                  border: "2px solid #5046B8",
+                  border: "2px solid var(--brand-accent)",
                   boxSizing: "border-box",
                 }}
               />
@@ -356,7 +356,7 @@ export function TourOverlay({
               <motion.path
                 d={placement.arrowPath.d}
                 fill="none"
-                stroke="#5046B8"
+                stroke="var(--brand-accent)"
                 strokeWidth={2}
                 strokeLinecap="round"
                 initial={reducedMotion ? false : { pathLength: 0 }}
@@ -382,7 +382,7 @@ export function TourOverlay({
                 <path
                   d="M -9 -5 L 0 0 L -9 5"
                   fill="none"
-                  stroke="#5046B8"
+                  stroke="var(--brand-accent)"
                   strokeWidth={2}
                   strokeLinecap="round"
                   strokeLinejoin="round"

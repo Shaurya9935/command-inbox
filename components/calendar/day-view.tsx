@@ -82,15 +82,15 @@ export function DayView({
           padding: "6px 12px",
           cursor: "pointer",
           overflow: "hidden",
-          boxShadow: isSel ? `0 0 0 2.5px ${s.bar}40` : "0 1px 3px rgba(0,0,0,0.03)",
+          boxShadow: isSel ? `0 0 0 2.5px ${s.border}` : "0 1px 3px var(--shadow-color)",
           transition: "box-shadow 0.12s",
           zIndex: isSel ? 2 : 1,
         }}
         onMouseEnter={(e) => {
-          if (!isSel) (e.currentTarget as HTMLDivElement).style.boxShadow = "0 3px 10px rgba(0,0,0,0.08)";
+          if (!isSel) (e.currentTarget as HTMLDivElement).style.boxShadow = "0 3px 10px var(--shadow-color)";
         }}
         onMouseLeave={(e) => {
-          if (!isSel) (e.currentTarget as HTMLDivElement).style.boxShadow = "0 1px 3px rgba(0,0,0,0.03)";
+          if (!isSel) (e.currentTarget as HTMLDivElement).style.boxShadow = "0 1px 3px var(--shadow-color)";
         }}
       >
         <div
@@ -140,8 +140,8 @@ export function DayView({
       <div
         style={{
           display: "flex",
-          borderBottom: "1px solid #EDEAE4",
-          background: "#FDFCF8",
+          borderBottom: "1px solid var(--border-hairline)",
+          background: "var(--surface-card)",
           flexShrink: 0,
         }}
       >
@@ -151,7 +151,7 @@ export function DayView({
             flex: 1,
             textAlign: "center",
             padding: "12px 0 10px",
-            borderLeft: "1px solid #EDEAE4",
+            borderLeft: "1px solid var(--border-hairline)",
           }}
         >
           <div
@@ -159,7 +159,7 @@ export function DayView({
               fontSize: 10,
               fontWeight: 600,
               letterSpacing: "0.07em",
-              color: isToday ? "#5549C0" : "#B8B3AB",
+              color: isToday ? "var(--accent-text)" : "var(--text-disabled)",
               textTransform: "uppercase",
               fontFamily: "var(--font-ui, 'DM Sans', system-ui, sans-serif)",
             }}
@@ -171,11 +171,11 @@ export function DayView({
               fontSize: 22,
               fontWeight: 700,
               letterSpacing: "-0.04em",
-              color: isToday ? "#FFF" : "#2D2C2A",
+              color: isToday ? "var(--on-accent)" : "var(--text-primary)",
               width: 38,
               height: 38,
               borderRadius: "50%",
-              background: isToday ? "#5549C0" : "transparent",
+              background: isToday ? "var(--accent-solid)" : "transparent",
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
@@ -188,7 +188,7 @@ export function DayView({
           <div
             style={{
               fontSize: 10.5,
-              color: "#C5C0B8",
+              color: "var(--text-muted)",
               marginTop: 2,
               fontFamily: "var(--font-ui, 'DM Sans', system-ui, sans-serif)",
             }}
@@ -211,7 +211,7 @@ export function DayView({
                   top: (h - GRID_START) * HOUR_PX - 8,
                   right: 10,
                   fontSize: 10,
-                  color: "#C5C0B8",
+                  color: "var(--text-disabled)",
                   fontFamily: "var(--font-mono, 'JetBrains Mono', monospace)",
                   letterSpacing: "-0.01em",
                   lineHeight: 1,
@@ -227,8 +227,8 @@ export function DayView({
             style={{
               flex: 1,
               position: "relative",
-              borderLeft: "1px solid #EDEAE4",
-              background: isToday ? "rgba(85,73,192,0.012)" : "transparent",
+              borderLeft: "1px solid var(--border-hairline)",
+              background: isToday ? "var(--accent-tint)" : "transparent",
             }}
           >
             {/* Hour lines */}
@@ -240,7 +240,7 @@ export function DayView({
                   top: (h - GRID_START) * HOUR_PX,
                   left: 0,
                   right: 0,
-                  borderTop: `1px solid ${h % 2 === 0 ? "#EDEAE4" : "#F5F2EC"}`,
+                  borderTop: `1px solid ${h % 2 === 0 ? "var(--border-hairline)" : "var(--border-dashed)"}`,
                   pointerEvents: "none",
                 }}
               />
@@ -260,7 +260,7 @@ export function DayView({
                     width: 10,
                     height: 10,
                     borderRadius: "50%",
-                    background: "#5549C0",
+                    background: "var(--accent-solid)",
                     zIndex: 3,
                     pointerEvents: "none",
                   }}
@@ -272,7 +272,7 @@ export function DayView({
                     left: 0,
                     right: 0,
                     height: 1.5,
-                    background: "rgba(85,73,192,0.45)",
+                    background: "var(--accent-border)",
                     zIndex: 3,
                     pointerEvents: "none",
                   }}

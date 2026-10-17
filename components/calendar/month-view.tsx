@@ -27,8 +27,8 @@ export function MonthView({
         style={{
           display: "grid",
           gridTemplateColumns: "repeat(7, 1fr)",
-          borderBottom: "1px solid #EDEAE4",
-          background: "#FDFCF8",
+          borderBottom: "1px solid var(--border-hairline)",
+          background: "var(--surface-card)",
         }}
       >
         {["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"].map((d, i) => (
@@ -38,7 +38,7 @@ export function MonthView({
               fontSize: 10,
               fontWeight: 600,
               letterSpacing: "0.07em",
-              color: i >= 5 ? "#C5C0B8" : "#B8B3AB",
+              color: i >= 5 ? "var(--text-disabled)" : "var(--text-muted)",
               textTransform: "uppercase",
               textAlign: "center",
               padding: "10px 0 8px",
@@ -68,16 +68,16 @@ export function MonthView({
               key={cell.key}
               onClick={() => onSelectDate?.(cell.key, cell.fullDate)}
               style={{
-                borderRight: "1px solid #EDEAE4",
-                borderBottom: "1px solid #EDEAE4",
+                borderRight: "1px solid var(--border-hairline)",
+                borderBottom: "1px solid var(--border-hairline)",
                 padding: "8px 8px 6px",
                 minHeight: 96,
-                background: cell.isToday ? "rgba(85,73,192,0.03)" : "transparent",
+                background: cell.isToday ? "var(--accent-tint)" : "transparent",
                 cursor: "pointer",
                 transition: "background 0.12s",
               }}
               onMouseEnter={(e) => {
-                if (!cell.isToday) e.currentTarget.style.background = "#F9F6F0";
+                if (!cell.isToday) e.currentTarget.style.background = "var(--hover)";
               }}
               onMouseLeave={(e) => {
                 if (!cell.isToday) e.currentTarget.style.background = "transparent";
@@ -88,11 +88,11 @@ export function MonthView({
                 style={{
                   fontSize: 12.5,
                   fontWeight: cell.isToday ? 700 : 400,
-                  color: cell.isToday ? "#FFF" : !cell.inMonth ? "#D0CCC6" : "#2D2C2A",
+                  color: cell.isToday ? "var(--on-accent)" : !cell.inMonth ? "var(--text-disabled)" : "var(--text-primary)",
                   width: 24,
                   height: 24,
                   borderRadius: "50%",
-                  background: cell.isToday ? "#5549C0" : "transparent",
+                  background: cell.isToday ? "var(--accent-solid)" : "transparent",
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "center",
@@ -142,7 +142,7 @@ export function MonthView({
                 <div
                   style={{
                     fontSize: 10,
-                    color: "#9B9691",
+                    color: "var(--text-muted)",
                     paddingLeft: 2,
                     fontFamily: "var(--font-ui, 'DM Sans', system-ui, sans-serif)",
                   }}

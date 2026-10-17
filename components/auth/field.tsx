@@ -26,10 +26,10 @@ export function Field({
 }: FieldProps) {
   return (
     <div className="flex flex-col gap-1">
-      <label htmlFor={id} className="text-[12.5px] font-medium text-[#242424]">
+      <label htmlFor={id} className="text-[12.5px] font-medium text-[var(--text-primary)]">
         {label}
         {required && (
-          <span className="ml-0.5 text-[#245C4A]" aria-hidden="true">
+          <span className="ml-0.5 text-[var(--brand-accent)]" aria-hidden="true">
             *
           </span>
         )}
@@ -45,12 +45,12 @@ export function Field({
           aria-invalid={!!error}
           aria-describedby={error ? `${id}-err` : undefined}
           className={[
-            "w-full h-9 px-3 text-[13.5px] text-[#242424] bg-white rounded-[7px] border transition-all duration-150",
-            "placeholder:text-[#C4BFB8]",
-            "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#245C4A] focus-visible:ring-offset-0",
+            "w-full h-9 px-3 text-[13.5px] text-[var(--text-primary)] bg-[var(--bg-input)] rounded-[7px] border transition-all duration-150",
+            "placeholder:text-[var(--text-muted)]",
+            "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--brand-accent)] focus-visible:ring-offset-0",
             error
-              ? "border-[#FCA5A5] bg-[#FEF7F7] focus-visible:ring-[#EF4444]"
-              : "border-[#E5E1D8] hover:border-[#C8C3BA]",
+              ? "border-[var(--status-error-border)] bg-[var(--status-error-bg)] focus-visible:ring-[var(--status-error-text)]"
+              : "border-[var(--border-subtle)] hover:border-[var(--text-muted)]",
             suffix ? "pr-9" : "",
           ].join(" ")}
         />
@@ -64,7 +64,7 @@ export function Field({
         <p
           id={`${id}-err`}
           role="alert"
-          className="flex items-center gap-1.5 text-[11.5px] font-medium text-[#B91C1C]"
+          className="flex items-center gap-1.5 text-[11.5px] font-medium text-[var(--status-error-text)]"
         >
           <AlertIcon />
           {error}

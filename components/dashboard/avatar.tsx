@@ -19,8 +19,9 @@ export function Avatar({
       style={{
         width: size,
         height: size,
-        borderRadius: Math.round(size / 3.5),
-        backgroundColor: `${color}22`,
+        backgroundColor: color.startsWith("var(")
+          ? `color-mix(in srgb, ${color} 18%, transparent)`
+          : `${color}22`,
         color,
         fontSize: Math.round(size * 0.32),
         fontFamily: "var(--font-ui, 'DM Sans', system-ui, sans-serif)",

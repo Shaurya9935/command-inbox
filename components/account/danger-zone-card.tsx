@@ -47,11 +47,11 @@ export function DangerZoneCard({ hasPassword, onDataDeleted }: DangerZoneCardPro
     <div
       id="your-data"
       style={{
-        background: "#FFFDFD",
+        background: "var(--danger-tint)",
         borderRadius: 14,
-        border: "1px solid #FCA5A5",
+        border: "1px solid var(--danger-border)",
         padding: "24px 28px",
-        boxShadow: "0 1px 4px rgba(220, 38, 38, 0.05)",
+        boxShadow: "0 1px 4px var(--shadow-color)",
         scrollMarginTop: 80,
       }}
     >
@@ -71,7 +71,7 @@ export function DangerZoneCard({ hasPassword, onDataDeleted }: DangerZoneCardPro
                 margin: 0,
                 fontSize: 18,
                 fontWeight: 600,
-                color: "#991B1B",
+                color: "var(--danger-hover)",
                 letterSpacing: "-0.01em",
               }}
             >
@@ -81,9 +81,9 @@ export function DangerZoneCard({ hasPassword, onDataDeleted }: DangerZoneCardPro
               style={{
                 fontSize: 11,
                 fontWeight: 700,
-                color: "#DC2626",
-                background: "#FEE2E2",
-                border: "1px solid #FCA5A5",
+                color: "var(--danger)",
+                background: "var(--danger-tint)",
+                border: "1px solid var(--danger-border)",
                 padding: "2px 8px",
                 borderRadius: 12,
                 textTransform: "uppercase",
@@ -97,7 +97,7 @@ export function DangerZoneCard({ hasPassword, onDataDeleted }: DangerZoneCardPro
             style={{
               margin: "4px 0 0",
               fontSize: 13,
-              color: "#7F1D1D",
+              color: "var(--danger-hover)",
             }}
           >
             Export your personal data or execute irreversible data deletions
@@ -113,21 +113,21 @@ export function DangerZoneCard({ hasPassword, onDataDeleted }: DangerZoneCardPro
             alignItems: "center",
             justifyContent: "space-between",
             padding: "16px 18px",
-            background: "#FFFFFF",
+            background: "var(--surface-card)",
             borderRadius: 10,
-            border: "1px solid #F3E8E8",
+            border: "1px solid var(--border-hairline)",
             gap: 16,
           }}
         >
           <div>
-            <div style={{ fontSize: 14, fontWeight: 600, color: "#1A1917" }}>
+            <div style={{ fontSize: 14, fontWeight: 600, color: "var(--text-primary)" }}>
               Download My Data
             </div>
-            <div style={{ fontSize: 12.5, color: "#6B6762", marginTop: 2 }}>
+            <div style={{ fontSize: 12.5, color: "var(--text-secondary)", marginTop: 2 }}>
               Export all your conversations, chat messages, and connected integration metadata in JSON format.
             </div>
             {exportError && (
-              <div style={{ color: "#DC2626", fontSize: 12, marginTop: 4 }}>
+              <div style={{ color: "var(--danger)", fontSize: 12, marginTop: 4 }}>
                 {exportError}
               </div>
             )}
@@ -140,9 +140,9 @@ export function DangerZoneCard({ hasPassword, onDataDeleted }: DangerZoneCardPro
             style={{
               padding: "8px 16px",
               borderRadius: 7,
-              border: "1px solid #DED8CE",
-              background: "#FBF9F5",
-              color: "#1A1917",
+              border: "1px solid var(--border-hairline)",
+              background: "var(--surface-raised)",
+              color: "var(--text-primary)",
               fontSize: 12.5,
               fontWeight: 500,
               cursor: isExporting ? "not-allowed" : "pointer",
@@ -174,17 +174,17 @@ export function DangerZoneCard({ hasPassword, onDataDeleted }: DangerZoneCardPro
             alignItems: "center",
             justifyContent: "space-between",
             padding: "16px 18px",
-            background: "#FFFFFF",
+            background: "var(--surface-card)",
             borderRadius: 10,
-            border: "1px solid #FEE2E2",
+            border: "1px solid var(--danger-border)",
             gap: 16,
           }}
         >
           <div>
-            <div style={{ fontSize: 14, fontWeight: 600, color: "#991B1B" }}>
+            <div style={{ fontSize: 14, fontWeight: 600, color: "var(--danger-hover)" }}>
               Delete My Data
             </div>
-            <div style={{ fontSize: 12.5, color: "#7F1D1D", marginTop: 2, maxWidth: 540 }}>
+            <div style={{ fontSize: 12.5, color: "var(--danger-hover)", marginTop: 2, maxWidth: 540 }}>
               Permanently wipes all synced emails, calendar events, AI memory, and integration permissions.
               Your account and login remain active.
             </div>
@@ -196,9 +196,9 @@ export function DangerZoneCard({ hasPassword, onDataDeleted }: DangerZoneCardPro
             style={{
               padding: "8px 16px",
               borderRadius: 7,
-              border: "1px solid #FCA5A5",
-              background: "#FFF5F5",
-              color: "#DC2626",
+              border: "1px solid var(--danger-border)",
+              background: "var(--danger-tint)",
+              color: "var(--danger)",
               fontSize: 12.5,
               fontWeight: 600,
               cursor: "pointer",
@@ -206,12 +206,12 @@ export function DangerZoneCard({ hasPassword, onDataDeleted }: DangerZoneCardPro
               transition: "all 0.12s",
             }}
             onMouseEnter={(e) => {
-              e.currentTarget.style.background = "#DC2626";
-              e.currentTarget.style.color = "#FFFFFF";
+              e.currentTarget.style.background = "var(--danger)";
+              e.currentTarget.style.color = "var(--on-accent)";
             }}
             onMouseLeave={(e) => {
-              e.currentTarget.style.background = "#FFF5F5";
-              e.currentTarget.style.color = "#DC2626";
+              e.currentTarget.style.background = "var(--danger-tint)";
+              e.currentTarget.style.color = "var(--danger)";
             }}
           >
             Delete My Data
@@ -225,17 +225,17 @@ export function DangerZoneCard({ hasPassword, onDataDeleted }: DangerZoneCardPro
             alignItems: "center",
             justifyContent: "space-between",
             padding: "16px 18px",
-            background: "#FFFFFF",
+            background: "var(--surface-card)",
             borderRadius: 10,
-            border: "1px solid #F87171",
+            border: "1px solid var(--danger-border)",
             gap: 16,
           }}
         >
           <div>
-            <div style={{ fontSize: 14, fontWeight: 600, color: "#991B1B" }}>
+            <div style={{ fontSize: 14, fontWeight: 600, color: "var(--danger-hover)" }}>
               Delete My Account
             </div>
-            <div style={{ fontSize: 12.5, color: "#7F1D1D", marginTop: 2, maxWidth: 540 }}>
+            <div style={{ fontSize: 12.5, color: "var(--danger-hover)", marginTop: 2, maxWidth: 540 }}>
               Permanently destroys your user account, login credentials, active sessions, and all data.
               This cannot be recovered.
             </div>
@@ -248,16 +248,16 @@ export function DangerZoneCard({ hasPassword, onDataDeleted }: DangerZoneCardPro
               padding: "8px 16px",
               borderRadius: 7,
               border: "none",
-              background: "#DC2626",
-              color: "#FFFFFF",
+              background: "var(--danger)",
+              color: "var(--on-accent)",
               fontSize: 12.5,
               fontWeight: 600,
               cursor: "pointer",
               whiteSpace: "nowrap",
               transition: "background 0.12s",
             }}
-            onMouseEnter={(e) => (e.currentTarget.style.background = "#B91C1C")}
-            onMouseLeave={(e) => (e.currentTarget.style.background = "#DC2626")}
+            onMouseEnter={(e) => (e.currentTarget.style.background = "var(--danger-hover)")}
+            onMouseLeave={(e) => (e.currentTarget.style.background = "var(--danger)")}
           >
             Delete Account
           </button>

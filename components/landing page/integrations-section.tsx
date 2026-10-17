@@ -21,7 +21,7 @@ export function IntegrationBadge({
     <div className="integration-badge">
       <span
         className={`integration-logo ${
-          live ? "bg-tint text-accent" : "bg-[#F0EFEA] text-muted"
+          live ? "bg-tint text-accent" : "bg-[var(--surface-raised)] text-muted"
         }`}
       >
         {glyph}
@@ -29,7 +29,7 @@ export function IntegrationBadge({
       <span className="text-sm font-medium">{name}</span>
       <span
         className={`ml-auto rounded-full px-2 py-1 text-[8px] font-semibold uppercase tracking-wider ${
-          live ? "bg-[#E7F4EB] text-[#277247]" : "bg-[#F1F0EC] text-muted"
+          live ? "bg-[var(--success-tint)] text-[var(--success-hover)]" : "bg-[var(--surface-raised)] text-muted"
         }`}
       >
         {live ? "Live" : "Coming soon"}

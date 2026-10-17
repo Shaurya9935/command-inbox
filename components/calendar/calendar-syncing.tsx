@@ -18,7 +18,7 @@ export function CalendarSyncingView({
         flex: 1,
         display: "flex",
         flexDirection: "column",
-        background: "#FDFCF8",
+        background: "var(--bg-workspace)",
         overflow: "hidden",
         position: "relative",
         userSelect: "none",
@@ -47,8 +47,8 @@ export function CalendarSyncingView({
           alignItems: "center",
           justifyContent: "space-between",
           padding: "12px 24px",
-          borderBottom: "1px solid #E8E4DC",
-          background: "#FDFCF8",
+          borderBottom: "1px solid var(--border-hairline)",
+          background: "var(--bg-workspace)",
         }}
       >
         <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
@@ -57,7 +57,7 @@ export function CalendarSyncingView({
               width: 140,
               height: 22,
               borderRadius: 6,
-              background: "#EFECE6",
+              background: "var(--hover)",
               animation: "calShimmer 1.8s infinite ease-in-out",
             }}
           />
@@ -66,7 +66,7 @@ export function CalendarSyncingView({
               width: 54,
               height: 24,
               borderRadius: 6,
-              background: "#F5F2EC",
+              background: "var(--hover-subtle)",
               animation: "calShimmer 1.8s infinite ease-in-out",
             }}
           />
@@ -78,7 +78,7 @@ export function CalendarSyncingView({
               width: 180,
               height: 28,
               borderRadius: 7,
-              background: "#F2EFEB",
+              background: "var(--hover)",
               animation: "calShimmer 1.8s infinite ease-in-out",
             }}
           />
@@ -99,7 +99,7 @@ export function CalendarSyncingView({
           {/* Time sidebar skeleton */}
           <div
             style={{
-              borderRight: "1px solid #EDE9E1",
+              borderRight: "1px solid var(--border-hairline)",
               padding: "14px 6px",
               display: "flex",
               flexDirection: "column",
@@ -113,7 +113,7 @@ export function CalendarSyncingView({
                   width: 38,
                   height: 10,
                   borderRadius: 4,
-                  background: "#E8E4DC",
+                  background: "var(--border-hairline)",
                   animation: "calShimmer 1.8s infinite ease-in-out",
                 }}
               />
@@ -125,7 +125,7 @@ export function CalendarSyncingView({
             <div
               key={dayIdx}
               style={{
-                borderRight: "1px solid #EDE9E1",
+                borderRight: "1px solid var(--border-hairline)",
                 padding: "16px 8px",
                 display: "flex",
                 flexDirection: "column",
@@ -138,7 +138,7 @@ export function CalendarSyncingView({
                   width: "60%",
                   height: 14,
                   borderRadius: 4,
-                  background: "#EAE6DE",
+                  background: "var(--hover)",
                   marginBottom: 12,
                   animation: "calShimmer 1.8s infinite ease-in-out",
                 }}
@@ -150,8 +150,8 @@ export function CalendarSyncingView({
                   style={{
                     height: 52,
                     borderRadius: 8,
-                    background: "#EDEAFB",
-                    border: "1px solid #C4BFF0",
+                    background: "var(--event-meeting-bg)",
+                    border: "1px solid var(--event-meeting-border)",
                     animation: "calShimmer 2s infinite ease-in-out",
                   }}
                 />
@@ -162,8 +162,8 @@ export function CalendarSyncingView({
                     height: 64,
                     marginTop: 20,
                     borderRadius: 8,
-                    background: "#EEF4F1",
-                    border: "1px solid #B8D4C0",
+                    background: "var(--event-focus-bg)",
+                    border: "1px solid var(--event-focus-border)",
                     animation: "calShimmer 2.2s infinite ease-in-out",
                   }}
                 />
@@ -174,8 +174,8 @@ export function CalendarSyncingView({
                     height: 46,
                     marginTop: 48,
                     borderRadius: 8,
-                    background: "#F5F0E8",
-                    border: "1px solid #DDD0BE",
+                    background: "var(--event-personal-bg)",
+                    border: "1px solid var(--event-personal-border)",
                     animation: "calShimmer 1.9s infinite ease-in-out",
                   }}
                 />
@@ -192,17 +192,17 @@ export function CalendarSyncingView({
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
-            background: "rgba(253, 252, 248, 0.72)",
+            background: "color-mix(in srgb, var(--bg-workspace) 75%, transparent)",
             backdropFilter: "blur(2px)",
           }}
         >
           <div
             style={{
-              background: "#FFFFFF",
-              border: "1px solid #E8E4DC",
+              background: "var(--surface-card)",
+              border: "1px solid var(--border-hairline)",
               borderRadius: 16,
               padding: "36px 42px",
-              boxShadow: "0 12px 36px rgba(0, 0, 0, 0.06), 0 2px 8px rgba(0, 0, 0, 0.03)",
+              boxShadow: "0 12px 36px var(--shadow-color), 0 2px 8px var(--shadow-color)",
               display: "flex",
               flexDirection: "column",
               alignItems: "center",
@@ -218,7 +218,7 @@ export function CalendarSyncingView({
                   position: "absolute",
                   inset: -8,
                   borderRadius: "50%",
-                  background: "#EAE8F8",
+                  background: "var(--accent-tint)",
                   animation: "pulseRing 2.2s infinite ease-in-out",
                 }}
               />
@@ -227,13 +227,13 @@ export function CalendarSyncingView({
                   width: 58,
                   height: 58,
                   borderRadius: "50%",
-                  background: "linear-gradient(135deg, #5549C0 0%, #7B6ED8 100%)",
+                  background: "linear-gradient(135deg, var(--accent-solid) 0%, var(--accent-hover) 100%)",
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "center",
-                  color: "#FFFFFF",
+                  color: "var(--on-accent)",
                   position: "relative",
-                  boxShadow: "0 6px 18px rgba(85, 73, 192, 0.28)",
+                  boxShadow: "0 6px 18px var(--shadow-color)",
                 }}
               >
                 <CalendarIcon size={26} />
@@ -247,12 +247,12 @@ export function CalendarSyncingView({
                   width: 22,
                   height: 22,
                   borderRadius: "50%",
-                  background: "#FFFFFF",
-                  border: "2px solid #FFFFFF",
+                  background: "var(--surface-card)",
+                  border: "2px solid var(--surface-card)",
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "center",
-                  boxShadow: "0 2px 6px rgba(0, 0, 0, 0.1)",
+                  boxShadow: "0 2px 6px var(--shadow-color)",
                 }}
               >
                 <svg
@@ -262,8 +262,8 @@ export function CalendarSyncingView({
                   fill="none"
                   style={{ animation: "spin 0.8s linear infinite" }}
                 >
-                  <circle cx="8" cy="8" r="6" stroke="#EAE8F8" strokeWidth="2.5" />
-                  <path d="M8 2a6 6 0 016 6" stroke="#5549C0" strokeWidth="2.5" strokeLinecap="round" />
+                  <circle cx="8" cy="8" r="6" stroke="var(--accent-tint)" strokeWidth="2.5" />
+                  <path d="M8 2a6 6 0 016 6" stroke="var(--accent-text)" strokeWidth="2.5" strokeLinecap="round" />
                 </svg>
               </div>
             </div>
@@ -272,7 +272,7 @@ export function CalendarSyncingView({
               style={{
                 fontSize: 16,
                 fontWeight: 600,
-                color: "#1A1917",
+                color: "var(--text-primary)",
                 letterSpacing: "-0.02em",
                 margin: "0 0 6px",
               }}
@@ -283,7 +283,7 @@ export function CalendarSyncingView({
             <p
               style={{
                 fontSize: 12.5,
-                color: "#7A7672",
+                color: "var(--text-secondary)",
                 lineHeight: 1.5,
                 margin: "0 0 20px",
               }}
@@ -299,8 +299,8 @@ export function CalendarSyncingView({
                 gap: 6,
                 padding: "3px 10px",
                 borderRadius: 20,
-                background: "#F5F2EC",
-                color: "#6B6762",
+                background: "var(--hover-subtle)",
+                color: "var(--text-secondary)",
                 fontSize: 11,
                 fontFamily: "var(--font-mono, 'JetBrains Mono', monospace)",
               }}
@@ -310,7 +310,7 @@ export function CalendarSyncingView({
                   width: 6,
                   height: 6,
                   borderRadius: "50%",
-                  background: "#5549C0",
+                  background: "var(--accent-solid)",
                   display: "inline-block",
                 }}
               />
@@ -339,7 +339,7 @@ export function CalendarEmptyView({ onSync, isSyncing = false }: CalendarEmptyVi
         justifyContent: "center",
         padding: "48px 24px",
         textAlign: "center",
-        background: "#FDFCF8",
+        background: "var(--bg-workspace)",
       }}
     >
       <div
@@ -347,8 +347,8 @@ export function CalendarEmptyView({ onSync, isSyncing = false }: CalendarEmptyVi
           width: 58,
           height: 58,
           borderRadius: 14,
-          background: "#F5F2EC",
-          color: "#9B9691",
+          background: "var(--hover-subtle)",
+          color: "var(--text-muted)",
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
@@ -362,7 +362,7 @@ export function CalendarEmptyView({ onSync, isSyncing = false }: CalendarEmptyVi
         style={{
           fontSize: 16,
           fontWeight: 600,
-          color: "#1A1917",
+          color: "var(--text-primary)",
           letterSpacing: "-0.02em",
           margin: "0 0 6px",
         }}
@@ -373,7 +373,7 @@ export function CalendarEmptyView({ onSync, isSyncing = false }: CalendarEmptyVi
       <p
         style={{
           fontSize: 13,
-          color: "#7A7672",
+          color: "var(--text-secondary)",
           maxWidth: 340,
           lineHeight: 1.5,
           margin: "0 0 24px",
@@ -390,8 +390,8 @@ export function CalendarEmptyView({ onSync, isSyncing = false }: CalendarEmptyVi
           alignItems: "center",
           gap: 7,
           padding: "8px 18px",
-          background: isSyncing ? "#7B6ED8" : "#5549C0",
-          color: "#FFFFFF",
+          background: isSyncing ? "var(--accent-hover)" : "var(--accent-solid)",
+          color: "var(--on-accent)",
           border: "none",
           borderRadius: 8,
           fontSize: 13,
@@ -399,7 +399,7 @@ export function CalendarEmptyView({ onSync, isSyncing = false }: CalendarEmptyVi
           cursor: isSyncing ? "default" : "pointer",
           fontFamily: "var(--font-ui, 'DM Sans', system-ui, sans-serif)",
           transition: "background 0.15s",
-          boxShadow: "0 2px 8px rgba(85, 73, 192, 0.22)",
+          boxShadow: "0 2px 8px var(--shadow-color)",
         }}
       >
         <CalendarIcon size={14} />

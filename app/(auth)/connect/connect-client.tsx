@@ -54,7 +54,7 @@ export function ConnectClient() {
           style={{
             fontSize: 20,
             fontWeight: 600,
-            color: "#1A1917",
+            color: "var(--text-primary)",
             letterSpacing: "-0.025em",
             margin: "0 0 8px",
           }}
@@ -65,7 +65,7 @@ export function ConnectClient() {
         <p
           style={{
             fontSize: 13.5,
-            color: "#7B7775",
+            color: "var(--text-secondary)",
             lineHeight: 1.5,
             margin: "0 0 24px",
           }}
@@ -78,10 +78,10 @@ export function ConnectClient() {
             style={{
               width: "100%",
               padding: "10px 14px",
-              background: "#FDF2F2",
-              border: "1px solid #F8D7DA",
+              background: "var(--status-error-bg)",
+              border: "1px solid var(--status-error-border)",
               borderRadius: 8,
-              color: "#C53030",
+              color: "var(--status-error-text)",
               fontSize: 12.5,
               marginBottom: 16,
               textAlign: "left",
@@ -97,15 +97,15 @@ export function ConnectClient() {
             style={{
               width: "100%",
               padding: "14px 16px",
-              background: "#FFFFFF",
-              border: "1px solid #E8E4DC",
+              background: "var(--bg-card)",
+              border: "1px solid var(--border-subtle)",
               borderRadius: 10,
               display: "flex",
               alignItems: "center",
               justifyContent: "space-between",
               gap: 12,
               textAlign: "left",
-              boxShadow: "0 1px 3px rgba(0,0,0,0.02)",
+              boxShadow: "var(--shadow-sm)",
             }}
           >
             <div style={{ display: "flex", alignItems: "center", gap: 12, minWidth: 0 }}>
@@ -114,12 +114,12 @@ export function ConnectClient() {
                   width: 38,
                   height: 38,
                   borderRadius: 9,
-                  background: "#FDF2F0",
+                  background: "var(--brand-gmail-bg)",
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "center",
                   flexShrink: 0,
-                  border: "1px solid #FCE8E6",
+                  border: "1px solid var(--border-subtle)",
                 }}
               >
                 <Image
@@ -133,13 +133,13 @@ export function ConnectClient() {
               </div>
 
               <div style={{ minWidth: 0 }}>
-                <div style={{ fontSize: 13.5, fontWeight: 600, color: "#1A1917" }}>
+                <div style={{ fontSize: 13.5, fontWeight: 600, color: "var(--text-primary)" }}>
                   Gmail
                 </div>
                 <div
                   style={{
                     fontSize: 12,
-                    color: "#8C8782",
+                    color: "var(--text-muted)",
                     whiteSpace: "nowrap",
                     overflow: "hidden",
                     textOverflow: "ellipsis",
@@ -155,8 +155,8 @@ export function ConnectClient() {
               disabled={loadingService !== null}
               style={{
                 padding: "8px 14px",
-                background: loadingService === "gmail" ? "#837BBE" : "#5549C0",
-                color: "#FFFFFF",
+                background: loadingService === "gmail" ? "var(--brand-accent-hover)" : "var(--brand-accent)",
+                color: "var(--text-inverse)",
                 border: "none",
                 borderRadius: 7,
                 fontSize: 12.5,
@@ -176,15 +176,15 @@ export function ConnectClient() {
             style={{
               width: "100%",
               padding: "14px 16px",
-              background: "#FFFFFF",
-              border: "1px solid #E8E4DC",
+              background: "var(--bg-card)",
+              border: "1px solid var(--border-subtle)",
               borderRadius: 10,
               display: "flex",
               alignItems: "center",
               justifyContent: "space-between",
               gap: 12,
               textAlign: "left",
-              boxShadow: "0 1px 3px rgba(0,0,0,0.02)",
+              boxShadow: "var(--shadow-sm)",
             }}
           >
             <div style={{ display: "flex", alignItems: "center", gap: 12, minWidth: 0 }}>
@@ -193,12 +193,12 @@ export function ConnectClient() {
                   width: 38,
                   height: 38,
                   borderRadius: 9,
-                  background: "#F0F5FD",
+                  background: "var(--brand-calendar-bg)",
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "center",
                   flexShrink: 0,
-                  border: "1px solid #E1EDFC",
+                  border: "1px solid var(--border-subtle)",
                 }}
               >
                 <Image
@@ -212,13 +212,13 @@ export function ConnectClient() {
               </div>
 
               <div style={{ minWidth: 0 }}>
-                <div style={{ fontSize: 13.5, fontWeight: 600, color: "#1A1917" }}>
+                <div style={{ fontSize: 13.5, fontWeight: 600, color: "var(--text-primary)" }}>
                   Google Calendar
                 </div>
                 <div
                   style={{
                     fontSize: 12,
-                    color: "#8C8782",
+                    color: "var(--text-muted)",
                     whiteSpace: "nowrap",
                     overflow: "hidden",
                     textOverflow: "ellipsis",
@@ -234,8 +234,8 @@ export function ConnectClient() {
               disabled={loadingService !== null}
               style={{
                 padding: "8px 14px",
-                background: loadingService === "calendar" ? "#837BBE" : "#5549C0",
-                color: "#FFFFFF",
+                background: loadingService === "calendar" ? "var(--brand-accent-hover)" : "var(--brand-accent)",
+                color: "var(--text-inverse)",
                 border: "none",
                 borderRadius: 7,
                 fontSize: 12.5,
@@ -256,7 +256,7 @@ export function ConnectClient() {
           style={{
             marginTop: 20,
             fontSize: 12.5,
-            color: "#9B9691",
+            color: "var(--text-muted)",
             textDecoration: "none",
           }}
         >

@@ -29,12 +29,12 @@ import {
 } from "@/components/dashboard/icons";
 
 const PALETTE_COLORS = [
-  "#8B72BE",
-  "#5B8FAB",
-  "#B07D4E",
-  "#5549C0",
-  "#3E7868",
-  "#C5B49A",
+  "var(--avatar-purple)",
+  "var(--avatar-teal)",
+  "var(--avatar-amber)",
+  "var(--avatar-indigo)",
+  "var(--avatar-emerald)",
+  "var(--avatar-coral)",
 ];
 
 function formatSenderName(fromRaw: string): string {
@@ -367,7 +367,7 @@ function InboxInner() {
         display: "flex",
         height: "100vh",
         width: "100%",
-        background: "#F5F2EC",
+        background: "var(--bg-main)",
         fontFamily: "var(--font-ui, 'DM Sans', system-ui, sans-serif)",
         overflow: "hidden",
       }}
@@ -387,7 +387,7 @@ function InboxInner() {
           ) {
             setActiveFolder(nav);
             if (nav === "inbox") {
-              router.push("/dashboard/inbox");
+               router.push("/dashboard/inbox");
             } else {
               router.push(`/dashboard/inbox?folder=${encodeURIComponent(nav)}`);
             }
@@ -416,7 +416,7 @@ function InboxInner() {
           flexDirection: "column",
           minWidth: 0,
           overflow: "hidden",
-          background: "#F5F2EC",
+          background: "var(--bg-main)",
         }}
       >
         {/* ── Top Header Bar ── */}
@@ -426,8 +426,8 @@ function InboxInner() {
             alignItems: "center",
             justifyContent: "space-between",
             padding: "14px 28px",
-            borderBottom: "1px solid #E8E4DC",
-            background: "#FDFCF8",
+            borderBottom: "1px solid var(--border-subtle)",
+            background: "var(--bg-card)",
             flexShrink: 0,
             gap: 16,
           }}
@@ -441,27 +441,27 @@ function InboxInner() {
                 alignItems: "center",
                 justifyContent: "center",
                 background: "transparent",
-                border: "1px solid #E4DED4",
+                border: "1px solid var(--border-subtle)",
                 borderRadius: 6,
                 padding: "4px 6px",
                 cursor: "pointer",
-                color: "#6B6762",
+                color: "var(--text-secondary)",
                 transition: "background 0.12s, color 0.12s",
               }}
               onMouseEnter={(e) => {
-                e.currentTarget.style.background = "#EEE9E1";
-                e.currentTarget.style.color = "#1A1917";
+                e.currentTarget.style.background = "var(--bg-hover)";
+                e.currentTarget.style.color = "var(--text-primary)";
               }}
               onMouseLeave={(e) => {
                 e.currentTarget.style.background = "transparent";
-                e.currentTarget.style.color = "#6B6762";
+                e.currentTarget.style.color = "var(--text-secondary)";
               }}
             >
               <SidebarToggleIcon size={14} />
             </button>
-            <div style={{ width: 1, height: 16, background: "#E8E4DC" }} />
+            <div style={{ width: 1, height: 16, background: "var(--border-subtle)" }} />
             <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-              <span style={{ color: "#5549C0", display: "flex" }}>
+              <span style={{ color: "var(--brand-accent)", display: "flex" }}>
                 {activeFolder === "starred" ? (
                   <StarIcon size={16} />
                 ) : activeFolder === "drafts" ? (
@@ -484,7 +484,7 @@ function InboxInner() {
                 style={{
                   fontSize: 16,
                   fontWeight: 600,
-                  color: "#1A1917",
+                  color: "var(--text-primary)",
                   margin: 0,
                   letterSpacing: "-0.02em",
                   textTransform: "capitalize",
@@ -501,8 +501,8 @@ function InboxInner() {
                   style={{
                     fontSize: 11,
                     fontFamily: "var(--font-mono, 'JetBrains Mono', monospace)",
-                    color: "#92400E",
-                    background: "#FEF3C7",
+                    color: "var(--status-warning-text)",
+                    background: "var(--status-warning-bg)",
                     padding: "2px 7px",
                     borderRadius: 12,
                     fontWeight: 500,
@@ -515,8 +515,8 @@ function InboxInner() {
                   style={{
                     fontSize: 11,
                     fontFamily: "var(--font-mono, 'JetBrains Mono', monospace)",
-                    color: unreadCount > 0 ? "#5549C0" : "#9B9691",
-                    background: unreadCount > 0 ? "#EAE8F8" : "#E8E4DC",
+                    color: unreadCount > 0 ? "var(--brand-accent)" : "var(--text-muted)",
+                    background: unreadCount > 0 ? "var(--brand-accent-subtle)" : "var(--border-subtle)",
                     padding: "2px 7px",
                     borderRadius: 12,
                     fontWeight: 500,
@@ -535,14 +535,14 @@ function InboxInner() {
               display: "flex",
               alignItems: "center",
               gap: 8,
-              background: "#F5F2EC",
-              border: "1px solid #E4E0D8",
+              background: "var(--bg-inset)",
+              border: "1px solid var(--border-subtle)",
               borderRadius: 8,
               padding: "6px 12px",
               width: 260,
             }}
           >
-            <span style={{ color: "#A8A49E", display: "flex" }}>
+            <span style={{ color: "var(--text-muted)", display: "flex" }}>
               <SearchIcon size={13} />
             </span>
             <input
@@ -557,7 +557,7 @@ function InboxInner() {
                 outline: "none",
                 fontSize: 13,
                 fontFamily: "var(--font-body, 'Inter', system-ui, sans-serif)",
-                color: "#1A1917",
+                color: "var(--text-primary)",
                 width: "100%",
               }}
             />
@@ -568,7 +568,7 @@ function InboxInner() {
             <span
               style={{
                 fontSize: 11.5,
-                color: "#B8B3AB",
+                color: "var(--text-muted)",
                 fontFamily: "var(--font-ui, 'DM Sans', system-ui, sans-serif)",
                 whiteSpace: "nowrap",
               }}
@@ -596,8 +596,8 @@ function InboxInner() {
                 alignItems: "center",
                 gap: 6,
                 padding: "7px 14px",
-                background: isConnectingGmail ? "#7B6ED8" : "#5046B8",
-                color: "#FFFFFF",
+                background: isConnectingGmail ? "var(--brand-accent-hover)" : "var(--brand-accent)",
+                color: "var(--text-inverse)",
                 border: "none",
                 borderRadius: 8,
                 fontSize: 12.5,
@@ -621,8 +621,8 @@ function InboxInner() {
                 alignItems: "center",
                 gap: 6,
                 padding: "7px 14px",
-                background: isSyncing ? "#7B6ED8" : "#5549C0",
-                color: "#FFFFFF",
+                background: isSyncing ? "var(--brand-accent-hover)" : "var(--brand-accent)",
+                color: "var(--text-inverse)",
                 border: "none",
                 borderRadius: 8,
                 fontSize: 12.5,
@@ -647,12 +647,13 @@ function InboxInner() {
                 <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
                 <circle
                   cx="8" cy="8" r="6"
-                  stroke="rgba(255,255,255,0.35)"
+                  stroke="currentColor"
+                  strokeOpacity="0.35"
                   strokeWidth="1.8"
                 />
                 <path
                   d="M8 2a6 6 0 016 6"
-                  stroke="white"
+                  stroke="currentColor"
                   strokeWidth="1.8"
                   strokeLinecap="round"
                 />
@@ -668,9 +669,9 @@ function InboxInner() {
         <div
           style={{
             padding: "10px 28px",
-            background: "#FDF2F2",
-            borderBottom: "1px solid #F8D7DA",
-            color: "#C53030",
+            background: "var(--status-error-bg)",
+            borderBottom: "1px solid var(--status-error-border)",
+            color: "var(--status-error-text)",
             fontSize: 12.5,
             display: "flex",
             alignItems: "center",
@@ -683,7 +684,7 @@ function InboxInner() {
             style={{
               background: "none",
               border: "none",
-              color: "#9B2C2C",
+              color: "var(--status-error-text)",
               fontWeight: 600,
               cursor: "pointer",
               fontSize: 12,
@@ -711,8 +712,8 @@ function InboxInner() {
           style={{
             width: 380,
             flexShrink: 0,
-            borderRight: "1px solid #E8E4DC",
-            background: "#FAF8F4",
+            borderRight: "1px solid var(--border-subtle)",
+            background: "var(--bg-main)",
             display: "flex",
             flexDirection: "column",
             overflowY: "auto",
@@ -735,14 +736,14 @@ function InboxInner() {
                       width: 36,
                       height: 36,
                       borderRadius: 10,
-                      background: "#E8E4DC",
+                      background: "var(--border-subtle)",
                       flexShrink: 0,
                     }}
                   />
                   <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: 6 }}>
-                    <div style={{ width: "45%", height: 12, background: "#E8E4DC", borderRadius: 4 }} />
-                    <div style={{ width: "80%", height: 10, background: "#EDEAE4", borderRadius: 4 }} />
-                    <div style={{ width: "60%", height: 9, background: "#F0EDE7", borderRadius: 4 }} />
+                    <div style={{ width: "45%", height: 12, background: "var(--border-subtle)", borderRadius: 4 }} />
+                    <div style={{ width: "80%", height: 10, background: "var(--bg-inset)", borderRadius: 4 }} />
+                    <div style={{ width: "60%", height: 9, background: "var(--bg-inset)", borderRadius: 4 }} />
                   </div>
                 </div>
               ))}
@@ -757,7 +758,7 @@ function InboxInner() {
                 justifyContent: "center",
                 padding: "36px 24px",
                 textAlign: "center",
-                color: "#9B9691",
+                color: "var(--text-muted)",
               }}
             >
               <InboxIcon size={32} />
@@ -765,7 +766,7 @@ function InboxInner() {
                 style={{
                   fontSize: 14,
                   fontWeight: 500,
-                  color: "#1A1917",
+                  color: "var(--text-primary)",
                   margin: "12px 0 4px",
                 }}
               >
@@ -796,13 +797,13 @@ function InboxInner() {
                       alignItems: "flex-start",
                       gap: 12,
                       padding: "16px 20px",
-                      background: isSelected ? "#FFFFFF" : "transparent",
-                      borderBottom: "1px solid #EDEAE4",
-                      borderLeft: isSelected ? "3px solid #5549C0" : "3px solid transparent",
+                      background: isSelected ? "var(--bg-card)" : "transparent",
+                      borderBottom: "1px solid var(--border-subtle)",
+                      borderLeft: isSelected ? "3px solid var(--brand-accent)" : "3px solid transparent",
                       cursor: "pointer",
                       textAlign: "left",
                       transition: "background 0.12s",
-                      boxShadow: isSelected ? "0 2px 8px rgba(0,0,0,0.03)" : "none",
+                      boxShadow: isSelected ? "var(--shadow-sm)" : "none",
                       userSelect: "none",
                     }}
                   >
@@ -820,12 +821,12 @@ function InboxInner() {
                           marginBottom: 3,
                         }}
                       >
-                        {email.unread && <Dot color="#5549C0" size={5} />}
+                        {email.unread && <Dot color="var(--brand-accent)" size={5} />}
                         <span
                           style={{
                             fontSize: 13,
                             fontWeight: email.unread ? 600 : 500,
-                            color: isSelected ? "#5549C0" : "#1A1917",
+                            color: isSelected ? "var(--brand-accent)" : "var(--text-primary)",
                             flex: 1,
                             overflow: "hidden",
                             textOverflow: "ellipsis",
@@ -838,7 +839,7 @@ function InboxInner() {
                           style={{
                             fontSize: 10.5,
                             fontFamily: "var(--font-mono, 'JetBrains Mono', monospace)",
-                            color: "#B8B3AB",
+                            color: "var(--text-muted)",
                             flexShrink: 0,
                           }}
                         >
@@ -853,7 +854,7 @@ function InboxInner() {
                             border: "none",
                             padding: "0 2px",
                             cursor: "pointer",
-                            color: email.starred ? "#F59E0B" : "#C5C0B9",
+                            color: email.starred ? "var(--status-warning-text)" : "var(--text-muted)",
                             display: "flex",
                             alignItems: "center",
                             flexShrink: 0,
@@ -866,7 +867,7 @@ function InboxInner() {
                         style={{
                           fontSize: 12.5,
                           fontWeight: email.unread ? 600 : 400,
-                          color: "#3D3C3A",
+                          color: "var(--text-primary)",
                           overflow: "hidden",
                           textOverflow: "ellipsis",
                           whiteSpace: "nowrap",
@@ -878,7 +879,7 @@ function InboxInner() {
                       <div
                         style={{
                           fontSize: 12,
-                          color: "#9B9691",
+                          color: "var(--text-secondary)",
                           fontFamily: "var(--font-body, 'Inter', system-ui, sans-serif)",
                           overflow: "hidden",
                           textOverflow: "ellipsis",
@@ -901,7 +902,7 @@ function InboxInner() {
             flex: 1,
             display: "flex",
             flexDirection: "column",
-            background: "#F7F4EE",
+            background: "var(--bg-inset)",
             overflowY: "auto",
             padding: "36px 48px",
           }}
@@ -926,21 +927,21 @@ function InboxInner() {
                     gap: 6,
                     padding: "3px 9px",
                     borderRadius: 6,
-                    background: "#EAE8F8",
-                    color: "#5549C0",
+                    background: "var(--brand-accent-subtle)",
+                    color: "var(--brand-accent)",
                     fontSize: 11.5,
                     fontFamily: "var(--font-mono, 'JetBrains Mono', monospace)",
                     marginBottom: 12,
                   }}
                 >
-                  <Dot color="#5549C0" size={5} />
+                  <Dot color="var(--brand-accent)" size={5} />
                   <span>{selectedEmail.tag}</span>
                 </div>
                 <h2
                   style={{
                     fontSize: 22,
                     fontWeight: 600,
-                    color: "#1A1917",
+                    color: "var(--text-primary)",
                     letterSpacing: "-0.03em",
                     margin: 0,
                     lineHeight: 1.3,
@@ -953,11 +954,11 @@ function InboxInner() {
               {/* Message Body Card */}
               <div
                 style={{
-                  background: "#FFFFFF",
-                  border: "1px solid #E8E4DC",
+                  background: "var(--bg-card)",
+                  border: "1px solid var(--border-subtle)",
                   borderRadius: 12,
                   padding: "24px 28px",
-                  boxShadow: "0 1px 4px rgba(0,0,0,0.04)",
+                  boxShadow: "var(--shadow-sm)",
                   marginBottom: 24,
                 }}
               >
@@ -979,7 +980,7 @@ function InboxInner() {
                       style={{
                         fontSize: 14,
                         fontWeight: 600,
-                        color: "#1A1917",
+                        color: "var(--text-primary)",
                       }}
                     >
                       {selectedEmail.from}
@@ -987,7 +988,7 @@ function InboxInner() {
                     <div
                       style={{
                         fontSize: 12,
-                        color: "#9B9691",
+                        color: "var(--text-muted)",
                         fontFamily: "var(--font-mono, 'JetBrains Mono', monospace)",
                         marginTop: 1,
                       }}
@@ -1008,17 +1009,17 @@ function InboxInner() {
               {/* Reply Composer */}
               <div
                 style={{
-                  background: "#FDFCF9",
-                  border: "1px solid #E8E4DC",
+                  background: "var(--bg-card)",
+                  border: "1px solid var(--border-subtle)",
                   borderRadius: 12,
                   padding: "16px 20px",
-                  boxShadow: "0 1px 4px rgba(0,0,0,0.03)",
+                  boxShadow: "var(--shadow-sm)",
                 }}
               >
                 <div
                   style={{
                     fontSize: 12,
-                    color: "#9B9691",
+                    color: "var(--text-muted)",
                     marginBottom: 10,
                   }}
                 >
@@ -1037,7 +1038,7 @@ function InboxInner() {
                     resize: "none",
                     fontSize: 13.5,
                     fontFamily: "var(--font-body, 'Inter', system-ui, sans-serif)",
-                    color: "#1A1917",
+                    color: "var(--text-primary)",
                     lineHeight: 1.6,
                   }}
                 />
@@ -1045,9 +1046,9 @@ function InboxInner() {
                   <div
                     style={{
                       fontSize: 12,
-                      color: "#DC2626",
-                      background: "#FEF2F2",
-                      border: "1px solid #FCA5A5",
+                      color: "var(--status-error-text)",
+                      background: "var(--status-error-bg)",
+                      border: "1px solid var(--status-error-border)",
                       borderRadius: 6,
                       padding: "6px 10px",
                       marginTop: 8,
@@ -1063,7 +1064,7 @@ function InboxInner() {
                     alignItems: "center",
                     marginTop: 12,
                     paddingTop: 12,
-                    borderTop: "1px solid #EDEAE4",
+                    borderTop: "1px solid var(--border-subtle)",
                   }}
                 >
                   <div style={{ display: "flex", gap: 8 }}>
@@ -1074,21 +1075,21 @@ function InboxInner() {
                         alignItems: "center",
                         gap: 5,
                         fontSize: 12,
-                        color: "#7B7775",
+                        color: "var(--text-secondary)",
                         background: "transparent",
-                        border: "1px solid #E4E0D8",
+                        border: "1px solid var(--border-subtle)",
                         borderRadius: 7,
                         padding: "5px 11px",
                         cursor: "pointer",
                         transition: "all 0.12s",
                       }}
                       onMouseEnter={(e) => {
-                        e.currentTarget.style.background = "#F5F2EC";
-                        e.currentTarget.style.color = "#1A1917";
+                        e.currentTarget.style.background = "var(--bg-hover)";
+                        e.currentTarget.style.color = "var(--text-primary)";
                       }}
                       onMouseLeave={(e) => {
                         e.currentTarget.style.background = "transparent";
-                        e.currentTarget.style.color = "#7B7775";
+                        e.currentTarget.style.color = "var(--text-secondary)";
                       }}
                     >
                       <ReplyIcon />
@@ -1101,21 +1102,21 @@ function InboxInner() {
                         alignItems: "center",
                         gap: 5,
                         fontSize: 12,
-                        color: "#7B7775",
+                        color: "var(--text-secondary)",
                         background: "transparent",
-                        border: "1px solid #E4E0D8",
+                        border: "1px solid var(--border-subtle)",
                         borderRadius: 7,
                         padding: "5px 11px",
                         cursor: "pointer",
                         transition: "all 0.12s",
                       }}
                       onMouseEnter={(e) => {
-                        e.currentTarget.style.background = "#F5F2EC";
-                        e.currentTarget.style.color = "#1A1917";
+                        e.currentTarget.style.background = "var(--bg-hover)";
+                        e.currentTarget.style.color = "var(--text-primary)";
                       }}
                       onMouseLeave={(e) => {
                         e.currentTarget.style.background = "transparent";
-                        e.currentTarget.style.color = "#7B7775";
+                        e.currentTarget.style.color = "var(--text-secondary)";
                       }}
                     >
                       <PaperclipIcon />
@@ -1129,8 +1130,8 @@ function InboxInner() {
                     style={{
                       fontSize: 12.5,
                       fontWeight: 500,
-                      color: "#FFF",
-                      background: replyText.trim() && !isSendingReply ? "#5549C0" : "#A8A49E",
+                      color: "var(--text-inverse)",
+                      background: replyText.trim() && !isSendingReply ? "var(--brand-accent)" : "var(--border-subtle)",
                       border: "none",
                       borderRadius: 8,
                       padding: "7px 16px",
@@ -1156,8 +1157,8 @@ function InboxInner() {
                           fill="none"
                           style={{ animation: "spin 0.8s linear infinite" }}
                         >
-                          <circle cx="8" cy="8" r="6" stroke="rgba(255,255,255,0.4)" strokeWidth="2.5" />
-                          <path d="M8 2a6 6 0 016 6" stroke="#FFF" strokeWidth="2.5" strokeLinecap="round" />
+                          <circle cx="8" cy="8" r="6" stroke="currentColor" opacity="0.4" strokeWidth="2.5" />
+                          <path d="M8 2a6 6 0 016 6" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" />
                         </svg>
                         <span>Sending…</span>
                       </>
@@ -1176,7 +1177,7 @@ function InboxInner() {
                 flexDirection: "column",
                 alignItems: "center",
                 justifyContent: "center",
-                color: "#A8A49E",
+                color: "var(--text-muted)",
                 textAlign: "center",
               }}
             >

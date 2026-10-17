@@ -31,7 +31,7 @@ export function AgendaView({
                 style={{
                   fontSize: 12,
                   fontWeight: 600,
-                  color: day.isToday ? "#5549C0" : "#6B6762",
+                  color: day.isToday ? "var(--accent-text)" : "var(--text-secondary)",
                   letterSpacing: "-0.01em",
                   fontFamily: "var(--font-ui, 'DM Sans', system-ui, sans-serif)",
                 }}
@@ -44,8 +44,8 @@ export function AgendaView({
                   style={{
                     fontSize: 10,
                     fontWeight: 600,
-                    color: "#5549C0",
-                    background: "#EAE8F8",
+                    color: "var(--accent-text)",
+                    background: "var(--accent-tint)",
                     padding: "2px 7px",
                     borderRadius: 20,
                     letterSpacing: "0.04em",
@@ -56,7 +56,7 @@ export function AgendaView({
                 </span>
               )}
 
-              <div style={{ flex: 1, height: 1, background: "#EDEAE4" }} />
+              <div style={{ flex: 1, height: 1, background: "var(--border-hairline)" }} />
             </div>
 
             {/* List of events on this day */}
@@ -81,7 +81,7 @@ export function AgendaView({
                     fontFamily: "var(--font-ui, 'DM Sans', system-ui, sans-serif)",
                   }}
                   onMouseEnter={(e) => {
-                    if (!isSel) (e.currentTarget as HTMLDivElement).style.background = "#F5F2EC";
+                    if (!isSel) (e.currentTarget as HTMLDivElement).style.background = "var(--hover)";
                   }}
                   onMouseLeave={(e) => {
                     if (!isSel) (e.currentTarget as HTMLDivElement).style.background = "transparent";
@@ -104,7 +104,7 @@ export function AgendaView({
                       style={{
                         fontSize: 11.5,
                         fontFamily: "var(--font-mono, 'JetBrains Mono', monospace)",
-                        color: "#9B9691",
+                        color: "var(--text-muted)",
                       }}
                     >
                       {fmtTime(ev.startH)}
@@ -113,7 +113,7 @@ export function AgendaView({
                       style={{
                         fontSize: 11,
                         fontFamily: "var(--font-mono, 'JetBrains Mono', monospace)",
-                        color: "#C5C0B8",
+                        color: "var(--text-disabled)",
                       }}
                     >
                       {fmtTime(ev.endH)}
@@ -126,7 +126,7 @@ export function AgendaView({
                       style={{
                         fontSize: 13.5,
                         fontWeight: 600,
-                        color: "#1A1917",
+                        color: "var(--text-primary)",
                         marginBottom: 2,
                       }}
                     >
@@ -136,7 +136,7 @@ export function AgendaView({
                       <div
                         style={{
                           fontSize: 12,
-                          color: "#9B9691",
+                          color: "var(--text-muted)",
                           fontFamily: "var(--font-body, 'Inter', system-ui, sans-serif)",
                         }}
                       >
@@ -147,7 +147,7 @@ export function AgendaView({
                       <div
                         style={{
                           fontSize: 12,
-                          color: "#9B9691",
+                          color: "var(--text-muted)",
                           fontFamily: "var(--font-body, 'Inter', system-ui, sans-serif)",
                           whiteSpace: "nowrap",
                           overflow: "hidden",

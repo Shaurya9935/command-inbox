@@ -56,7 +56,7 @@ export function CalendarView({
           alignItems: "center",
           gap: 6,
           fontSize: 12.5,
-          color: "#9B9691",
+          color: "var(--text-muted)",
           background: "none",
           border: "none",
           cursor: "pointer",
@@ -65,8 +65,8 @@ export function CalendarView({
           fontFamily: "var(--font-ui, 'DM Sans', system-ui, sans-serif)",
           transition: "color 0.12s",
         }}
-        onMouseEnter={(e) => (e.currentTarget.style.color = "#5549C0")}
-        onMouseLeave={(e) => (e.currentTarget.style.color = "#9B9691")}
+        onMouseEnter={(e) => (e.currentTarget.style.color = "var(--accent-text)")}
+        onMouseLeave={(e) => (e.currentTarget.style.color = "var(--text-muted)")}
       >
         <BackIcon />
         <span>Back to workspace</span>
@@ -77,7 +77,7 @@ export function CalendarView({
         style={{
           fontSize: 20,
           fontWeight: 600,
-          color: "#1A1917",
+          color: "var(--text-primary)",
           letterSpacing: "-0.03em",
           margin: "0 0 6px",
           fontFamily: "var(--font-ui, 'DM Sans', system-ui, sans-serif)",
@@ -88,7 +88,7 @@ export function CalendarView({
       <div
         style={{
           fontSize: 12.5,
-          color: "#9B9691",
+          color: "var(--text-muted)",
           fontFamily: "var(--font-mono, 'JetBrains Mono', monospace)",
           marginBottom: 32,
         }}
@@ -115,7 +115,7 @@ export function CalendarView({
                 borderRadius: 10,
                 background: ev.isNext ? c.bg : "transparent",
                 border: ev.isNext
-                  ? `1px solid ${c.line}30`
+                  ? `1px solid ${c.border ?? "var(--border-hairline)"}`
                   : "1px solid transparent",
                 transition: "background 0.15s",
                 cursor: "pointer",
@@ -123,7 +123,7 @@ export function CalendarView({
               onMouseEnter={(e) => {
                 if (!ev.isNext) {
                   (e.currentTarget as HTMLDivElement).style.background =
-                    "#F5F2EC";
+                    "var(--hover)";
                 }
               }}
               onMouseLeave={(e) => {
@@ -137,7 +137,7 @@ export function CalendarView({
                 style={{
                   fontSize: 12,
                   fontFamily: "var(--font-mono, 'JetBrains Mono', monospace)",
-                  color: ev.isNext ? c.text : "#9B9691",
+                  color: ev.isNext ? c.text : "var(--text-muted)",
                   fontWeight: ev.isNext ? 500 : 400,
                   width: 38,
                   flexShrink: 0,
@@ -150,7 +150,7 @@ export function CalendarView({
                 style={{
                   width: 3,
                   borderRadius: 4,
-                  background: ev.isNext ? c.line : "#E4E0D8",
+                  background: ev.isNext ? c.line : "var(--border-strong)",
                   flexShrink: 0,
                   alignSelf: "stretch",
                 }}
@@ -160,7 +160,7 @@ export function CalendarView({
                   style={{
                     fontSize: 14,
                     fontWeight: ev.isNext ? 600 : 400,
-                    color: ev.isNext ? c.text : "#1A1917",
+                    color: ev.isNext ? c.text : "var(--text-primary)",
                     fontFamily: "var(--font-ui, 'DM Sans', system-ui, sans-serif)",
                   }}
                 >
@@ -170,7 +170,7 @@ export function CalendarView({
                   <div
                     style={{
                       fontSize: 12,
-                      color: "#9B9691",
+                      color: "var(--text-muted)",
                       fontFamily: "var(--font-body, 'Inter', system-ui, sans-serif)",
                       marginTop: 2,
                     }}

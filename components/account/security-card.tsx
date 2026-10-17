@@ -111,11 +111,11 @@ export function SecurityCard({ hasPassword, providers }: SecurityCardProps) {
     <div
       id="security"
       style={{
-        background: "#FFFFFF",
+        background: "var(--surface-card)",
         borderRadius: 14,
-        border: "1px solid #E8E4DC",
+        border: "1px solid var(--border-hairline)",
         padding: "24px 28px",
-        boxShadow: "0 1px 3px rgba(0,0,0,0.03)",
+        boxShadow: "0 1px 3px var(--shadow-color)",
         scrollMarginTop: 80,
       }}
     >
@@ -126,7 +126,7 @@ export function SecurityCard({ hasPassword, providers }: SecurityCardProps) {
             margin: 0,
             fontSize: 18,
             fontWeight: 600,
-            color: "#1A1917",
+            color: "var(--text-primary)",
             letterSpacing: "-0.01em",
           }}
         >
@@ -136,7 +136,7 @@ export function SecurityCard({ hasPassword, providers }: SecurityCardProps) {
           style={{
             margin: "4px 0 0",
             fontSize: 13,
-            color: "#6B6762",
+            color: "var(--text-secondary)",
           }}
         >
           Manage your password, login methods, and active browser sessions
@@ -153,7 +153,7 @@ export function SecurityCard({ hasPassword, providers }: SecurityCardProps) {
                   display: "block",
                   fontSize: 12.5,
                   fontWeight: 600,
-                  color: "#1A1917",
+                  color: "var(--text-primary)",
                   marginBottom: 6,
                 }}
               >
@@ -170,15 +170,15 @@ export function SecurityCard({ hasPassword, providers }: SecurityCardProps) {
                   width: "100%",
                   padding: "9px 12px",
                   borderRadius: 8,
-                  border: "1px solid #DED8CE",
+                  border: "1px solid var(--border-strong)",
                   fontSize: 13.5,
-                  color: "#1A1917",
+                  color: "var(--text-primary)",
                   outline: "none",
                   boxSizing: "border-box",
-                  background: "#FFFFFF",
+                  background: "var(--surface-card)",
                 }}
-                onFocus={(e) => (e.target.style.borderColor = "#5549C0")}
-                onBlur={(e) => (e.target.style.borderColor = "#DED8CE")}
+                onFocus={(e) => (e.target.style.borderColor = "var(--accent-text)")}
+                onBlur={(e) => (e.target.style.borderColor = "var(--border-strong)")}
               />
             </div>
 
@@ -188,7 +188,7 @@ export function SecurityCard({ hasPassword, providers }: SecurityCardProps) {
                   display: "block",
                   fontSize: 12.5,
                   fontWeight: 600,
-                  color: "#1A1917",
+                  color: "var(--text-primary)",
                   marginBottom: 6,
                 }}
               >
@@ -205,15 +205,15 @@ export function SecurityCard({ hasPassword, providers }: SecurityCardProps) {
                   width: "100%",
                   padding: "9px 12px",
                   borderRadius: 8,
-                  border: "1px solid #DED8CE",
+                  border: "1px solid var(--border-strong)",
                   fontSize: 13.5,
-                  color: "#1A1917",
+                  color: "var(--text-primary)",
                   outline: "none",
                   boxSizing: "border-box",
-                  background: "#FFFFFF",
+                  background: "var(--surface-card)",
                 }}
-                onFocus={(e) => (e.target.style.borderColor = "#5549C0")}
-                onBlur={(e) => (e.target.style.borderColor = "#DED8CE")}
+                onFocus={(e) => (e.target.style.borderColor = "var(--accent-text)")}
+                onBlur={(e) => (e.target.style.borderColor = "var(--border-strong)")}
               />
             </div>
 
@@ -223,7 +223,7 @@ export function SecurityCard({ hasPassword, providers }: SecurityCardProps) {
                   display: "block",
                   fontSize: 12.5,
                   fontWeight: 600,
-                  color: "#1A1917",
+                  color: "var(--text-primary)",
                   marginBottom: 6,
                 }}
               >
@@ -240,15 +240,15 @@ export function SecurityCard({ hasPassword, providers }: SecurityCardProps) {
                   width: "100%",
                   padding: "9px 12px",
                   borderRadius: 8,
-                  border: "1px solid #DED8CE",
+                  border: "1px solid var(--border-strong)",
                   fontSize: 13.5,
-                  color: "#1A1917",
+                  color: "var(--text-primary)",
                   outline: "none",
                   boxSizing: "border-box",
-                  background: "#FFFFFF",
+                  background: "var(--surface-card)",
                 }}
-                onFocus={(e) => (e.target.style.borderColor = "#5549C0")}
-                onBlur={(e) => (e.target.style.borderColor = "#DED8CE")}
+                onFocus={(e) => (e.target.style.borderColor = "var(--accent-text)")}
+                onBlur={(e) => (e.target.style.borderColor = "var(--border-strong)")}
               />
             </div>
 
@@ -264,15 +264,15 @@ export function SecurityCard({ hasPassword, providers }: SecurityCardProps) {
                 style={{
                   padding: "9px 18px",
                   borderRadius: 8,
-                  border: "1px solid #1A1917",
+                  border: "1px solid var(--border-hairline)",
                   background:
                     isChangingPassword || !currentPassword || !newPassword
-                      ? "#EAE5DB"
-                      : "#1A1917",
+                      ? "var(--hover-subtle)"
+                      : "var(--text-primary)",
                   color:
                     isChangingPassword || !currentPassword || !newPassword
-                      ? "#858079"
-                      : "#FDFCF8",
+                      ? "var(--text-muted)"
+                      : "var(--bg-page)",
                   fontSize: 13,
                   fontWeight: 500,
                   cursor:
@@ -290,7 +290,7 @@ export function SecurityCard({ hasPassword, providers }: SecurityCardProps) {
                 style={{
                   background: "transparent",
                   border: "none",
-                  color: "#5549C0",
+                  color: "var(--accent-text)",
                   fontSize: 12.5,
                   fontWeight: 500,
                   cursor: "pointer",
@@ -306,7 +306,7 @@ export function SecurityCard({ hasPassword, providers }: SecurityCardProps) {
                 style={{
                   marginTop: 6,
                   fontSize: 12.5,
-                  color: passwordStatus.type === "success" ? "#16A34A" : "#DC2626",
+                  color: passwordStatus.type === "success" ? "var(--success)" : "var(--danger)",
                   fontWeight: 500,
                 }}
               >
@@ -320,8 +320,8 @@ export function SecurityCard({ hasPassword, providers }: SecurityCardProps) {
           style={{
             padding: "16px 18px",
             borderRadius: 10,
-            background: "#F5F2EC",
-            border: "1px solid #E5E0D8",
+            background: "var(--surface-raised)",
+            border: "1px solid var(--border-hairline)",
             marginBottom: 28,
             maxWidth: 550,
           }}
@@ -329,10 +329,10 @@ export function SecurityCard({ hasPassword, providers }: SecurityCardProps) {
           <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
             <span style={{ fontSize: 18 }}>🔐</span>
             <div>
-              <div style={{ fontSize: 13.5, fontWeight: 600, color: "#1A1917" }}>
+              <div style={{ fontSize: 13.5, fontWeight: 600, color: "var(--text-primary)" }}>
                 You sign in with {providerNames || "Google"}
               </div>
-              <div style={{ fontSize: 12.5, color: "#6B655D", marginTop: 2 }}>
+              <div style={{ fontSize: 12.5, color: "var(--text-secondary)", marginTop: 2 }}>
                 Your account is authenticated via your social provider. You do not need a separate password.
               </div>
             </div>
@@ -346,9 +346,9 @@ export function SecurityCard({ hasPassword, providers }: SecurityCardProps) {
           style={{
             padding: "12px 16px",
             borderRadius: 8,
-            background: "#FEF3C7",
-            border: "1px solid #FCD34D",
-            color: "#92400E",
+            background: "var(--warning-tint)",
+            border: "1px solid var(--warning-border)",
+            color: "var(--warning)",
             fontSize: 12.5,
             marginBottom: 24,
             maxWidth: 550,
@@ -372,7 +372,7 @@ export function SecurityCard({ hasPassword, providers }: SecurityCardProps) {
               background: "transparent",
               border: "none",
               cursor: "pointer",
-              color: "#92400E",
+              color: "var(--warning)",
               fontWeight: 600,
               fontSize: 14,
             }}
@@ -382,7 +382,7 @@ export function SecurityCard({ hasPassword, providers }: SecurityCardProps) {
         </div>
       )}
 
-      <div style={{ height: 1, background: "#F0ECE4", marginBottom: 24 }} />
+      <div style={{ height: 1, background: "var(--border-hairline)", marginBottom: 24 }} />
 
       {/* Session Management */}
       <div>
@@ -391,7 +391,7 @@ export function SecurityCard({ hasPassword, providers }: SecurityCardProps) {
             margin: "0 0 4px",
             fontSize: 14.5,
             fontWeight: 600,
-            color: "#1A1917",
+            color: "var(--text-primary)",
           }}
         >
           Active Sessions
@@ -400,7 +400,7 @@ export function SecurityCard({ hasPassword, providers }: SecurityCardProps) {
           style={{
             margin: "0 0 14px",
             fontSize: 12.5,
-            color: "#6B6762",
+            color: "var(--text-secondary)",
           }}
         >
           Signed in on another browser or device? You can sign out of all other sessions with one click.
@@ -413,9 +413,9 @@ export function SecurityCard({ hasPassword, providers }: SecurityCardProps) {
           style={{
             padding: "8px 16px",
             borderRadius: 7,
-            border: "1px solid #DED8CE",
-            background: "#FBF9F5",
-            color: "#1A1917",
+            border: "1px solid var(--border-hairline)",
+            background: "var(--surface-raised)",
+            color: "var(--text-primary)",
             fontSize: 13,
             fontWeight: 500,
             cursor: isRevokingSessions ? "not-allowed" : "pointer",
@@ -432,7 +432,7 @@ export function SecurityCard({ hasPassword, providers }: SecurityCardProps) {
             style={{
               marginTop: 10,
               fontSize: 12.5,
-              color: sessionsStatus.type === "success" ? "#16A34A" : "#DC2626",
+              color: sessionsStatus.type === "success" ? "var(--success)" : "var(--danger)",
               fontWeight: 500,
             }}
           >

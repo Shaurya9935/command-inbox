@@ -12,7 +12,7 @@ export function SidebarGroup({
 }) {
   return (
     <div>
-      <p className="mt-5 mb-2 font-mono text-[10.5px] tracking-[0.14em] text-[rgba(22,21,26,0.4)] uppercase">
+      <p className="mt-5 mb-2 font-mono text-[10.5px] tracking-[0.14em] text-[var(--text-muted)] uppercase">
         {label}
       </p>
       <div className="grid gap-1">
@@ -22,7 +22,7 @@ export function SidebarGroup({
             className={`flex h-9 items-center gap-2.5 whitespace-nowrap rounded-[10px] px-2.5 text-[14px] transition-colors duration-200 ease-out ${
               activeItem === item
                 ? "bg-tint font-medium text-accent"
-                : "text-[rgba(22,21,26,0.65)] hover:bg-[#F3F1EA]"
+                : "text-[var(--text-secondary)] hover:bg-[var(--hover)]"
             }`}
           >
             <SidebarIcon item={item} />
@@ -36,7 +36,7 @@ export function SidebarGroup({
 
 export function Sidebar({ activeItem = "Inbox" }: { activeItem?: SidebarItem }) {
   return (
-    <aside className="hidden h-full w-[240px] shrink-0 flex-col border-r border-line bg-[#FBFAF7] p-4 sm:flex">
+    <aside className="hidden h-full w-[240px] shrink-0 flex-col border-r border-line bg-[var(--surface-raised)] p-4 sm:flex">
       <div className="flex h-6 items-center gap-2.5 whitespace-nowrap">
         <span className="grid size-6 shrink-0 place-items-center rounded-md bg-accent text-[12px] font-semibold text-white">
           &gt;

@@ -98,7 +98,7 @@ export function NewEventForm({ onClose, onCreateEvent, initialDate }: NewEventFo
         style={{
           position: "fixed",
           inset: 0,
-          background: "rgba(26,25,23,0.3)",
+          background: "var(--overlay)",
           backdropFilter: "blur(2px)",
           zIndex: 50,
         }}
@@ -113,10 +113,10 @@ export function NewEventForm({ onClose, onCreateEvent, initialDate }: NewEventFo
           transform: "translate(-50%, -50%)",
           width: 480,
           maxWidth: "92vw",
-          background: "#FFFFFF",
-          border: "1px solid #E4E0D8",
+          background: "var(--surface-card)",
+          border: "1px solid var(--border-hairline)",
           borderRadius: 16,
-          boxShadow: "0 24px 64px rgba(0,0,0,0.14)",
+          boxShadow: "0 24px 64px var(--shadow-color)",
           zIndex: 51,
           animation: "popIn 0.18s ease",
           fontFamily: "var(--font-ui, 'DM Sans', system-ui, sans-serif)",
@@ -129,14 +129,14 @@ export function NewEventForm({ onClose, onCreateEvent, initialDate }: NewEventFo
             alignItems: "center",
             justifyContent: "space-between",
             padding: "20px 24px 16px",
-            borderBottom: "1px solid #F0EDE7",
+            borderBottom: "1px solid var(--border-hairline)",
           }}
         >
           <span
             style={{
               fontSize: 15,
               fontWeight: 600,
-              color: "#1A1917",
+              color: "var(--text-primary)",
               letterSpacing: "-0.02em",
             }}
           >
@@ -149,17 +149,17 @@ export function NewEventForm({ onClose, onCreateEvent, initialDate }: NewEventFo
               width: 28,
               height: 28,
               borderRadius: 7,
-              border: "1px solid #E4E0D8",
+              border: "1px solid var(--border-hairline)",
               background: "transparent",
               cursor: "pointer",
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
-              color: "#9B9691",
+              color: "var(--text-muted)",
               fontSize: 18,
               lineHeight: 1,
             }}
-            onMouseEnter={(e) => (e.currentTarget.style.background = "#F5F2EC")}
+            onMouseEnter={(e) => (e.currentTarget.style.background = "var(--hover-subtle)")}
             onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
           >
             ×
@@ -176,19 +176,19 @@ export function NewEventForm({ onClose, onCreateEvent, initialDate }: NewEventFo
             autoFocus
             style={{
               border: "none",
-              borderBottom: "1.5px solid #E4E0D8",
+              borderBottom: "1.5px solid var(--border-hairline)",
               background: "transparent",
               outline: "none",
               fontSize: 17,
               fontFamily: "var(--font-ui, 'DM Sans', system-ui, sans-serif)",
               fontWeight: 500,
-              color: "#1A1917",
+              color: "var(--text-primary)",
               padding: "4px 0 8px",
               width: "100%",
               transition: "border-color 0.15s",
             }}
-            onFocus={(e) => (e.currentTarget.style.borderColor = "#5549C0")}
-            onBlur={(e) => (e.currentTarget.style.borderColor = "#E4E0D8")}
+            onFocus={(e) => (e.currentTarget.style.borderColor = "var(--accent-text)")}
+            onBlur={(e) => (e.currentTarget.style.borderColor = "var(--border-hairline)")}
           />
 
           {/* Date & time row */}
@@ -199,7 +199,7 @@ export function NewEventForm({ onClose, onCreateEvent, initialDate }: NewEventFo
                   fontSize: 10,
                   fontWeight: 600,
                   letterSpacing: "0.08em",
-                  color: "#B8B3AB",
+                  color: "var(--text-muted)",
                   textTransform: "uppercase",
                   marginBottom: 5,
                 }}
@@ -212,17 +212,17 @@ export function NewEventForm({ onClose, onCreateEvent, initialDate }: NewEventFo
                 placeholder={initialDateFormatted || "e.g. Oct 2, 2026"}
                 style={{
                   width: "100%",
-                  border: "1px solid #E4E0D8",
+                  border: "1px solid var(--border-hairline)",
                   borderRadius: 8,
-                  background: "#FDFCF9",
+                  background: "var(--bg-panel)",
                   outline: "none",
                   fontSize: 12.5,
-                  color: "#3D3C3A",
+                  color: "var(--text-primary)",
                   padding: "7px 10px",
                   boxSizing: "border-box",
                 }}
-                onFocus={(e) => (e.currentTarget.style.borderColor = "#5549C0")}
-                onBlur={(e) => (e.currentTarget.style.borderColor = "#E4E0D8")}
+                onFocus={(e) => (e.currentTarget.style.borderColor = "var(--accent-text)")}
+                onBlur={(e) => (e.currentTarget.style.borderColor = "var(--border-hairline)")}
               />
             </div>
 
@@ -232,7 +232,7 @@ export function NewEventForm({ onClose, onCreateEvent, initialDate }: NewEventFo
                   fontSize: 10,
                   fontWeight: 600,
                   letterSpacing: "0.08em",
-                  color: "#B8B3AB",
+                  color: "var(--text-muted)",
                   textTransform: "uppercase",
                   marginBottom: 5,
                 }}
@@ -245,17 +245,17 @@ export function NewEventForm({ onClose, onCreateEvent, initialDate }: NewEventFo
                 placeholder="9:00 AM"
                 style={{
                   width: "100%",
-                  border: "1px solid #E4E0D8",
+                  border: "1px solid var(--border-hairline)",
                   borderRadius: 8,
-                  background: "#FDFCF9",
+                  background: "var(--bg-panel)",
                   outline: "none",
                   fontSize: 12.5,
-                  color: "#3D3C3A",
+                  color: "var(--text-primary)",
                   padding: "7px 10px",
                   boxSizing: "border-box",
                 }}
-                onFocus={(e) => (e.currentTarget.style.borderColor = "#5549C0")}
-                onBlur={(e) => (e.currentTarget.style.borderColor = "#E4E0D8")}
+                onFocus={(e) => (e.currentTarget.style.borderColor = "var(--accent-text)")}
+                onBlur={(e) => (e.currentTarget.style.borderColor = "var(--border-hairline)")}
               />
             </div>
 
@@ -265,7 +265,7 @@ export function NewEventForm({ onClose, onCreateEvent, initialDate }: NewEventFo
                   fontSize: 10,
                   fontWeight: 600,
                   letterSpacing: "0.08em",
-                  color: "#B8B3AB",
+                  color: "var(--text-muted)",
                   textTransform: "uppercase",
                   marginBottom: 5,
                 }}
@@ -278,17 +278,17 @@ export function NewEventForm({ onClose, onCreateEvent, initialDate }: NewEventFo
                 placeholder="10:00 AM"
                 style={{
                   width: "100%",
-                  border: "1px solid #E4E0D8",
+                  border: "1px solid var(--border-hairline)",
                   borderRadius: 8,
-                  background: "#FDFCF9",
+                  background: "var(--bg-panel)",
                   outline: "none",
                   fontSize: 12.5,
-                  color: "#3D3C3A",
+                  color: "var(--text-primary)",
                   padding: "7px 10px",
                   boxSizing: "border-box",
                 }}
-                onFocus={(e) => (e.currentTarget.style.borderColor = "#5549C0")}
-                onBlur={(e) => (e.currentTarget.style.borderColor = "#E4E0D8")}
+                onFocus={(e) => (e.currentTarget.style.borderColor = "var(--accent-text)")}
+                onBlur={(e) => (e.currentTarget.style.borderColor = "var(--border-hairline)")}
               />
             </div>
           </div>
@@ -300,7 +300,7 @@ export function NewEventForm({ onClose, onCreateEvent, initialDate }: NewEventFo
                 fontSize: 10,
                 fontWeight: 600,
                 letterSpacing: "0.08em",
-                color: "#B8B3AB",
+                color: "var(--text-muted)",
                 textTransform: "uppercase",
                 marginBottom: 5,
               }}
@@ -313,17 +313,17 @@ export function NewEventForm({ onClose, onCreateEvent, initialDate }: NewEventFo
               placeholder="Work"
               style={{
                 width: "100%",
-                border: "1px solid #E4E0D8",
+                border: "1px solid var(--border-hairline)",
                 borderRadius: 8,
-                background: "#FDFCF9",
+                background: "var(--bg-panel)",
                 outline: "none",
                 fontSize: 12.5,
-                color: "#3D3C3A",
+                color: "var(--text-primary)",
                 padding: "7px 10px",
                 boxSizing: "border-box",
               }}
-              onFocus={(e) => (e.currentTarget.style.borderColor = "#5549C0")}
-              onBlur={(e) => (e.currentTarget.style.borderColor = "#E4E0D8")}
+              onFocus={(e) => (e.currentTarget.style.borderColor = "var(--accent-text)")}
+              onBlur={(e) => (e.currentTarget.style.borderColor = "var(--border-hairline)")}
             />
           </div>
 
@@ -333,7 +333,7 @@ export function NewEventForm({ onClose, onCreateEvent, initialDate }: NewEventFo
                 fontSize: 10,
                 fontWeight: 600,
                 letterSpacing: "0.08em",
-                color: "#B8B3AB",
+                color: "var(--text-muted)",
                 textTransform: "uppercase",
                 marginBottom: 5,
               }}
@@ -346,17 +346,17 @@ export function NewEventForm({ onClose, onCreateEvent, initialDate }: NewEventFo
               placeholder="Add location or meeting link"
               style={{
                 width: "100%",
-                border: "1px solid #E4E0D8",
+                border: "1px solid var(--border-hairline)",
                 borderRadius: 8,
-                background: "#FDFCF9",
+                background: "var(--bg-panel)",
                 outline: "none",
                 fontSize: 12.5,
-                color: "#3D3C3A",
+                color: "var(--text-primary)",
                 padding: "7px 10px",
                 boxSizing: "border-box",
               }}
-              onFocus={(e) => (e.currentTarget.style.borderColor = "#5549C0")}
-              onBlur={(e) => (e.currentTarget.style.borderColor = "#E4E0D8")}
+              onFocus={(e) => (e.currentTarget.style.borderColor = "var(--accent-text)")}
+              onBlur={(e) => (e.currentTarget.style.borderColor = "var(--border-hairline)")}
             />
           </div>
 
@@ -366,7 +366,7 @@ export function NewEventForm({ onClose, onCreateEvent, initialDate }: NewEventFo
                 fontSize: 10,
                 fontWeight: 600,
                 letterSpacing: "0.08em",
-                color: "#B8B3AB",
+                color: "var(--text-muted)",
                 textTransform: "uppercase",
                 marginBottom: 5,
               }}
@@ -379,17 +379,17 @@ export function NewEventForm({ onClose, onCreateEvent, initialDate }: NewEventFo
               placeholder="Add guests separated by comma"
               style={{
                 width: "100%",
-                border: "1px solid #E4E0D8",
+                border: "1px solid var(--border-hairline)",
                 borderRadius: 8,
-                background: "#FDFCF9",
+                background: "var(--bg-panel)",
                 outline: "none",
                 fontSize: 12.5,
-                color: "#3D3C3A",
+                color: "var(--text-primary)",
                 padding: "7px 10px",
                 boxSizing: "border-box",
               }}
-              onFocus={(e) => (e.currentTarget.style.borderColor = "#5549C0")}
-              onBlur={(e) => (e.currentTarget.style.borderColor = "#E4E0D8")}
+              onFocus={(e) => (e.currentTarget.style.borderColor = "var(--accent-text)")}
+              onBlur={(e) => (e.currentTarget.style.borderColor = "var(--border-hairline)")}
             />
           </div>
 
@@ -400,7 +400,7 @@ export function NewEventForm({ onClose, onCreateEvent, initialDate }: NewEventFo
                 fontSize: 10,
                 fontWeight: 600,
                 letterSpacing: "0.08em",
-                color: "#B8B3AB",
+                color: "var(--text-muted)",
                 textTransform: "uppercase",
                 marginBottom: 5,
               }}
@@ -414,18 +414,18 @@ export function NewEventForm({ onClose, onCreateEvent, initialDate }: NewEventFo
               placeholder="Add description"
               style={{
                 width: "100%",
-                border: "1px solid #E4E0D8",
+                border: "1px solid var(--border-hairline)",
                 borderRadius: 8,
-                background: "#FDFCF9",
+                background: "var(--bg-panel)",
                 outline: "none",
                 resize: "none",
                 fontSize: 12.5,
-                color: "#3D3C3A",
+                color: "var(--text-primary)",
                 padding: "7px 10px",
                 boxSizing: "border-box",
               }}
-              onFocus={(e) => (e.currentTarget.style.borderColor = "#5549C0")}
-              onBlur={(e) => (e.currentTarget.style.borderColor = "#E4E0D8")}
+              onFocus={(e) => (e.currentTarget.style.borderColor = "var(--accent-text)")}
+              onBlur={(e) => (e.currentTarget.style.borderColor = "var(--border-hairline)")}
             />
           </div>
 
@@ -436,15 +436,15 @@ export function NewEventForm({ onClose, onCreateEvent, initialDate }: NewEventFo
               onClick={onClose}
               style={{
                 fontSize: 13,
-                color: "#7B7775",
+                color: "var(--text-secondary)",
                 background: "transparent",
-                border: "1px solid #E4E0D8",
+                border: "1px solid var(--border-hairline)",
                 borderRadius: 8,
                 padding: "8px 16px",
                 cursor: "pointer",
                 transition: "background 0.12s",
               }}
-              onMouseEnter={(e) => (e.currentTarget.style.background = "#F5F2EC")}
+              onMouseEnter={(e) => (e.currentTarget.style.background = "var(--hover-subtle)")}
               onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
             >
               Cancel
@@ -455,8 +455,8 @@ export function NewEventForm({ onClose, onCreateEvent, initialDate }: NewEventFo
               style={{
                 fontSize: 13,
                 fontWeight: 500,
-                color: "#FFF",
-                background: title.trim() ? "#5549C0" : "#C4BFF0",
+                color: "var(--on-accent)",
+                background: title.trim() ? "var(--accent-solid)" : "var(--accent-border)",
                 border: "none",
                 borderRadius: 8,
                 padding: "8px 20px",
